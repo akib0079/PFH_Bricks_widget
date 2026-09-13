@@ -117,11 +117,6 @@ class PFH_Element_Recent extends PFH_Element_Products {
 	 * The deferred render
 	 * ------------------------------------------------------------------ */
 
-	public static function init() {
-		add_action( 'wp_ajax_pfh_recent', [ __CLASS__, 'ajax' ] );
-		add_action( 'wp_ajax_nopriv_pfh_recent', [ __CLASS__, 'ajax' ] );
-	}
-
 	/**
 	 * Render one deferred slider for the visitor asking for it.
 	 */

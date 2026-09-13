@@ -582,3 +582,38 @@ the release build excludes — its ~372K estimate against a real 350K zip is
 close and deliberately conservative. The path match needed a fix to get there:
 the stored paths are relative, so testing for `/assets/img/` never matched and
 every image was still being counted.
+
+## Round 16 — a white screen, and the blind spot that let it ship
+
+v1.25.0 took a site down completely. Every request, wp-admin included:
+
+```
+Fatal error: Uncaught Error: Class "Bricks\Element" not found
+```
+
+**Bricks is a theme.** Themes load at `after_setup_theme`, long after
+`plugins_loaded`. Wiring the recently-viewed AJAX handler, I required its
+element file at boot — and an element extending `\Bricks\Element` cannot even
+be *parsed* before the theme exists. Not a degraded feature: a fatal on every
+page, with no way back into the admin to deactivate it.
+
+The archive had done this correctly all along — required inside its callback,
+behind `class_exists( '\Bricks\Element' )`. I knew the rule, then broke it two
+rounds later. The action is now registered at boot (which costs nothing) and
+the class is loaded when the action fires, by which time the theme is up.
+
+### Why no suite caught it
+
+`mu-bricks-stub.php` defines `\Bricks\Element` — and mu-plugins load *before*
+plugins. So in this testbed the class always existed by the time the plugin
+booted, and the one ordering that matters was never exercised. Every suite
+passed on a build that could not load on a real site.
+
+`dev/test-boot-without-bricks.php` closes it. It runs in a **bare PHP process
+with no stub at all**, includes every boot file for real, and fails if PHP
+cannot get through them. It also checks statically that no element is required
+at boot and that every element require sits behind a Bricks guard.
+
+Verified both ways: it exits 1 against the v1.25.1 tree that broke the site,
+naming the two unguarded requires, and passes against the fix. Run it before
+any release — it is the only check here that sees the real load order.

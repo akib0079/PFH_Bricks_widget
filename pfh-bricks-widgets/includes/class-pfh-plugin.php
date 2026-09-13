@@ -145,13 +145,19 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Archive::init();
 
 		/*
-		 * The recently-viewed slider answers its own AJAX request, and the
-		 * element file is only loaded when Bricks registers elements — which
-		 * does not happen on admin-ajax. So it is required here.
+		 * The recently-viewed slider answers its own AJAX request, and its
+		 * element file is not loaded on admin-ajax because Bricks only
+		 * registers elements on the front end. So the action is registered
+		 * here and the class is loaded when the action actually fires.
+		 *
+		 * Loading it here instead is what took a site down: Bricks is a
+		 * theme, themes load after plugins, and an element extending
+		 * \Bricks\Element cannot even be parsed at plugins_loaded. The
+		 * result was "Class Bricks\Element not found" on every request,
+		 * wp-admin included — a white screen with no way back in.
 		 */
-		require_once PFH_WIDGETS_DIR . 'elements/class-pfh-element-products.php';
-		require_once PFH_WIDGETS_DIR . 'elements/class-pfh-element-recent.php';
-		PFH_Element_Recent::init();
+		add_action( 'wp_ajax_pfh_recent', [ __CLASS__, 'recent_ajax' ] );
+		add_action( 'wp_ajax_nopriv_pfh_recent', [ __CLASS__, 'recent_ajax' ] );
 
 		// Bricks only loads an element file when it registers the element, and
 		// an AJAX request registers nothing. Pull it in on demand instead.
@@ -199,6 +205,25 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Badge::init();
 		PFH_Widgets_Documents::init();
 		PFH_Widgets_Diagnostics::init();
+	}
+
+	/**
+	 * Render one deferred recently-viewed slider.
+	 *
+	 * The element is required here rather than at boot, because by the time
+	 * an AJAX action runs the theme has loaded and \Bricks\Element exists.
+	 */
+	public static function recent_ajax() {
+		if ( ! class_exists( '\Bricks\Element' ) ) {
+			wp_send_json_error( [ 'message' => __( 'This needs the Bricks theme.', 'pfh-widgets' ) ], 500 );
+		}
+
+		if ( ! class_exists( 'PFH_Element_Recent' ) ) {
+			require_once PFH_WIDGETS_DIR . 'elements/class-pfh-element-products.php';
+			require_once PFH_WIDGETS_DIR . 'elements/class-pfh-element-recent.php';
+		}
+
+		PFH_Element_Recent::ajax();
 	}
 
 	/**
