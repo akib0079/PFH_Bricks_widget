@@ -548,3 +548,37 @@ Three things were wrong with the payload, one of them self-inflicted:
 naming the heaviest files when it does — verified by planting a 400K file and
 watching it go red. A plugin that cannot be uploaded is not a plugin, and
 that failure had no other way of being caught before it reached the client.
+
+## Round 15 — the artwork moved out of the plugin
+
+Following on from the upload failure: the six fallback images were 426K of a
+770K package, for artwork that exists only until the real ACF fields are
+connected. They now live in this repository and are served over jsDelivr, and
+the plugin carries none of them.
+
+**350K, down from 1,097,005 bytes — 67% smaller, with 674K of headroom.**
+
+`PFH_Widgets_Assets::img()` decides where each one comes from, in order:
+
+1. **A local copy in `assets/img/`**, if one is there. A site can self-host
+   any or all of them by dropping the file in, with no setting to find.
+2. **The pinned tag over jsDelivr.** A tag, not `main`, so the CDN can cache
+   for ever and pushing to the branch can never change what a live site is
+   already showing. `IMAGE_REF` is raised when the artwork changes.
+3. **Whatever `pfh_widgets_image_base` returns**, for a site that would
+   rather serve them from its own media library.
+
+The trade being made: the fallbacks now depend on a public repository staying
+public. They are fallbacks, the filter exists, and a local copy always wins —
+but it is a real external dependency and worth saying out loud.
+
+`test-images.php` covers all three resolution paths, a base with and without a
+trailing slash, that the ref is a tag rather than a branch, and that no
+element emits a plugin-local path any more. The six URLs were also fetched
+from jsDelivr and checked byte-for-byte against the files.
+
+`audit.php` discounts `assets/img/` from its size estimate, since that is what
+the release build excludes — its ~372K estimate against a real 350K zip is
+close and deliberately conservative. The path match needed a fix to get there:
+the stored paths are relative, so testing for `/assets/img/` never matched and
+every image was still being counted.

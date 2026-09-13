@@ -261,27 +261,39 @@ foreach ( $it as $file ) {
 arsort( $weight );
 
 /*
- * The zip is roughly two thirds of the tree, because the PHP and CSS compress
- * hard while the images barely move. Estimating from the images alone keeps
- * this honest without having to build an archive to check.
+ * assets/img/ is not packaged — the artwork is served from the project
+ * repository, so it is discounted here for the same reason the release build
+ * excludes it. Everything else is text and compresses to roughly a third.
  */
-$images = 0;
+$packaged = 0;
 foreach ( $weight as $path => $size ) {
-	if ( preg_match( '/\.(png|jpe?g|gif|webp)$/i', $path ) ) {
-		$images += $size;
+	if ( 0 === strpos( ltrim( $path, '/' ), 'assets/img/' ) ) {
+		continue;
 	}
+
+	$packaged += $size;
 }
 
-$estimate = (int) ( $images + ( ( $total - $images ) * 0.28 ) );
+$estimate = (int) ( $packaged * 0.28 );
 $over     = $estimate > $budget;
 
 echo 'packaged size: ~' . round( $estimate / 1024 ) . 'K of a ' . round( $budget / 1024 ) . "K budget"
 	. ( $over ? '   <-- OVER, it may not upload' : '' ) . "\n";
 
 if ( $over ) {
-	echo "  heaviest files:\n";
-	foreach ( array_slice( $weight, 0, 5, true ) as $path => $size ) {
+	echo "  heaviest packaged files:\n";
+	$shown = 0;
+
+	foreach ( $weight as $path => $size ) {
+		if ( 0 === strpos( ltrim( $path, '/' ), 'assets/img/' ) ) {
+			continue;
+		}
+
 		echo '  - ' . $path . ' (' . round( $size / 1024 ) . "K)\n";
+
+		if ( ++$shown >= 5 ) {
+			break;
+		}
 	}
 }
 
