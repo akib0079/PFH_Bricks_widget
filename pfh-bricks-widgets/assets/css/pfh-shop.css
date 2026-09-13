@@ -1,0 +1,651 @@
+/**
+ * Shop template parts: header, collection description, notice band, counter
+ * row and FAQ.
+ *
+ * One stylesheet because these five always appear on the same template; five
+ * separate requests for a few hundred bytes each costs more than it saves.
+ */
+
+/* =====================================================================
+ * Shop header
+ * ================================================================== */
+
+.pfh-shophead {
+	--pfh-sh-max: 1240px;
+	--pfh-sh-pt: 28px;
+	--pfh-sh-pb: 0px;
+	--pfh-sh-gap: 40px;
+	--pfh-sh-title: 46px;
+	--pfh-sh-title-color: #51604f;
+	--pfh-sh-intro-color: #7d887a;
+	--pfh-sh-text-max: 551px;
+	--pfh-sh-crumb-color: #8a9386;
+	--pfh-sh-banner-h: 170px;
+	--pfh-sh-banner-fit: contain;
+
+	display: block;
+	padding-block: var(--pfh-sh-pt) var(--pfh-sh-pb);
+}
+
+.pfh-shophead__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--pfh-sh-gap);
+	max-width: calc(var(--pfh-sh-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	width: 100%;
+}
+
+.pfh-shophead__text {
+	flex: 1 1 auto;
+	min-width: 0;
+	max-width: var(--pfh-sh-text-max);
+}
+
+.pfh-shophead__crumbs ol {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0;
+	margin: 0 0 14px;
+	padding: 0;
+	list-style: none;
+	font-size: 14px;
+	line-height: 22px;
+	color: var(--pfh-sh-crumb-color);
+}
+
+.pfh-shophead__crumbs li { display: inline-flex; align-items: center; }
+
+.pfh-shophead__crumbs a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.pfh-shophead__crumbs a:hover { text-decoration: underline; }
+
+.pfh-shophead__crumbs [aria-current] { color: var(--pfh-sh-title-color); }
+
+.pfh-shophead__sep { padding-inline: 7px; opacity: .7; }
+
+.pfh-shophead__title {
+	margin: 0 0 12px;
+	font-size: var(--pfh-sh-title);
+	line-height: 1.1;
+	font-weight: 600;
+	letter-spacing: -.01em;
+	color: var(--pfh-sh-title-color);
+	text-wrap: balance;
+}
+
+.pfh-shophead__intro {
+	color: var(--pfh-sh-intro-color);
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.pfh-shophead__intro p { margin: 0 0 .6em; }
+.pfh-shophead__intro p:last-child { margin-bottom: 0; }
+
+.pfh-shophead__banner {
+	flex: 0 0 auto;
+	height: var(--pfh-sh-banner-h);
+	max-width: 38%;
+}
+
+.pfh-shophead__banner img {
+	display: block;
+	width: auto;
+	height: 100%;
+	max-width: 100%;
+	object-fit: var(--pfh-sh-banner-fit);
+	object-position: center right;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1023px) {
+	.pfh-shophead__banner { height: calc(var(--pfh-sh-banner-h) * .8); }
+}
+
+@media (max-width: 782px) {
+	/*
+	 * The text column stops being a column once it is the only thing there —
+	 * capping it at 551px on a 390px screen would leave it looking indented.
+	 */
+	.pfh-shophead__text { max-width: none; }
+
+	.pfh-shophead__inner {
+		flex-direction: column-reverse;
+		align-items: flex-start;
+		gap: 20px;
+	}
+
+	.pfh-shophead__banner {
+		width: 100%;
+		max-width: none;
+		height: auto;
+		max-height: var(--pfh-sh-banner-h);
+	}
+
+	.pfh-shophead__banner img {
+		height: auto;
+		max-height: var(--pfh-sh-banner-h);
+		object-position: left center;
+	}
+
+	/* Asked for explicitly: the image earns nothing on a phone. */
+	.pfh-shophead--hide-banner-sm .pfh-shophead__banner {
+		display: none;
+	}
+
+	.pfh-shophead--hide-banner-sm .pfh-shophead__inner {
+		flex-direction: column;
+	}
+}
+
+/* =====================================================================
+ * Collection description
+ * ================================================================== */
+
+.pfh-shopdesc {
+	--pfh-sd-max: 1240px;
+	--pfh-sd-pt: 40px;
+	--pfh-sd-pb: 32px;
+	--pfh-sd-lines: 8;
+	--pfh-sd-size: 14px;
+	--pfh-sd-color: #5d6a59;
+	--pfh-sd-eyebrow: 11px;
+	--pfh-sd-title: 24px;
+	--pfh-sd-title-color: #22301c;
+	--pfh-sd-eye-color: #46523f;
+	--pfh-sd-more: #46523f;
+
+	display: block;
+	padding-block: var(--pfh-sd-pt) var(--pfh-sd-pb);
+}
+
+.pfh-shopdesc__inner {
+	max-width: calc(var(--pfh-sd-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	width: 100%;
+}
+
+.pfh-shopdesc__eyebrow {
+	margin: 0 0 12px;
+	font-size: var(--pfh-sd-eyebrow);
+	font-weight: 500;
+	letter-spacing: -.02em;
+	text-transform: uppercase;
+	color: var(--pfh-sd-eye-color);
+}
+
+.pfh-shopdesc__title {
+	margin: 0 0 12px;
+	font-size: var(--pfh-sd-title, 24px);
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--pfh-sd-title-color, #22301c);
+	text-wrap: balance;
+}
+
+.pfh-shopdesc__body {
+	font-size: var(--pfh-sd-size);
+	line-height: 1.5;
+	color: var(--pfh-sd-color);
+}
+
+.pfh-shopdesc__body p { margin: 0 0 1em; }
+.pfh-shopdesc__body p:last-child { margin-bottom: 0; }
+
+/*
+ * Clamped by default so the collapsed height is right on the very first
+ * paint. The script only ever removes the clamp, never adds it, which is what
+ * stops the section jumping about as the page settles.
+ */
+.pfh-shopdesc.is-clamped .pfh-shopdesc__body {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: var(--pfh-sd-lines);
+	line-clamp: var(--pfh-sd-lines);
+	overflow: hidden;
+}
+
+.pfh-shopdesc.is-open .pfh-shopdesc__body {
+	display: block;
+	overflow: visible;
+	-webkit-line-clamp: unset;
+	line-clamp: unset;
+}
+
+.pfh-shopdesc__more {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 18px;
+	padding: 8px 20px;
+	border: 1px solid currentColor;
+	border-radius: 99px;
+	background: transparent;
+	color: var(--pfh-sd-more);
+	font: inherit;
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background-color .18s ease, color .18s ease;
+}
+
+.pfh-shopdesc__more[hidden] { display: none !important; }
+
+.pfh-shopdesc__more:hover {
+	background: var(--pfh-sd-more);
+	color: #fff;
+}
+
+.pfh-shopdesc__more:focus-visible {
+	outline: 2px solid var(--pfh-sd-more);
+	outline-offset: 2px;
+}
+
+/* =====================================================================
+ * Notice band
+ * ================================================================== */
+
+.pfh-notice {
+	--pfh-nt-max: 1240px;
+	--pfh-nt-pt: 0px;
+	--pfh-nt-pb: 48px;
+	--pfh-nt-bg: #f1f6f4;
+	--pfh-nt-ink: #22301c;
+	--pfh-nt-radius: 14px;
+	--pfh-nt-px: 26px;
+	--pfh-nt-py: 30px;
+	--pfh-nt-title: 20px;
+	--pfh-nt-text: 12px;
+	--pfh-nt-btn-bg: #7caeb2;
+	--pfh-nt-btn-ink: #fff;
+
+	display: block;
+	padding-block: var(--pfh-nt-pt) var(--pfh-nt-pb);
+}
+
+.pfh-notice__inner {
+	max-width: calc(var(--pfh-nt-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	width: 100%;
+}
+
+.pfh-notice__band {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: var(--pfh-nt-py) var(--pfh-nt-px);
+	background: var(--pfh-nt-bg);
+	border-radius: var(--pfh-nt-radius);
+	color: var(--pfh-nt-ink);
+}
+
+.pfh-notice__icon {
+	flex: none;
+	width: 28px;
+	height: 28px;
+	object-fit: contain;
+}
+
+.pfh-notice__lead {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.pfh-notice__copy { flex: 1 1 auto; min-width: 0; }
+
+/* Outfit SemiBold 20 / 100%, straight off the design. */
+.pfh-notice__title {
+	margin: 0;
+	font-size: var(--pfh-nt-title);
+	font-weight: 600;
+	line-height: 1;
+}
+
+/* Outfit Light 12 / 100%. */
+.pfh-notice__text {
+	margin: 9px 0 0;
+	font-size: var(--pfh-nt-text);
+	font-weight: 300;
+	line-height: 1;
+	opacity: 1;
+}
+
+/* 183 x 38 with a 4.72 radius and Outfit Medium 14 / 100%. */
+.pfh-notice__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	flex: none;
+	min-width: 183px;
+	min-height: 38px;
+	padding: 8px 16px;
+	border-radius: var(--pfh-nt-radius);
+	background: var(--pfh-nt-btn-bg);
+	color: var(--pfh-nt-btn-ink);
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1;
+	text-decoration: none;
+	white-space: nowrap;
+	transition: filter .18s ease;
+}
+
+.pfh-notice__btn:hover { filter: brightness(.94); }
+
+.pfh-notice__btn:focus-visible {
+	outline: 2px solid var(--pfh-nt-ink);
+	outline-offset: 2px;
+}
+
+.pfh-notice__arrow { width: 14px; height: 14px; flex: none; }
+
+@media (max-width: 640px) {
+	.pfh-notice__band {
+		flex-wrap: wrap;
+		padding: 22px 18px;
+	}
+
+	.pfh-notice__btn {
+		width: 100%;
+		min-width: 0;
+		justify-content: center;
+	}
+
+	.pfh-notice__lead { width: 100%; }
+}
+
+/* =====================================================================
+ * Counter row
+ * ================================================================== */
+
+.pfh-counter {
+	--pfh-ct-max: 1240px;
+	--pfh-ct-pt: 24px;
+	--pfh-ct-pb: 56px;
+	--pfh-ct-cols: 4;
+	--pfh-ct-value: 36px;
+	--pfh-ct-v-color: #22301c;
+	--pfh-ct-label: 16px;
+	--pfh-ct-sub: 12px;
+	--pfh-ct-s-color: #c6c6c6;
+	--pfh-ct-rule: rgba(148, 175, 143, .38);
+
+	display: block;
+	padding-block: var(--pfh-ct-pt) var(--pfh-ct-pb);
+}
+
+.pfh-counter__inner {
+	max-width: calc(var(--pfh-ct-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	width: 100%;
+}
+
+.pfh-counter__list {
+	display: grid;
+	grid-template-columns: repeat(var(--pfh-ct-cols), minmax(0, 1fr));
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-counter__item {
+	padding: 8px 20px;
+	text-align: center;
+}
+
+.pfh-counter--left .pfh-counter__item { text-align: left; }
+
+.pfh-counter.has-dividers .pfh-counter__item + .pfh-counter__item {
+	border-left: 1px solid var(--pfh-ct-rule);
+}
+
+/*
+ * All three lines sit at a 100% line height, as drawn, so the margins below
+ * are the whole of the vertical rhythm rather than half of it.
+ */
+.pfh-counter__value {
+	margin: 0;
+	font-size: var(--pfh-ct-value);
+	font-weight: 600;
+	line-height: 1;
+	color: var(--pfh-ct-v-color);
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-counter__label {
+	margin: 10px 0 0;
+	font-size: var(--pfh-ct-label);
+	font-weight: 400;
+	line-height: 1;
+	color: var(--pfh-ct-v-color);
+}
+
+.pfh-counter__sub {
+	margin: 8px 0 0;
+	font-size: var(--pfh-ct-sub);
+	font-weight: 400;
+	line-height: 1;
+	color: var(--pfh-ct-s-color);
+}
+
+@media (max-width: 782px) {
+	.pfh-counter__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+	/* The left rule only belongs on items that are not first in their row. */
+	.pfh-counter.has-dividers .pfh-counter__item:nth-child(odd) { border-left: 0; }
+	.pfh-counter.has-dividers .pfh-counter__item:nth-child(n + 3) { border-top: 1px solid var(--pfh-ct-rule); }
+	.pfh-counter__item { padding: 16px 12px; }
+}
+
+/*
+ * 360, not 420: at 375 — the commonest phone — two up keeps the figures
+ * reading as one grid and costs 270px of height against 459px stacked, with
+ * every value still fitting its cell. Below that the columns are too narrow
+ * for a 36px numeral.
+ */
+@media (max-width: 360px) {
+	.pfh-counter__list { grid-template-columns: 1fr; }
+	.pfh-counter.has-dividers .pfh-counter__item { border-left: 0; }
+	.pfh-counter.has-dividers .pfh-counter__item + .pfh-counter__item { border-top: 1px solid var(--pfh-ct-rule); }
+}
+
+/* =====================================================================
+ * FAQ
+ * ================================================================== */
+
+.pfh-faq {
+	--pfh-fq-max: 1240px;
+	--pfh-fq-list: 940px;
+	--pfh-fq-pt: 64px;
+	--pfh-fq-pb: 72px;
+	--pfh-fq-bg: transparent;
+	--pfh-fq-bg-img: none;
+	--pfh-fq-title: 32px;
+	--pfh-fq-q: 16px;
+	--pfh-fq-a: 14px;
+	--pfh-fq-a-lh: 1;
+	--pfh-fq-ink: #19383b;
+	--pfh-fq-row-bg: #fff;
+	--pfh-fq-row-bd: #a5c7ca;
+	--pfh-fq-row-bd-open: #3c868c;
+	--pfh-fq-row-r: 12px;
+	--pfh-fq-row-gap: 12px;
+	--pfh-fq-decor-w: 200px;
+	--pfh-fq-decor-t: 0px;
+
+	position: relative;
+	display: block;
+	padding-block: var(--pfh-fq-pt) var(--pfh-fq-pb);
+	background: var(--pfh-fq-bg);
+	color: var(--pfh-fq-ink);
+	overflow: hidden;
+}
+
+/*
+ * The supplied backdrop carries the olive sprig, so it is painted on a layer
+ * of its own rather than through the background shorthand — that keeps the
+ * Section background colour control working underneath it.
+ */
+.pfh-faq.has-bg-image::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background-image: var(--pfh-fq-bg-img);
+	background-size: cover;
+	background-position: center top;
+	background-repeat: no-repeat;
+	pointer-events: none;
+	z-index: 0;
+}
+
+.pfh-faq__inner {
+	position: relative;
+	z-index: 1;
+	max-width: calc(var(--pfh-fq-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	width: 100%;
+}
+
+.pfh-faq__title {
+	margin: 0 0 28px;
+	font-size: var(--pfh-fq-title);
+	font-weight: 600;
+	line-height: 1.5;
+	text-align: center;
+	text-wrap: balance;
+}
+
+.pfh-faq--left .pfh-faq__title { text-align: left; }
+
+.pfh-faq__list {
+	display: grid;
+	gap: var(--pfh-fq-row-gap);
+	max-width: var(--pfh-fq-list);
+	margin-inline: auto;
+}
+
+.pfh-faq--left .pfh-faq__list { margin-inline: 0; }
+
+.pfh-faq__item {
+	background: var(--pfh-fq-row-bg);
+	border: 1px solid var(--pfh-fq-row-bd);
+	border-radius: var(--pfh-fq-row-r);
+	overflow: hidden;
+	transition: border-color .18s ease;
+}
+
+/* The open question is outlined a shade darker, as drawn. */
+.pfh-faq__item[open] { border-color: var(--pfh-fq-row-bd-open); }
+
+/* Outfit SemiBold 16 / 130%, at 88%. */
+.pfh-faq__q {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	padding: 16px 12px 16px 20px;
+	font-size: var(--pfh-fq-q);
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--pfh-fq-ink);
+	cursor: pointer;
+	list-style: none;
+}
+
+.pfh-faq__q > span:first-child { opacity: .88; }
+
+/* Hide the native disclosure triangle in every engine. */
+.pfh-faq__q::-webkit-details-marker { display: none; }
+.pfh-faq__q::marker { content: ""; }
+
+.pfh-faq__q:focus-visible {
+	outline: 2px solid var(--pfh-fq-ink);
+	outline-offset: -2px;
+}
+
+/*
+ * One slot, two supplied arrows: the downward one while the row is shut, the
+ * upward one while it is open. Sized to the 14x8 they were drawn at.
+ */
+.pfh-faq__chev {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 14px;
+	height: 8px;
+}
+
+.pfh-faq__chev svg {
+	width: 14px;
+	height: 8px;
+}
+
+/*
+ * Both hiding rules carry the svg element too. Written as plain classes they
+ * scored 0,1,0 against the 0,1,1 of `.pfh-faq__chev svg` above, so the
+ * display:block there won and every shut row drew both arrows on top of each
+ * other — which reads as an hourglass, not a chevron.
+ */
+.pfh-faq__chev svg.pfh-faq__chev-up,
+.pfh-faq__item[open] .pfh-faq__chev svg.pfh-faq__chev-down { display: none; }
+
+.pfh-faq__item[open] .pfh-faq__chev svg.pfh-faq__chev-up { display: block; }
+
+/*
+ * 14 / 100% / 0.1px at 70%, as specified. The 100% line height is drawn
+ * against a single-line answer; a longer one sets its own leading through
+ * --pfh-fq-a-lh rather than being cramped.
+ */
+/* 14px between the question and its answer, 16px to the bottom edge. */
+.pfh-faq__item[open] .pfh-faq__q { padding-bottom: 14px; }
+
+.pfh-faq__a {
+	padding: 0 12px 16px 20px;
+	font-size: var(--pfh-fq-a);
+	font-weight: 400;
+	line-height: var(--pfh-fq-a-lh);
+	letter-spacing: .1px;
+	color: var(--pfh-fq-ink);
+	opacity: .7;
+}
+
+.pfh-faq__a p { margin: 0 0 .7em; }
+.pfh-faq__a p:last-child { margin-bottom: 0; }
+
+.pfh-faq__chev { color: #639ea3; }
+
+.pfh-faq__decor {
+	position: absolute;
+	top: var(--pfh-fq-decor-t);
+	width: var(--pfh-fq-decor-w);
+	height: auto;
+	pointer-events: none;
+	user-select: none;
+	z-index: 0;
+}
+
+.pfh-faq__decor--right { right: 0; }
+.pfh-faq__decor--left { left: 0; scale: -1 1; }
+
+@media (max-width: 782px) {
+	.pfh-faq__decor { display: none; }
+}

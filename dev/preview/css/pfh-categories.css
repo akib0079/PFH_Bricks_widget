@@ -1,0 +1,487 @@
+/**
+ * Products For Home – category slider element.
+ *
+ * The track is a native overflow-x scroller. Everything else (pointer drag,
+ * the custom scrollbar) drives the same scrollLeft, so trackpad, touch and
+ * keyboard scrolling keep working without any extra code.
+ */
+
+.pfh-cats {
+	--pfh-cats-pad-top: var(--pfh-cats-pad-top-set, 96px);
+	--pfh-cats-pad-bot: var(--pfh-cats-pad-bot-set, 96px);
+	--pfh-cats-bg: #fbfaf7;
+	--pfh-cats-bg-img: none;
+
+	--pfh-head-font: inherit;
+	--pfh-head-size: var(--pfh-head-size-set, 38px);
+	--pfh-head-size-m: 28px;
+	--pfh-head-lh: 1.25;
+	--pfh-head-color: #22504a;
+	--pfh-head-accent: #2f7e7c;
+	--pfh-head-max: 470px;
+	--pfh-head-gap: var(--pfh-head-gap-set, 56px);
+	--pfh-intro-size: 15px;
+	--pfh-intro-lh: 1.6;
+	--pfh-intro-color: #3d4a4d;
+	--pfh-intro-max: 350px;
+	--pfh-intro-start: 58%;
+
+	--pfh-per: var(--pfh-per-set, 3);
+	--pfh-per-t: 2.2;
+	--pfh-per-m: 1.15;
+	--pfh-card-gap: var(--pfh-card-gap-set, 14px);
+	--pfh-card-ratio: 1082 / 1395;
+	--pfh-card-radius: 30px;
+	--pfh-card-clip: 7cqw;
+	--pfh-card-pad: var(--pfh-card-pad-set, 34px);
+	--pfh-card-fit: cover;
+
+	--pfh-eb-font: inherit;
+	--pfh-eb-size: var(--pfh-eb-size-set, 20px);
+	--pfh-eb-color: #2b2b2b;
+	--pfh-ct-size: var(--pfh-ct-size-set, 29px);
+	--pfh-ct-size-m: 24px;
+	--pfh-ct-weight: 400;
+	--pfh-ct-strong: 600;
+	--pfh-ct-lh: 1.24;
+	--pfh-ct-color: #1c1c1c;
+	--pfh-ct-gap: 14px;
+	--pfh-cta-size: 17px;
+	--pfh-cta-color: #1c1c1c;
+	--pfh-cta-icon: 15px;
+
+	--pfh-hov-lift: 8px;
+	--pfh-hov-zoom: 1.03;
+	--pfh-hov-room: 36px;
+	--pfh-hov-shadow: rgba(34, 80, 74, 0.18);
+	--pfh-hov-speed: 420ms;
+
+	--pfh-bar-gap: var(--pfh-bar-gap-set, 44px);
+	--pfh-bar-h: 2px;
+	--pfh-bar-thumb-h: 2px;
+	--pfh-bar-track: rgba(34, 80, 74, 0.07);
+	--pfh-bar-thumb: rgba(34, 80, 74, 0.3);
+	--pfh-bar-w: 100%;
+
+	/* Distance from the viewport edge to the content column. */
+
+	position: relative;
+	width: 100%;
+	padding-block: var(--pfh-cats-pad-top) var(--pfh-cats-pad-bot);
+	background-color: var(--pfh-cats-bg);
+	background-image: var(--pfh-cats-bg-img);
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+.pfh-cats--empty {
+	min-height: 140px;
+	display: grid;
+	place-items: center;
+	color: rgba(20, 24, 27, 0.5);
+	border: 1px dashed rgba(20, 24, 27, 0.2);
+}
+
+.pfh-cats__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* ------------------------------------------------------------------ *
+ * Section heading
+ * ------------------------------------------------------------------ */
+
+.pfh-cats__head {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	align-items: start;
+	gap: 24px;
+	margin-bottom: var(--pfh-head-gap);
+}
+
+.pfh-cats__title {
+	max-width: var(--pfh-head-max);
+	font-family: var(--pfh-head-font);
+	font-size: var(--pfh-head-size);
+	font-weight: 400;
+	line-height: var(--pfh-head-lh);
+	color: var(--pfh-head-color);
+}
+
+.pfh-cats__title em,
+.pfh-cats__title i {
+	font-style: italic;
+	color: var(--pfh-head-accent);
+	text-decoration: underline;
+	text-underline-offset: 6px;
+	text-decoration-thickness: 1px;
+}
+
+.pfh-cats__intro {
+	max-width: var(--pfh-intro-max);
+	margin-left: calc(var(--pfh-intro-start) - 50%);
+	font-size: var(--pfh-intro-size);
+	line-height: var(--pfh-intro-lh);
+	color: var(--pfh-intro-color);
+}
+
+/* ------------------------------------------------------------------ *
+ * Track
+ * ------------------------------------------------------------------ */
+
+.pfh-cats__viewport {
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-x: contain;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: none;
+	/* Cards line up with the content column; the last one can breathe. */
+	padding-inline: var(--pfh-edge);
+	/*
+	 * overflow-y is hidden (it has to be, next to overflow-x: auto), so a card
+	 * that lifts or grows on hover would be clipped and its shadow cut off.
+	 * This reserves room for the effect and takes it straight back out of the
+	 * layout with the negative margin.
+	 */
+	padding-block: var(--pfh-hov-room);
+	margin-block: calc(-1 * var(--pfh-hov-room));
+}
+
+.pfh-cats__viewport::-webkit-scrollbar {
+	display: none;
+}
+
+.pfh-cats__viewport:focus-visible {
+	outline: 2px solid var(--pfh-head-accent);
+	outline-offset: -2px;
+	border-radius: 4px;
+}
+
+/* Not bleeding: the track is a plain centred container. */
+.pfh-cats:not(.is-bleed) .pfh-cats__viewport {
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+.pfh-cats.is-snap .pfh-cats__viewport {
+	scroll-snap-type: x mandatory;
+}
+
+.pfh-cats__track {
+	display: flex;
+	gap: var(--pfh-card-gap);
+	width: max-content;
+}
+
+.pfh-cats__item {
+	flex: 0 0 auto;
+	/* Lets the card radius scale with its own width — see below. */
+	container-type: inline-size;
+	/* Exactly --pfh-per cards fit the content column. */
+	width: calc(
+		(min(var(--pfh-container), 100vw - var(--pfh-gutter) * 2) - (var(--pfh-per) - 1) * var(--pfh-card-gap))
+		/ var(--pfh-per)
+	);
+}
+
+.pfh-cats.is-snap .pfh-cats__item {
+	scroll-snap-align: start;
+}
+
+/* ------------------------------------------------------------------ *
+ * Card
+ * ------------------------------------------------------------------ */
+
+.pfh-cats__card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	aspect-ratio: var(--pfh-card-ratio);
+	padding: var(--pfh-card-pad);
+	border-radius: var(--pfh-card-radius);
+	background: var(--pfh-card-bg, transparent);
+	color: var(--pfh-card-color, inherit);
+	overflow: hidden;
+	isolation: isolate;
+	transition:
+		transform var(--pfh-hov-speed) var(--pfh-ease),
+		box-shadow var(--pfh-hov-speed) var(--pfh-ease),
+		opacity var(--pfh-hov-speed) var(--pfh-ease);
+}
+
+/*
+ * The supplied artwork has its rounded corners baked in against black. A fixed
+ * pixel radius cannot clip that at every card width, so where container query
+ * units are available the radius also scales with the card (1cqw = 1% of the
+ * card's width). Set "Artwork corner trim" to 0 once the artwork is supplied
+ * as flat rectangles or transparent PNGs.
+ */
+@supports (width: 1cqw) {
+	.pfh-cats__card {
+		border-radius: max(var(--pfh-card-radius), var(--pfh-card-clip, 0px));
+	}
+}
+
+/* Painted artwork layer — separate so it can zoom without moving the text. */
+.pfh-cats__art {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background-image: var(--pfh-card-img, none);
+	background-size: var(--pfh-card-fit);
+	background-position: var(--pfh-card-pos, center center);
+	background-repeat: no-repeat;
+	transform-origin: center;
+	transition: transform var(--pfh-hov-speed) var(--pfh-ease);
+}
+
+.pfh-cats__body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--pfh-ct-gap);
+}
+
+.pfh-cats__eyebrow {
+	font-family: var(--pfh-eb-font);
+	font-size: var(--pfh-eb-size);
+	font-weight: 400;
+	line-height: 1.2;
+	color: var(--pfh-card-color, var(--pfh-eb-color));
+}
+
+.pfh-cats.is-italic-label .pfh-cats__eyebrow {
+	font-style: italic;
+}
+
+.pfh-cats__name {
+	font-size: var(--pfh-ct-size);
+	font-weight: var(--pfh-ct-weight);
+	line-height: var(--pfh-ct-lh);
+	color: var(--pfh-card-color, var(--pfh-ct-color));
+	text-wrap: balance;
+}
+
+.pfh-cats__name strong,
+.pfh-cats__name b {
+	font-weight: var(--pfh-ct-strong);
+}
+
+/* CTA pinned to the bottom of the card. */
+.pfh-cats__cta {
+	margin-top: auto;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	align-self: flex-start;
+	font-size: var(--pfh-cta-size);
+	line-height: 1.2;
+	color: var(--pfh-card-color, var(--pfh-cta-color));
+}
+
+.pfh-cats__cta-label {
+	position: relative;
+	padding-bottom: 3px;
+	background-image: linear-gradient(currentColor, currentColor);
+	background-size: 100% 1px;
+	background-position: 0 100%;
+	background-repeat: no-repeat;
+	transition: background-size var(--pfh-hov-speed) var(--pfh-ease);
+}
+
+.pfh-cats__cta-icon {
+	width: var(--pfh-cta-icon);
+	height: var(--pfh-cta-icon);
+	transition: transform var(--pfh-hov-speed) var(--pfh-ease);
+}
+
+/* ------------------------------------------------------------------ *
+ * Hover
+ * ------------------------------------------------------------------ */
+
+@media (hover: hover) {
+	/*
+	 * Scaling the whole card keeps the artwork's framing intact — the
+	 * background is re-laid-out at the new size, so nothing is cropped. Only
+	 * the explicit "artwork zoom" option scales inside the clip, which crops
+	 * by definition.
+	 */
+	.pfh-hov-lift .pfh-cats__card:hover {
+		transform: translateY(calc(-1 * var(--pfh-hov-lift)));
+	}
+
+	.pfh-hov-grow .pfh-cats__card:hover {
+		transform: scale(var(--pfh-hov-zoom));
+	}
+
+	.pfh-hov-both .pfh-cats__card:hover {
+		transform: translateY(calc(-1 * var(--pfh-hov-lift))) scale(var(--pfh-hov-zoom));
+	}
+
+	.pfh-hov-zoom .pfh-cats__card:hover .pfh-cats__art {
+		transform: scale(var(--pfh-hov-zoom));
+	}
+
+	/* A grown card should sit above its neighbours. */
+	.pfh-cats__card:hover {
+		z-index: 2;
+	}
+
+	.pfh-cats.has-shadow .pfh-cats__card:hover {
+		box-shadow: 0 22px 44px -18px var(--pfh-hov-shadow);
+	}
+
+	.pfh-cats__card:hover .pfh-cats__cta-icon {
+		transform: translate(3px, -3px);
+	}
+
+	.pfh-cats__card:hover .pfh-cats__cta-label {
+		background-size: 0% 1px;
+	}
+
+	/* Dim the siblings of the hovered card. */
+	.pfh-cats.has-dim .pfh-cats__track:hover .pfh-cats__item:not(:hover) .pfh-cats__card {
+		opacity: 0.55;
+	}
+}
+
+.pfh-cats__card:focus-visible {
+	outline: 2px solid var(--pfh-head-accent);
+	outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Drag state
+ * ------------------------------------------------------------------ */
+
+.pfh-cats.is-draggable .pfh-cats__viewport {
+	cursor: grab;
+}
+
+.pfh-cats.is-dragging .pfh-cats__viewport {
+	cursor: grabbing;
+	scroll-snap-type: none;
+	scroll-behavior: auto;
+}
+
+/* Suppress the click that ends a drag. */
+.pfh-cats.is-dragging .pfh-cats__card {
+	pointer-events: none;
+}
+
+.pfh-cats.is-dragging .pfh-cats__card,
+.pfh-cats.is-dragging .pfh-cats__art {
+	transition: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Custom scrollbar
+ * ------------------------------------------------------------------ */
+
+.pfh-cats__bar[hidden] {
+	display: none;
+}
+
+.pfh-cats__bar {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	margin-top: var(--pfh-bar-gap);
+}
+
+.pfh-cats__bar-track {
+	position: relative;
+	width: var(--pfh-bar-w);
+	height: var(--pfh-bar-h);
+	border-radius: 999px;
+	background: var(--pfh-bar-track);
+	cursor: pointer;
+}
+
+.pfh-cats__bar-thumb {
+	position: absolute;
+	top: 50%;
+	left: 0;
+	height: var(--pfh-bar-thumb-h);
+	min-width: 28px;
+	/* JS sets the width from the track; clamping here means a stale value
+	   after a resize can never push the page into horizontal overflow. */
+	max-width: 100%;
+	border-radius: 999px;
+	background: var(--pfh-bar-thumb);
+	transform: translate3d(0, -50%, 0);
+	cursor: grab;
+	touch-action: none;
+	transition: height 0.2s var(--pfh-ease), background-color 0.2s var(--pfh-ease);
+}
+
+.pfh-cats__bar-thumb:hover,
+.pfh-cats__bar-thumb:focus-visible,
+.pfh-cats__bar-thumb.is-dragging {
+	height: calc(var(--pfh-bar-thumb-h) + 2px);
+	background: var(--pfh-bar-thumb-hover, var(--pfh-bar-thumb));
+}
+
+.pfh-cats__bar-thumb.is-dragging {
+	cursor: grabbing;
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 1199px) {
+	.pfh-cats {
+		--pfh-card-pad: 26px;
+	}
+}
+
+@media (max-width: 991px) {
+	.pfh-cats {
+		--pfh-per: var(--pfh-per-t);
+		--pfh-cats-pad-top: 64px;
+		--pfh-cats-pad-bot: 64px;
+		--pfh-gutter: 20px;
+		--pfh-head-gap: 36px;
+		--pfh-bar-gap: 28px;
+	}
+
+	.pfh-cats__head {
+		grid-template-columns: 1fr;
+		gap: 16px;
+	}
+
+	.pfh-cats__title,
+	.pfh-cats__intro {
+		max-width: 100%;
+		margin-left: 0;
+	}
+}
+
+@media (max-width: 767px) {
+	.pfh-cats {
+		--pfh-per: var(--pfh-per-m);
+		--pfh-head-size: var(--pfh-head-size-m);
+		--pfh-ct-size: var(--pfh-ct-size-m);
+		--pfh-card-pad: 22px;
+		--pfh-eb-size: 17px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-cats__card,
+	.pfh-cats__art,
+	.pfh-cats__cta-icon,
+	.pfh-cats__cta-label {
+		transition: none !important;
+	}
+
+	.pfh-cats__viewport {
+		scroll-behavior: auto !important;
+	}
+}

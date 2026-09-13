@@ -1,0 +1,757 @@
+/**
+ * Shop archive: toolbar, grid, pagination and the filter panel.
+ *
+ * Card styling itself lives in pfh-products.css, which this loads on top of —
+ * the archive only adds the layout around the cards.
+ */
+
+.pfh-arch {
+	--pfh-arch-max: 1240px;
+	--pfh-arch-pt: 0px;
+	--pfh-arch-pb: 40px;
+	--pfh-arch-cols: 4;
+	--pfh-arch-cols-t: 3;
+	--pfh-arch-cols-m: 2;
+	--pfh-arch-gap: 29px;
+	--pfh-arch-pill-gap: 10px;
+	--pfh-arch-pill-r: 10px;
+	--pfh-arch-pill-bg: #dee6dc;
+	--pfh-arch-pill-ink: #51604f;
+	--pfh-arch-rule: rgba(148, 175, 143, .26);
+	--pfh-arch-page-bg: #dee6dc;
+	--pfh-arch-page-bd: #e6e9e3;
+	--pfh-arch-panel-w: 332px;
+	--pfh-arch-ink: #51604f;
+	--pfh-arch-muted: #6f7d6b;
+	--pfh-arch-chip-bg: #f4f7f4;
+	--pfh-arch-chip-ink: #5a6857;
+	--pfh-arch-chip-icon: #879f82;
+
+	display: block;
+	padding-block: var(--pfh-arch-pt) var(--pfh-arch-pb);
+	/*
+	 * var(--pfh-font), not inherit. These stylesheets load after pfh-base
+	 * and match with the same one-class specificity, so `inherit` won and
+	 * pulled the theme's body font in — the widget rendered in whatever
+	 * face the theme happened to use instead of Outfit.
+	 */
+	font-family: var(--pfh-font);
+	color: var(--pfh-arch-ink);
+}
+
+.pfh-arch__inner {
+	max-width: var(--pfh-arch-max);
+	margin-inline: auto;
+	width: 100%;
+}
+
+/* ---------- toolbar ---------- */
+
+/* 1110x102 in the design: 30px above and below a 40px pill row. */
+/*
+ * One row, always. The toolbar's parts are reorderable in the panel, so the
+ * count and the Filter button cannot be nested in a right-hand group — they
+ * hold their place by refusing to shrink instead, and the category track
+ * takes whatever is left and scrolls. Wrapping instead dropped the Filter
+ * button onto a line of its own as soon as a shop had a few categories.
+ */
+.pfh-arch__toolbar {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: nowrap;
+	padding: 30px 10px;
+}
+
+.pfh-arch__count,
+.pfh-arch__filter-btn,
+.pfh-arch__sort {
+	flex: 0 0 auto;
+}
+
+.pfh-arch.has-rules .pfh-arch__toolbar {
+	border-top: 1px solid var(--pfh-arch-rule);
+	border-bottom: 1px solid var(--pfh-arch-rule);
+}
+
+.pfh-arch__spacer {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.pfh-arch__pills {
+	display: flex;
+	align-items: center;
+	gap: var(--pfh-arch-pill-gap);
+	/*
+	 * Content width, shrinking only when it has to: a shop with four
+	 * categories leaves them at their natural size and the spacer takes the
+	 * slack, and a shop with fifteen gets a scroll track instead of a
+	 * second row. A mask over the cut edge was tried and dropped — it fades
+	 * whatever sits at the right edge, including a last pill that fits.
+	 */
+	flex: 0 1 auto;
+	flex-wrap: nowrap;
+	min-width: 0;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.pfh-arch__pills::-webkit-scrollbar { display: none; }
+
+
+.pfh-arch__pill {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 40px;
+	padding: 9px 30px;
+	border-radius: var(--pfh-arch-pill-r);
+	background: transparent;
+	color: var(--pfh-arch-pill-ink);
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 22px;
+	text-decoration: none;
+	white-space: nowrap;
+	transition: background-color .18s ease, color .18s ease;
+}
+
+.pfh-arch__pill:hover {
+	background: color-mix(in srgb, var(--pfh-arch-pill-bg) 45%, transparent);
+}
+
+.pfh-arch__pill.is-active {
+	background: var(--pfh-arch-pill-bg);
+}
+
+.pfh-arch__pill:focus-visible {
+	outline: 2px solid var(--pfh-arch-pill-ink);
+	outline-offset: 2px;
+}
+
+.pfh-arch__count {
+	font-size: 14px;
+	line-height: 1.5;
+	color: var(--pfh-arch-muted);
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+/* ---------- filter button ---------- */
+
+/* 74x34 in the design: 8px/12px padding, 8px gap, 8px radius. */
+.pfh-arch__filter-btn {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 34px;
+	padding: 8px 12px;
+	border: 0;
+	border-radius: 8px;
+	background: var(--pfh-arch-chip-bg);
+	color: var(--pfh-arch-chip-ink);
+	font: inherit;
+	font-size: 12px;
+	font-weight: 300;
+	line-height: 1.5;
+	cursor: pointer;
+	white-space: nowrap;
+	transition: background-color .18s ease;
+}
+
+.pfh-arch__filter-btn:hover {
+	background: color-mix(in srgb, var(--pfh-arch-pill-bg) 70%, #fff);
+}
+
+.pfh-arch__filter-btn:focus-visible {
+	outline: 2px solid var(--pfh-arch-ink);
+	outline-offset: 2px;
+}
+
+.pfh-arch__filter-icon {
+	width: 12px;
+	height: 12px;
+	flex: none;
+	color: var(--pfh-arch-chip-icon);
+}
+
+.pfh-arch__filter-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 5px;
+	border-radius: 99px;
+	background: var(--pfh-arch-ink);
+	color: #fff;
+	font-size: 10.5px;
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-arch__filter-badge[hidden] { display: none !important; }
+
+.pfh-arch__sort select {
+	appearance: none;
+	padding: 8px 30px 8px 12px;
+	border: 1px solid var(--pfh-arch-rule);
+	border-radius: 8px;
+	background: transparent;
+	background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+	background-position: calc(100% - 15px) calc(50% + 1px), calc(100% - 10px) calc(50% + 1px);
+	background-size: 5px 5px, 5px 5px;
+	background-repeat: no-repeat;
+	color: inherit;
+	font: inherit;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+/* ---------- results ---------- */
+
+.pfh-arch__results {
+	position: relative;
+	min-height: 120px;
+	transition: opacity .2s ease;
+}
+
+.pfh-arch.is-loading .pfh-arch__results {
+	opacity: .45;
+	pointer-events: none;
+}
+
+.pfh-arch__grid {
+	display: grid;
+	grid-template-columns: repeat(var(--pfh-arch-cols), minmax(0, 1fr));
+	gap: calc(var(--pfh-arch-gap) + 12px) var(--pfh-arch-gap);
+	margin: 32px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+/*
+ * The card markup is shared with the slider, whose .pfh-prod__item sizes
+ * itself with flex and a calc() built from slider-only tokens. In a grid that
+ * makes every cell size to its content and the columns collapse into each
+ * other — reset it to a plain grid cell, as the product grid does.
+ */
+.pfh-arch .pfh-prod__item {
+	width: auto;
+	flex: initial;
+	display: flex;
+	min-width: 0;
+}
+
+/*
+ * Cards stretch to the tallest in their row and lay their body out as a
+ * column, so the TOEVOEGEN button can close the card: a two-line product
+ * name beside a one-line name must not leave the two buttons at different
+ * heights. The shared card already reserves the title's lines and pushes
+ * the prices down with margin-top:auto, so the button lands level on its
+ * own — this only has to let the card stretch.
+ */
+.pfh-arch .pfh-prod__card {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	min-width: 0;
+	height: 100%;
+}
+
+/*
+ * Card type comes from the shared card variables, which the element writes
+ * from its own controls. Hard-coded values here outranked them — .pfh-arch
+ * .pfh-prod__name beats .pfh-prod__name — so the panel's title, price and
+ * review settings changed nothing on an archive.
+ */
+/*
+ * .pfh-arch and .pfh-prod are the same element — the archive root carries
+ * both — so this is a compound selector, not a descendant one. Written with
+ * a space it matched nothing and the button sat flush against the price.
+ */
+.pfh-arch.pfh-cart-block .pfh-prod__prices {
+	margin-bottom: var(--pfh-gap-3);
+}
+
+.pfh-arch__empty {
+	margin: 48px 0;
+	text-align: center;
+	color: var(--pfh-arch-muted);
+	font-size: 15px;
+}
+
+/* ---------- pagination ---------- */
+
+.pfh-arch__pager {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-top: 48px;
+}
+
+/* 33x36 per number in the design; Back and Next carry a label and a chevron. */
+.pfh-arch__page {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 33px;
+	min-height: 36px;
+	padding: 8px 12px;
+	border: 1px solid var(--pfh-arch-page-bd);
+	border-radius: 4px;
+	background: #fff;
+	color: var(--pfh-arch-ink);
+	font-size: 14px;
+	line-height: 20px;
+	text-decoration: none;
+	font-variant-numeric: tabular-nums;
+	transition: background-color .18s ease, border-color .18s ease;
+}
+
+.pfh-arch__page:hover {
+	background: color-mix(in srgb, var(--pfh-arch-page-bg) 45%, #fff);
+}
+
+.pfh-arch__page.is-current {
+	background: var(--pfh-arch-page-bg);
+	border-color: var(--pfh-arch-page-bg);
+	font-weight: 700;
+}
+
+.pfh-arch__page.is-disabled {
+	opacity: .4;
+	pointer-events: none;
+}
+
+.pfh-arch__page:focus-visible {
+	outline: 2px solid var(--pfh-arch-ink);
+	outline-offset: 2px;
+}
+
+.pfh-arch__page-icon {
+	width: 14px;
+	height: 14px;
+	flex: none;
+}
+
+.pfh-arch__page--prev .pfh-arch__page-icon { rotate: 90deg; }
+.pfh-arch__page--next .pfh-arch__page-icon { rotate: -90deg; }
+
+/* ---------- filter panel ---------- */
+
+.pfh-arch__scrim {
+	position: fixed;
+	inset: 0;
+	z-index: 99970;
+	background: rgba(23, 30, 22, .34);
+	animation: pfh-arch-fade .2s ease both;
+}
+
+.pfh-arch__scrim[hidden] { display: none !important; }
+
+@keyframes pfh-arch-fade {
+	from { opacity: 0; }
+	to   { opacity: 1; }
+}
+
+.pfh-arch__panel {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	z-index: 99971;
+	display: flex;
+	flex-direction: column;
+	width: min(var(--pfh-arch-panel-w), 92vw);
+	background: #fff;
+	box-shadow: 0 20px 60px -30px rgba(0, 0, 0, .5);
+	animation: pfh-arch-in .26s cubic-bezier(.22, .61, .36, 1) both;
+}
+
+.pfh-arch__panel[hidden] { display: none !important; }
+
+.pfh-arch--panel-left .pfh-arch__panel {
+	left: 0;
+	border-radius: 0 24px 24px 0;
+}
+
+.pfh-arch--panel-right .pfh-arch__panel {
+	right: 0;
+	border-radius: 24px 0 0 24px;
+	animation-name: pfh-arch-in-r;
+}
+
+@keyframes pfh-arch-in {
+	from { translate: -100% 0; }
+	to   { translate: 0 0; }
+}
+
+@keyframes pfh-arch-in-r {
+	from { translate: 100% 0; }
+	to   { translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-arch__panel,
+	.pfh-arch__scrim { animation: none; }
+}
+
+/* Stop the page scrolling behind an open panel. */
+body.pfh-arch-locked { overflow: hidden; }
+
+.pfh-arch__panel-head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 28px 26px 18px;
+}
+
+.pfh-arch__panel-title {
+	flex: 1 1 auto;
+	margin: 0;
+	font-size: 26px;
+	font-weight: 500;
+	line-height: 22px;
+}
+
+.pfh-arch__clear {
+	appearance: none;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--pfh-arch-muted);
+	font: inherit;
+	font-size: 14px;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.pfh-arch__clear:hover { color: var(--pfh-arch-ink); text-decoration: underline; }
+.pfh-arch__clear[hidden] { display: none !important; }
+
+.pfh-arch__panel-close {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 30px;
+	height: 30px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--pfh-arch-muted);
+	cursor: pointer;
+}
+
+.pfh-arch__panel-close svg { width: 16px; height: 16px; }
+.pfh-arch__panel-close:hover { background: rgba(0, 0, 0, .05); color: var(--pfh-arch-ink); }
+
+.pfh-arch__facets {
+	flex: 1 1 auto;
+	overflow-y: auto;
+	padding: 0 26px 26px;
+	overscroll-behavior: contain;
+}
+
+.pfh-arch__facet {
+	padding: 18px 0;
+	border-bottom: 1px solid rgba(0, 0, 0, .08);
+}
+
+.pfh-arch__facet:last-child { border-bottom: 0; }
+
+.pfh-arch__facet-head {
+	appearance: none;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	font-size: 18px;
+	font-weight: 500;
+	text-align: left;
+	cursor: pointer;
+}
+
+.pfh-arch__facet-chev {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	color: var(--pfh-arch-muted);
+	transition: rotate .18s ease;
+}
+
+.pfh-arch__facet.is-open .pfh-arch__facet-chev { rotate: 180deg; }
+
+.pfh-arch__facet-body { padding-top: 14px; }
+
+/* A single-checkbox filter has no heading, so nothing to sit under. */
+.pfh-arch__facet--bare > .pfh-arch__facet-body { padding-top: 0; }
+.pfh-arch__facet-body[hidden] { display: none !important; }
+
+.pfh-arch__opts {
+	display: grid;
+	gap: 12px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-arch__opt[hidden] { display: none !important; }
+
+.pfh-arch__opt label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.pfh-arch__opt input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.pfh-arch__box {
+	position: relative;
+	flex: none;
+	width: 16px;
+	height: 16px;
+	border: 1px solid rgba(0, 0, 0, .3);
+	border-radius: 3px;
+	background: #fff;
+	transition: background-color .15s ease, border-color .15s ease;
+}
+
+.pfh-arch__opt input:checked + .pfh-arch__box {
+	background: var(--pfh-arch-ink);
+	border-color: var(--pfh-arch-ink);
+}
+
+.pfh-arch__opt input:checked + .pfh-arch__box::after {
+	content: "";
+	position: absolute;
+	left: 4.5px;
+	top: 1px;
+	width: 4px;
+	height: 8px;
+	border: solid #fff;
+	border-width: 0 1.7px 1.7px 0;
+	rotate: 45deg;
+}
+
+.pfh-arch__opt input:focus-visible + .pfh-arch__box {
+	outline: 2px solid var(--pfh-arch-ink);
+	outline-offset: 2px;
+}
+
+.pfh-arch__opt-label { flex: 1 1 auto; min-width: 0; }
+
+.pfh-arch__opt-count {
+	flex: none;
+	color: var(--pfh-arch-muted);
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-arch__more {
+	appearance: none;
+	margin-top: 12px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: #4a6fa5;
+	font: inherit;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.pfh-arch__more:hover { text-decoration: underline; }
+
+/* ---------- price range ---------- */
+
+.pfh-arch__range {
+	--pfh-lo: 0%;
+	--pfh-hi: 100%;
+	--pfh-thumb: 18px;
+
+	position: relative;
+	padding: 4px 0 26px;
+}
+
+.pfh-arch__range-out {
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+	margin-bottom: 16px;
+	font-size: 14px;
+	font-variant-numeric: tabular-nums;
+	color: var(--pfh-arch-ink);
+}
+
+.pfh-arch__range-dash { color: var(--pfh-arch-muted); }
+
+.pfh-arch__range-rail {
+	position: relative;
+	height: 3px;
+	margin-inline: calc(var(--pfh-thumb) / 2);
+	border-radius: 99px;
+	background: color-mix(in srgb, var(--pfh-arch-ink) 15%, transparent);
+}
+
+.pfh-arch__range-fill {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--pfh-lo);
+	right: calc(100% - var(--pfh-hi));
+	border-radius: 99px;
+	background: var(--pfh-arch-ink);
+}
+
+/*
+ * Both inputs sit over the rail. The track ignores pointer events so a click
+ * never jumps the wrong handle; only the thumbs take them.
+ */
+.pfh-arch__range-input {
+	appearance: none;
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 20px;
+	width: 100%;
+	height: var(--pfh-thumb);
+	margin: 0;
+	background: transparent;
+	pointer-events: none;
+}
+
+.pfh-arch__range-input::-webkit-slider-runnable-track {
+	height: var(--pfh-thumb);
+	background: transparent;
+	border: 0;
+}
+
+.pfh-arch__range-input::-moz-range-track {
+	height: var(--pfh-thumb);
+	background: transparent;
+	border: 0;
+}
+
+.pfh-arch__range-input::-webkit-slider-thumb {
+	appearance: none;
+	width: var(--pfh-thumb);
+	height: var(--pfh-thumb);
+	border: 2px solid var(--pfh-arch-ink);
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+	cursor: grab;
+	pointer-events: auto;
+}
+
+.pfh-arch__range-input::-moz-range-thumb {
+	width: var(--pfh-thumb);
+	height: var(--pfh-thumb);
+	border: 2px solid var(--pfh-arch-ink);
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+	cursor: grab;
+	pointer-events: auto;
+}
+
+.pfh-arch__range-input:active::-webkit-slider-thumb { cursor: grabbing; }
+
+.pfh-arch__range-input:focus-visible::-webkit-slider-thumb {
+	outline: 2px solid var(--pfh-arch-ink);
+	outline-offset: 2px;
+}
+
+.pfh-arch__range-input:focus-visible::-moz-range-thumb {
+	outline: 2px solid var(--pfh-arch-ink);
+	outline-offset: 2px;
+}
+
+.pfh-arch__facets-empty {
+	margin: 24px 0;
+	color: var(--pfh-arch-muted);
+	font-size: 14px;
+}
+
+.pfh-arch__panel-foot {
+	padding: 18px 26px;
+	border-top: 1px solid rgba(0, 0, 0, .08);
+}
+
+.pfh-arch__apply {
+	appearance: none;
+	width: 100%;
+	min-height: 46px;
+	border: 0;
+	border-radius: 8px;
+	background: var(--pfh-arch-ink);
+	color: #fff;
+	font: inherit;
+	font-size: 15px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1024px) {
+	.pfh-arch__grid { grid-template-columns: repeat(var(--pfh-arch-cols-t), minmax(0, 1fr)); }
+}
+
+@media (max-width: 782px) {
+	/*
+	 * On a phone the one-row rule is relaxed: the category track gets a line
+	 * of its own and the count and Filter button sit under it, which is the
+	 * only way all three stay legible at 375px.
+	 */
+	.pfh-arch__toolbar {
+		flex-wrap: wrap;
+		padding-block: 18px;
+		gap: 10px;
+	}
+
+	.pfh-arch__pills {
+		order: -1;
+		flex-basis: 100%;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.pfh-arch__pills::-webkit-scrollbar { display: none; }
+
+	.pfh-arch__pill { padding-inline: 18px; }
+	.pfh-arch__spacer { display: none; }
+}
+
+@media (max-width: 560px) {
+	.pfh-arch__grid {
+		grid-template-columns: repeat(var(--pfh-arch-cols-m), minmax(0, 1fr));
+		gap: 26px 14px;
+	}
+
+	.pfh-arch__pager { gap: 4px; }
+	.pfh-arch__page { min-width: 34px; height: 34px; padding-inline: 8px; font-size: 13px; }
+	.pfh-arch__page--prev span,
+	.pfh-arch__page--next span { display: none; }
+}

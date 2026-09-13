@@ -1,0 +1,126 @@
+/**
+ * Products For Home – product grid element.
+ *
+ * Loads on top of pfh-products.css: the root carries both .pfh-prod (card
+ * tokens and card styles) and .pfh-pgrid (this file's layout), so the cards are
+ * literally the same ones the slider renders.
+ */
+
+.pfh-pgrid {
+	--pfh-head-max: 481px;
+	--pfh-head-gap: var(--pfh-head-gap-set, 44px);
+	--pfh-intro-size: 14px;
+	--pfh-intro-lh: 1.5;
+	--pfh-intro-color: #3d4a3a;
+	--pfh-intro-max: 520px;
+	--pfh-gap-hi: 16px;
+
+	--pfh-cols: var(--pfh-cols-set, 4);
+	--pfh-cols-t: 2;
+	--pfh-cols-m: 2;
+	--pfh-grid-gap: var(--pfh-grid-gap-set, 18px);
+	--pfh-grid-row-gap: var(--pfh-grid-row-gap-set, 44px);
+}
+
+.pfh-pgrid__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* ------------------------------------------------------------------ *
+ * Heading
+ * ------------------------------------------------------------------ */
+
+.pfh-pgrid__head {
+	margin-bottom: var(--pfh-head-gap);
+}
+
+.pfh-align-center .pfh-pgrid__head {
+	text-align: center;
+}
+
+.pfh-pgrid__title {
+	max-width: var(--pfh-head-max);
+	font-family: var(--pfh-head-font);
+	font-size: var(--pfh-head-size);
+	font-weight: var(--pfh-head-weight);
+	line-height: var(--pfh-head-lh);
+	color: var(--pfh-head-color);
+	text-wrap: balance;
+}
+
+.pfh-align-center .pfh-pgrid__title {
+	margin-inline: auto;
+}
+
+.pfh-pgrid__title em,
+.pfh-pgrid__title i {
+	font-style: italic;
+	color: var(--pfh-head-accent);
+	text-decoration: underline;
+	text-underline-offset: 5px;
+	text-decoration-thickness: 1px;
+}
+
+.pfh-pgrid__intro {
+	max-width: var(--pfh-intro-max);
+	margin-top: var(--pfh-gap-hi);
+	font-size: var(--pfh-intro-size);
+	line-height: var(--pfh-intro-lh);
+	color: var(--pfh-intro-color);
+}
+
+.pfh-align-center .pfh-pgrid__intro {
+	margin-inline: auto;
+}
+
+/* ------------------------------------------------------------------ *
+ * Grid
+ * ------------------------------------------------------------------ */
+
+.pfh-pgrid__grid {
+	display: grid;
+	grid-template-columns: repeat(var(--pfh-cols), minmax(0, 1fr));
+	column-gap: var(--pfh-grid-gap);
+	row-gap: var(--pfh-grid-row-gap);
+}
+
+/* The card markup is shared with the slider, so reuse .pfh-prod__item as the
+   grid cell and drop the flex sizing the track needs. */
+.pfh-pgrid .pfh-prod__item {
+	width: auto;
+	flex: initial;
+	display: flex;
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 991px) {
+	.pfh-pgrid {
+		--pfh-cols: var(--pfh-cols-t);
+		--pfh-p-pad-top: 64px;
+		--pfh-p-pad-bot: 64px;
+		--pfh-gutter: 20px;
+		--pfh-head-gap: 32px;
+		--pfh-grid-row-gap: 34px;
+		--pfh-media-pad: 20px;
+	}
+}
+
+@media (max-width: 767px) {
+	.pfh-pgrid {
+		--pfh-cols: var(--pfh-cols-m);
+		--pfh-head-size: var(--pfh-head-size-m);
+		--pfh-t-size: 15px;
+		--pfh-grid-gap: 12px;
+		--pfh-cart-size: 36px;
+		--pfh-badge-offset: 10px;
+		--pfh-badge-pad-x: 9px;
+		--pfh-badge-pad-y: 5px;
+		--pfh-badge-size: 10px;
+	}
+}

@@ -1,0 +1,406 @@
+/**
+ * Cookie consent banner.
+ *
+ * Deliberately never covers the page: no overlay, no scroll lock, and the
+ * element only captures pointer events over the panel itself, so the visitor
+ * can keep shopping while it is up.
+ */
+
+.pfh-ck {
+	--pfh-ck-accent: #3f7e7c;
+	--pfh-ck-accent-text: #fff;
+	--pfh-ck-surface: #fff;
+	--pfh-ck-ink: #1f2b2e;
+	--pfh-ck-radius: 12px;
+	--pfh-ck-line: color-mix(in srgb, var(--pfh-ck-ink) 12%, transparent);
+
+	position: fixed;
+	z-index: 99990;
+	inset-inline: 0;
+	bottom: 0;
+	display: block;
+	padding: 10px;
+	pointer-events: none;
+	color: var(--pfh-ck-ink);
+	/*
+	 * var(--pfh-font), not inherit. These stylesheets load after pfh-base
+	 * and match with the same one-class specificity, so `inherit` won and
+	 * pulled the theme's body font in — the widget rendered in whatever
+	 * face the theme happened to use instead of Outfit.
+	 */
+	font-family: var(--pfh-font);
+	font-size: 14px;
+	line-height: 1.55;
+}
+
+.pfh-ck[hidden] {
+	display: none !important;
+}
+
+/*
+ * The script swaps views with el.hidden, and every view below sets its own
+ * display — an author rule that would otherwise beat the UA's
+ * [hidden]{display:none} and leave two views stacked. One blanket guard so a
+ * view added later cannot reintroduce that.
+ */
+.pfh-ck [hidden] {
+	display: none !important;
+}
+
+/* The panel is the only thing that takes clicks. */
+.pfh-ck__inner {
+	pointer-events: auto;
+	box-sizing: border-box;
+	margin-inline: auto;
+	padding: 14px 18px;
+	max-width: 1140px;
+	background: var(--pfh-ck-surface);
+	border: 1px solid var(--pfh-ck-line);
+	border-radius: var(--pfh-ck-radius);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, .05), 0 18px 40px -22px rgba(0, 0, 0, .35);
+	animation: pfh-ck-rise .28s cubic-bezier(.22, .61, .36, 1) both;
+}
+
+@keyframes pfh-ck-rise {
+	from { opacity: 0; transform: translateY(14px); }
+	to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-ck__inner { animation: none; }
+}
+
+/* Corner variants keep the same panel, just narrower and off to one side. */
+.pfh-ck--card .pfh-ck__inner,
+.pfh-ck--cardr .pfh-ck__inner {
+	max-width: 430px;
+}
+
+.pfh-ck--card .pfh-ck__inner { margin-inline: 0 auto; }
+.pfh-ck--cardr .pfh-ck__inner { margin-inline: auto 0; }
+
+.pfh-ck--card .pfh-ck__banner,
+.pfh-ck--cardr .pfh-ck__banner {
+	grid-template-columns: 1fr;
+}
+
+/* ---------- banner ---------- */
+
+.pfh-ck__banner {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px 24px;
+}
+
+.pfh-ck__copy { min-width: 0; }
+
+.pfh-ck__title {
+	margin: 0 0 4px;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.35;
+	color: inherit;
+}
+
+.pfh-ck__body {
+	margin: 0;
+	max-width: 76ch;
+	color: color-mix(in srgb, var(--pfh-ck-ink) 78%, transparent);
+}
+
+.pfh-ck__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.pfh-ck__links {
+	grid-column: 1 / -1;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 18px;
+	margin: 2px 0 0;
+	font-size: 12.5px;
+}
+
+.pfh-ck__links a {
+	color: color-mix(in srgb, var(--pfh-ck-ink) 62%, transparent);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.pfh-ck__links a:hover {
+	color: var(--pfh-ck-accent);
+}
+
+/* ---------- buttons ---------- */
+
+.pfh-ck__btn {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 38px;
+	padding: 0 18px;
+	border-radius: calc(var(--pfh-ck-radius) - 4px);
+	border: 1px solid transparent;
+	font: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1;
+	text-align: center;
+	cursor: pointer;
+	transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.pfh-ck__btn--solid {
+	background: var(--pfh-ck-accent);
+	color: var(--pfh-ck-accent-text);
+}
+
+.pfh-ck__btn--solid:hover {
+	background: color-mix(in srgb, var(--pfh-ck-accent) 86%, #000);
+}
+
+.pfh-ck__btn--ghost {
+	background: transparent;
+	color: var(--pfh-ck-ink);
+	border-color: var(--pfh-ck-line);
+}
+
+.pfh-ck__btn--ghost:hover {
+	border-color: color-mix(in srgb, var(--pfh-ck-ink) 34%, transparent);
+	background: color-mix(in srgb, var(--pfh-ck-ink) 4%, transparent);
+}
+
+.pfh-ck__btn:focus-visible {
+	outline: 2px solid var(--pfh-ck-accent);
+	outline-offset: 2px;
+}
+
+/* ---------- preferences ---------- */
+
+.pfh-ck__prefs {
+	display: grid;
+	gap: 10px;
+}
+
+.pfh-ck__list {
+	display: grid;
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	max-height: min(42vh, 300px);
+	overflow-y: auto;
+}
+
+.pfh-ck__row {
+	padding: 8px 0;
+	border-top: 1px solid var(--pfh-ck-line);
+}
+
+.pfh-ck__row:first-child { border-top: 0; padding-top: 2px; }
+
+.pfh-ck__row-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	min-height: 26px;
+}
+
+/* The label is the disclosure: whole thing is one hit target. */
+.pfh-ck__row-toggle {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	min-width: 0;
+	padding: 0;
+	background: none;
+	border: 0;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.pfh-ck__row-toggle:focus-visible {
+	outline: 2px solid var(--pfh-ck-accent);
+	outline-offset: 3px;
+	border-radius: 3px;
+}
+
+.pfh-ck__chev {
+	display: inline-flex;
+	flex: none;
+	color: color-mix(in srgb, var(--pfh-ck-ink) 45%, transparent);
+	transition: rotate .18s ease, color .18s ease;
+}
+
+.pfh-ck__row-toggle[aria-expanded="true"] .pfh-ck__chev {
+	rotate: 90deg;
+	color: var(--pfh-ck-accent);
+}
+
+.pfh-ck__row-toggle:hover .pfh-ck__chev { color: var(--pfh-ck-ink); }
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-ck__chev { transition: none; }
+}
+
+.pfh-ck__row-label {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.pfh-ck__row-desc {
+	margin: 5px 0 2px;
+	padding-left: 17px;
+	max-width: 80ch;
+	font-size: 12.5px;
+	line-height: 1.5;
+	color: color-mix(in srgb, var(--pfh-ck-ink) 68%, transparent);
+}
+
+.pfh-ck__always {
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--pfh-ck-ink) 50%, transparent);
+}
+
+/* Switch: a real checkbox, visually replaced by the track. */
+.pfh-ck__switch {
+	position: relative;
+	flex: none;
+	width: 38px;
+	height: 22px;
+}
+
+.pfh-ck__switch input {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+	z-index: 1;
+}
+
+.pfh-ck__switch-track {
+	position: absolute;
+	inset: 0;
+	border-radius: 99px;
+	background: color-mix(in srgb, var(--pfh-ck-ink) 20%, transparent);
+	transition: background-color .18s ease;
+}
+
+.pfh-ck__switch-track::after {
+	content: "";
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+	transition: translate .18s cubic-bezier(.22, .61, .36, 1);
+}
+
+.pfh-ck__switch input:checked ~ .pfh-ck__switch-track {
+	background: var(--pfh-ck-accent);
+}
+
+.pfh-ck__switch input:checked ~ .pfh-ck__switch-track::after {
+	translate: 16px 0;
+}
+
+.pfh-ck__switch input:focus-visible ~ .pfh-ck__switch-track {
+	outline: 2px solid var(--pfh-ck-accent);
+	outline-offset: 2px;
+}
+
+/* ---------- blocked embeds ---------- */
+
+.pfh-ck__blocked {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	padding: 28px 20px;
+	min-height: 180px;
+	text-align: center;
+	background: #f1efea;
+	border: 1px dashed rgba(31, 43, 46, .2);
+	border-radius: 10px;
+	color: #1f2b2e;
+	font-size: 14px;
+}
+
+.pfh-ck__blocked p { margin: 0; max-width: 44ch; }
+
+.pfh-ck__blocked .pfh-ck__btn--solid {
+	background: #3f7e7c;
+	color: #fff;
+}
+
+/* ---------- reopen control ---------- */
+
+.pfh-ck__reopen {
+	appearance: none;
+	padding: 0;
+	background: none;
+	border: 0;
+	font: inherit;
+	color: inherit;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	cursor: pointer;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 860px) {
+	.pfh-ck__banner {
+		grid-template-columns: 1fr;
+	}
+
+	.pfh-ck__actions {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+
+	/* Accept spans the row so the two choices stay equally reachable. */
+	.pfh-ck__actions .pfh-ck__btn--solid {
+		grid-column: 1 / -1;
+		order: -1;
+	}
+}
+
+@media (max-width: 560px) {
+	.pfh-ck {
+		padding: 8px;
+	}
+
+	.pfh-ck__inner {
+		padding: 14px;
+		max-height: 82vh;
+		overflow-y: auto;
+	}
+
+	.pfh-ck__actions {
+		grid-template-columns: 1fr;
+	}
+
+	.pfh-ck__list {
+		max-height: none;
+	}
+}

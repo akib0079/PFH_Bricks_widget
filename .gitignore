@@ -1,0 +1,23 @@
+# Build output — the release zip is attached to a GitHub release, not committed.
+pfhbrickswidgets.zip
+*.zip
+
+# Local previews and rendered checks, regenerated on demand.
+dev/out/
+
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Editors
+.idea/
+.vscode/
+*.sublime-*
+
+# Local preview mock-ups — sample photography used only by dev/preview,
+# 22M of it, and nothing depends on it outside this machine.
+dev/preview/img/
+dev/preview/*.png
+dev/preview/*.jpg

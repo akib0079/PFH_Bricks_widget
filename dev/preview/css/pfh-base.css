@@ -1,0 +1,202 @@
+/**
+ * Products For Home – Bricks Widgets
+ * Shared tokens + primitives.
+ *
+ * Every value here is a fallback: the elements write the real values as
+ * inline custom properties, so the widgets still look right in the builder
+ * before any setting has been saved.
+ */
+
+.pfh-header,
+.pfh-footer,
+.pfh-hero,
+.pfh-portal,
+.pfh-scope {
+	/* Brand */
+	--pfh-font: Outfit, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+	--pfh-accent: #6f8566;
+	--pfh-accent-dark: #55684b;
+	--pfh-accent-soft: #a5be99;
+	--pfh-ink: #14181b;
+	--pfh-surface: #ffffff;
+	--pfh-muted: #f4f4f4;
+	--pfh-line: rgba(20, 24, 27, 0.1);
+
+	/* Layout */
+	--pfh-container: 1140px;
+	--pfh-gutter: var(--pfh-gutter-set, 24px);
+	/*
+	 * How far a full-bleed slider must inset to line its first card up with
+	 * the content column. Measured against the VIEWPORT rather than the
+	 * widget's parent, because a page builder often wraps the section in its
+	 * own narrower container — in which case a percentage would quietly align
+	 * to that wrapper instead of to the logo. --pfh-sbw is the scrollbar
+	 * width, published on :root by the slider script, because 100vw counts the
+	 * scrollbar and the content column does not.
+	 */
+	--pfh-edge: max(
+		var(--pfh-gutter),
+		calc((100vw - var(--pfh-sbw, 0px) - var(--pfh-container)) / 2)
+	);
+	--pfh-z: 100;
+
+	/* Motion */
+	--pfh-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+	--pfh-speed: 0.28s;
+
+	font-family: var(--pfh-font);
+	color: var(--pfh-ink);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* The root itself, not only its descendants — otherwise min-height and
+   width controls exclude padding and every section runs taller than set. */
+.pfh-scope,
+.pfh-scope *,
+.pfh-scope *::before,
+.pfh-scope *::after {
+	box-sizing: border-box;
+}
+
+/*
+ * Resets are wrapped in :where() so they contribute zero specificity — a
+ * single-class component rule like .pfh-footer__submit must always win over
+ * the reset, which a plain `.pfh-footer button` selector would not allow.
+ */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(img) {
+	max-width: 100%;
+	display: block;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(svg) {
+	display: block;
+	flex: none;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(ul) {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(a) {
+	color: inherit;
+	text-decoration: none;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(button) {
+	font: inherit;
+	color: inherit;
+	background: none;
+	border: 0;
+	margin: 0;
+	padding: 0;
+	cursor: pointer;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(p, h1, h2, h3, h4) {
+	margin: 0;
+}
+
+/*
+ * Focus rings are keyboard-only, and the base rule carries zero specificity so
+ * any component can restyle or opt out of it — a plain `.pfh-scope
+ * :focus-visible` out-specifies every single-class component rule, including
+ * the ones that deliberately say `outline: none`.
+ */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope)
+	:where(:focus-visible) {
+	outline: 2px solid var(--pfh-accent);
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
+/* A mouse click must never leave a ring behind. */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope)
+	:focus:not(:focus-visible) {
+	outline: none;
+}
+
+/*
+ * Defensive. Themes and plugins routinely style :focus on inputs and buttons
+ * with selectors a component class cannot out-specify, which is where the
+ * stray rings around the search field and the cart icon come from — they are
+ * not ours. Inside our own components a pointer click leaves nothing behind.
+ */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope)
+	:is(a, button, input, select, textarea, summary, [tabindex]):focus:not(:focus-visible) {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+/*
+ * The scrollers carry tabindex so they can be paged from the keyboard, which
+ * also makes them focusable by click. Their ring is drawn inside, so it reads
+ * as the track and not as a border on the first card.
+ */
+:where(.pfh-scope) [data-pfh-viewport]:focus-visible {
+	outline-offset: -2px;
+}
+
+/* Screen reader only. */
+.pfh-sr-only {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Shared container. */
+.pfh-container {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* Buttons used inside the cart drawer. */
+.pfh-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 48px;
+	padding: 0 22px;
+	border-radius: 12px;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1;
+	text-align: center;
+	transition: background-color var(--pfh-speed) var(--pfh-ease), color var(--pfh-speed) var(--pfh-ease), opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-btn--solid {
+	background: var(--pfh-btn-bg, var(--pfh-accent));
+	color: var(--pfh-btn-color, #fff);
+}
+
+.pfh-btn--solid:hover {
+	opacity: 0.9;
+}
+
+.pfh-btn--ghost {
+	border: 1px solid var(--pfh-line);
+	color: var(--pfh-ink);
+}
+
+.pfh-btn--ghost:hover {
+	background: var(--pfh-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-scope * {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+	}
+}

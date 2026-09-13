@@ -1,0 +1,378 @@
+/**
+ * Products For Home – info section element.
+ *
+ * Full-bleed band with a soft gradient background and N alternating rows:
+ * a square-ish photo on one side, a Playfair heading + body copy + pill
+ * button on the other, vertically centred against the photo.
+ *
+ * Geometry is taken from the 1440px Figma frame:
+ *   background artwork 1440 x 1380   photo 522 x 500   content column 1110
+ *   173 (pad) + 500 + 34 (row gap) + 500 + 173 (pad) = 1380
+ *
+ * The column widths are emitted as percentages of the content column, so the
+ * row keeps the designed 522 / 72 / 516 split at 1110px and stays in
+ * proportion at every width below it.
+ */
+
+.pfh-info {
+	/* Section */
+	--pfh-i-pad-y: var(--pfh-i-pad-y-set, 173px);
+	--pfh-i-bg: #f2f6f2;
+	--pfh-i-bg-img: none;
+	--pfh-i-bg-size: cover;
+	--pfh-i-bg-pos: center center;
+	--pfh-i-radius: 0px;
+
+	/* Rows */
+	--pfh-i-row-gap: var(--pfh-i-row-gap-set, 34px);
+	--pfh-i-col-gap: var(--pfh-i-col-gap-set, 6.4865%);
+	--pfh-i-media-w: var(--pfh-i-media-w-set, 47.027%);
+	--pfh-i-stack-gap: 28px;
+	--pfh-i-stack-max: 522px;
+
+	/* Photo */
+	--pfh-i-media-ratio: 522 / 500;
+	--pfh-i-media-radius: 30px;
+	--pfh-i-media-fit: cover;
+	--pfh-i-media-pos: center center;
+	--pfh-i-media-bg: transparent;
+	--pfh-i-media-zoom: 1;
+
+	/* Text column */
+	--pfh-i-text-w: var(--pfh-i-text-w-set, 464px);
+
+	--pfh-head-font: inherit;
+	--pfh-head-size: var(--pfh-head-size-set, 28px);
+	--pfh-head-weight: 400;
+	--pfh-head-lh: 1.15;
+	--pfh-head-color: #22504a;
+	--pfh-head-accent: #2f7e7c;
+	--pfh-head-accent-weight: 400;
+	--pfh-head-ul-offset: 6px;
+	--pfh-head-ul-width: 1px;
+
+	--pfh-txt-size: var(--pfh-txt-size-set, 16px);
+	--pfh-txt-weight: 300;
+	--pfh-txt-lh: 1.5;
+	--pfh-txt-color: #3d4a4d;
+	--pfh-txt-gap: 12px;
+	--pfh-link-color: #2f7e7c;
+
+	--pfh-gap-1: 22px;
+	--pfh-gap-2: 24px;
+
+	/* Button */
+	--pfh-btn-h: 40px;
+	--pfh-btn-pad: var(--pfh-btn-pad-set, 40px);
+	--pfh-btn-gap: 10px;
+	--pfh-btn-radius: 70px;
+	--pfh-btn-size: 14px;
+	--pfh-btn-weight: 500;
+	--pfh-btn-bg: #4a6d6d;
+	--pfh-btn-color: #ffffff;
+	--pfh-btn-hover: #22504a;
+	--pfh-btn-hover-color: #ffffff;
+	--pfh-btn-icon: 14px;
+	--pfh-btn-shift: -2px;
+
+	position: relative;
+	width: 100%;
+	padding-block: var(--pfh-i-pad-y);
+	background-color: var(--pfh-i-bg);
+	background-image: var(--pfh-i-bg-img);
+	background-size: var(--pfh-i-bg-size);
+	background-position: var(--pfh-i-bg-pos);
+	background-repeat: no-repeat;
+	border-radius: var(--pfh-i-radius);
+	isolation: isolate;
+}
+
+.pfh-info__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+.pfh-info__rows {
+	display: flex;
+	flex-direction: column;
+	gap: var(--pfh-i-row-gap);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Row
+ * ------------------------------------------------------------------------ */
+
+/*
+ * Explicit column placement rather than `order`, because the two tracks are
+ * different widths: with `order` the text would inherit the photo's track
+ * whenever the row is mirrored.
+ */
+.pfh-info__row {
+	display: grid;
+	column-gap: var(--pfh-i-col-gap);
+	align-items: center;
+}
+
+.pfh-info__row > * {
+	grid-row: 1;
+	min-width: 0;
+}
+
+.pfh-media-left {
+	grid-template-columns: var(--pfh-i-media-w) minmax(0, 1fr);
+}
+
+.pfh-media-left > .pfh-info__media {
+	grid-column: 1;
+}
+
+.pfh-media-left > .pfh-info__body {
+	grid-column: 2;
+}
+
+.pfh-media-right {
+	grid-template-columns: minmax(0, 1fr) var(--pfh-i-media-w);
+}
+
+.pfh-media-right > .pfh-info__media {
+	grid-column: 2;
+}
+
+.pfh-media-right > .pfh-info__body {
+	grid-column: 1;
+}
+
+/* ---------------------------------------------------------------------------
+ * Photo
+ * ------------------------------------------------------------------------ */
+
+/*
+ * The supplied artwork is a flattened JPG whose own rounded corners are baked
+ * onto black (~20px radius). Clipping at the section radius cuts those corners
+ * away, so the photo sits cleanly on the gradient.
+ */
+.pfh-info__media {
+	position: relative;
+	overflow: hidden;
+	aspect-ratio: var(--pfh-i-media-ratio);
+	border-radius: var(--pfh-i-media-radius);
+	background-color: var(--pfh-i-media-bg);
+	transition: transform var(--pfh-speed) var(--pfh-ease),
+		box-shadow var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-info__img {
+	width: 100%;
+	height: 100%;
+	object-fit: var(--pfh-i-media-fit);
+	object-position: var(--pfh-i-media-pos);
+	transform: scale(var(--pfh-i-media-zoom));
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+/* Builder affordance: a row with no photo yet still shows its footprint. */
+.pfh-info__media:empty {
+	background-color: rgba(34, 80, 74, 0.06);
+}
+
+/* Optional hover treatments. Off by default — the design has no hover state. */
+.pfh-hov-zoom .pfh-info__row:hover .pfh-info__img {
+	transform: scale(calc(var(--pfh-i-media-zoom) * 1.04));
+}
+
+.pfh-hov-lift .pfh-info__row:hover .pfh-info__media {
+	transform: translateY(-6px);
+	box-shadow: 0 18px 40px rgba(34, 80, 74, 0.16);
+}
+
+/* ---------------------------------------------------------------------------
+ * Text column
+ * ------------------------------------------------------------------------ */
+
+.pfh-info__body {
+	max-width: var(--pfh-i-text-w);
+}
+
+.pfh-info__title {
+	font-family: var(--pfh-head-font);
+	font-size: var(--pfh-head-size);
+	font-weight: var(--pfh-head-weight);
+	line-height: var(--pfh-head-lh);
+	color: var(--pfh-head-color);
+	letter-spacing: 0;
+}
+
+.pfh-info__title em,
+.pfh-info__title i {
+	font-style: italic;
+	font-weight: var(--pfh-head-accent-weight);
+	color: var(--pfh-head-accent);
+	text-decoration: underline;
+	text-underline-offset: var(--pfh-head-ul-offset);
+	text-decoration-thickness: var(--pfh-head-ul-width);
+}
+
+.pfh-info__text {
+	margin-top: var(--pfh-gap-1);
+	font-size: var(--pfh-txt-size);
+	font-weight: var(--pfh-txt-weight);
+	line-height: var(--pfh-txt-lh);
+	color: var(--pfh-txt-color);
+}
+
+.pfh-info__text p {
+	margin: 0;
+}
+
+.pfh-info__text p + p {
+	margin-top: var(--pfh-txt-gap);
+}
+
+.pfh-info__text a {
+	color: var(--pfh-link-color);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Button
+ * ------------------------------------------------------------------------ */
+
+.pfh-info__btn {
+	margin-top: var(--pfh-gap-2);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--pfh-btn-gap);
+	height: var(--pfh-btn-h);
+	padding: 0 var(--pfh-btn-pad);
+	border-radius: var(--pfh-btn-radius);
+	background: var(--pfh-btn-bg);
+	color: var(--pfh-btn-color);
+	font-size: var(--pfh-btn-size);
+	font-weight: var(--pfh-btn-weight);
+	line-height: 1;
+	white-space: nowrap;
+	text-decoration: none;
+	transition: transform var(--pfh-speed) var(--pfh-ease),
+		background-color var(--pfh-speed) var(--pfh-ease),
+		color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-info__btn:hover,
+.pfh-info__btn:focus-visible {
+	background: var(--pfh-btn-hover);
+	color: var(--pfh-btn-hover-color);
+	transform: translateY(var(--pfh-btn-shift));
+}
+
+.pfh-info__btn svg {
+	width: var(--pfh-btn-icon);
+	height: var(--pfh-btn-icon);
+	flex: none;
+}
+
+.pfh-info__btn:focus-visible,
+.pfh-info__media a:focus-visible {
+	outline: 2px solid var(--pfh-head-accent);
+	outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Responsive
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 1199px) {
+	.pfh-info {
+		--pfh-i-pad-y: 110px;
+		--pfh-i-row-gap: 40px;
+	}
+}
+
+/* Still side by side, but the columns are narrower — ease the type down. */
+@media (max-width: 991px) {
+	.pfh-info {
+		--pfh-i-pad-y: 80px;
+		--pfh-i-row-gap: 36px;
+		--pfh-head-size: var(--pfh-head-size-m, 24px);
+		--pfh-txt-size: var(--pfh-txt-size-m, 15px);
+	}
+}
+
+@media (max-width: 767px) {
+	.pfh-info {
+		--pfh-i-pad-y: 64px;
+		--pfh-i-row-gap: 56px;
+		--pfh-gutter: 20px;
+	}
+
+	/*
+	 * Stacked. Flex column rather than block so `order` still applies and the
+	 * image / text sequence stays a control. The column is capped at the
+	 * designed photo width so a tablet does not get a 700px-tall photo.
+	 */
+	.pfh-info__row,
+	.pfh-media-left,
+	.pfh-media-right {
+		display: flex;
+		flex-direction: column;
+		row-gap: var(--pfh-i-stack-gap);
+		grid-template-columns: none;
+		max-width: var(--pfh-i-stack-max);
+		margin-inline: auto;
+	}
+
+	.pfh-info__media,
+	.pfh-info__body {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.pfh-morder-image .pfh-info__media {
+		order: 1;
+	}
+
+	.pfh-morder-image .pfh-info__body {
+		order: 2;
+	}
+
+	.pfh-morder-text .pfh-info__body {
+		order: 1;
+	}
+
+	.pfh-morder-text .pfh-info__media {
+		order: 2;
+	}
+
+	/* Keep whatever side the row uses on desktop. */
+	.pfh-morder-follow .pfh-media-left > .pfh-info__media,
+	.pfh-morder-follow .pfh-media-right > .pfh-info__body {
+		order: 1;
+	}
+
+	.pfh-morder-follow .pfh-media-left > .pfh-info__body,
+	.pfh-morder-follow .pfh-media-right > .pfh-info__media {
+		order: 2;
+	}
+}
+
+@media (max-width: 575px) {
+	.pfh-info {
+		--pfh-i-pad-y: 56px;
+		--pfh-i-row-gap: 48px;
+		--pfh-btn-pad: 30px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-info__media,
+	.pfh-info__img,
+	.pfh-info__btn {
+		transition: none;
+	}
+}

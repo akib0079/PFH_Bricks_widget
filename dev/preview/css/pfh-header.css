@@ -1,0 +1,1404 @@
+/**
+ * Products For Home – header element.
+ */
+
+.pfh-header {
+	--pfh-header-h: var(--pfh-header-h-set, 72px);
+	--pfh-header-bg: #fff;
+	--pfh-header-border: rgba(20, 24, 27, 0.08);
+	--pfh-topbar-bg: #6f8566;
+	--pfh-topbar-color: #fefefe;
+	--pfh-topbar-size: 16px;
+	--pfh-topbar-weight: 400;
+	--pfh-topbar-h: 41px;
+	--pfh-logo-w: 40px;
+	--pfh-nav-gap: var(--pfh-nav-gap-set, 40px);
+	--pfh-nav-size: 15px;
+	--pfh-nav-weight: 500;
+	--pfh-nav-color: #14181b;
+	--pfh-nav-hover: #14181b;
+	--pfh-indicator: #6f8566;
+	--pfh-indicator-h: 2px;
+	--pfh-mega-bg: #fff;
+	--pfh-mega-image: none;
+	--pfh-mega-size: cover;
+	--pfh-mega-pos: center center;
+	--pfh-mega-radius: 30px;
+	--pfh-mega-pad-y: var(--pfh-mega-pad-y-set, 44px);
+	--pfh-mega-pad-x: var(--pfh-mega-pad-x-set, 22px);
+	--pfh-mega-cols: var(--pfh-mega-cols-set, 5);
+	--pfh-mega-gap: 22px;
+	--pfh-card-ratio: 196 / 220;
+	--pfh-card-bg: #f4f4f4;
+	--pfh-card-radius: 18px;
+	--pfh-card-pad: 26px;
+	--pfh-card-title: 17px;
+	--pfh-card-title-w: 500;
+	--pfh-card-title-c: #14181b;
+	--pfh-card-link: 15px;
+	--pfh-card-link-c: #5c7752;
+	--pfh-icon-size: 20px;
+	--pfh-icon-gap: var(--pfh-icon-gap-set, 20px);
+	--pfh-icon-color: #14181b;
+	--pfh-badge-bg: #6f8566;
+	--pfh-badge-color: #fff;
+
+	position: relative;
+	width: 100%;
+	background: var(--pfh-header-bg);
+}
+
+/* ------------------------------------------------------------------ *
+ * Sticky
+ * ------------------------------------------------------------------ */
+
+.pfh-header.is-sticky {
+	position: sticky;
+	top: 0;
+	z-index: var(--pfh-z);
+}
+
+/* Announcement bar scrolls away, the bar keeps sticking. */
+.pfh-header.is-sticky.has-topbar:not(.is-sticky-all) {
+	top: calc(-1 * var(--pfh-topbar-h));
+}
+
+.pfh-header.has-scroll-shadow.is-scrolled {
+	box-shadow: 0 6px 28px rgba(20, 24, 27, 0.08);
+}
+
+.pfh-header.has-scroll-shadow {
+	transition: box-shadow var(--pfh-speed) var(--pfh-ease);
+}
+
+/* ------------------------------------------------------------------ *
+ * Announcement bar
+ * ------------------------------------------------------------------ */
+
+.pfh-topbar {
+	background: var(--pfh-topbar-bg);
+	color: var(--pfh-topbar-color);
+}
+
+.pfh-topbar__inner {
+	position: relative;
+	display: grid;
+	align-items: center;
+	justify-items: center;
+	min-height: var(--pfh-topbar-h);
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding: 8px var(--pfh-gutter);
+	text-align: center;
+}
+
+.pfh-topbar__item {
+	grid-area: 1 / 1;
+	font-size: var(--pfh-topbar-size);
+	font-weight: var(--pfh-topbar-weight);
+	line-height: 1.35;
+	letter-spacing: 0;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(4px);
+	transition: opacity 0.4s var(--pfh-ease), transform 0.4s var(--pfh-ease);
+}
+
+.pfh-topbar__item.is-active {
+	opacity: 1;
+	visibility: visible;
+	transform: none;
+}
+
+.pfh-topbar__link {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Header bar
+ * ------------------------------------------------------------------ */
+
+.pfh-bar {
+	position: relative;
+	background: var(--pfh-header-bg);
+	border-bottom: 1px solid var(--pfh-header-border);
+}
+
+.pfh-bar__inner {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: 16px;
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	height: var(--pfh-header-h);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* Logo */
+
+.pfh-logo {
+	justify-self: start;
+	display: flex;
+	align-items: center;
+}
+
+.pfh-logo__link {
+	display: block;
+	line-height: 0;
+}
+
+.pfh-logo__img {
+	width: var(--pfh-logo-w);
+	height: auto;
+}
+
+.pfh-logo__text {
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+/* ------------------------------------------------------------------ *
+ * Navigation
+ * ------------------------------------------------------------------ */
+
+.pfh-nav {
+	justify-self: center;
+	min-width: 0;
+}
+
+.pfh-nav--fill {
+	justify-self: stretch;
+	display: flex;
+	justify-content: center;
+}
+
+.pfh-nav--start {
+	justify-self: start;
+}
+
+.pfh-nav__list {
+	display: flex;
+	align-items: center;
+	gap: var(--pfh-nav-gap);
+}
+
+/* Static so the mega panel resolves against .pfh-bar and spans full width. */
+.pfh-nav__item {
+	position: static;
+}
+
+.pfh-nav__link {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: var(--pfh-header-h);
+	font-size: var(--pfh-nav-size);
+	font-weight: var(--pfh-nav-weight);
+	line-height: 1;
+	color: var(--pfh-nav-color);
+	white-space: nowrap;
+	transition: color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-nav__item:hover > .pfh-nav__link,
+.pfh-nav__item.is-open > .pfh-nav__link {
+	color: var(--pfh-nav-hover);
+}
+
+/* Active / hover underline, flush with the bottom edge of the bar. */
+.pfh-nav__link::after {
+	content: "";
+	position: absolute;
+	left: -6px;
+	right: -6px;
+	bottom: -1px;
+	height: var(--pfh-indicator-h);
+	background: var(--pfh-indicator);
+	border-radius: 2px;
+	transform: scaleX(0);
+	transform-origin: center;
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-nav__item:hover > .pfh-nav__link::after,
+.pfh-nav__item.is-open > .pfh-nav__link::after,
+.pfh-nav__item.is-current > .pfh-nav__link::after {
+	transform: scaleX(1);
+}
+
+.pfh-nav__caret {
+	display: flex;
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-nav__caret svg {
+	width: 14px;
+	height: 14px;
+}
+
+.pfh-nav__item.is-open > .pfh-nav__link .pfh-nav__caret {
+	transform: rotate(180deg);
+}
+
+/* ------------------------------------------------------------------ *
+ * Mega menu
+ * ------------------------------------------------------------------ */
+
+.pfh-mega[hidden] {
+	display: none;
+}
+
+.pfh-mega {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: 5;
+	background-color: var(--pfh-mega-bg);
+	background-image: var(--pfh-mega-image);
+	background-size: var(--pfh-mega-size);
+	background-position: var(--pfh-mega-pos);
+	background-repeat: no-repeat;
+	border-radius: 0 0 var(--pfh-mega-radius) var(--pfh-mega-radius);
+	box-shadow: 0 24px 48px rgba(20, 24, 27, 0.08);
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity var(--pfh-speed) var(--pfh-ease), transform var(--pfh-speed) var(--pfh-ease), visibility 0s linear var(--pfh-speed);
+}
+
+.pfh-anim-slide .pfh-mega {
+	transform: translateY(-10px);
+}
+
+.pfh-anim-none .pfh-mega {
+	transition: none;
+}
+
+.pfh-nav__item.is-open > .pfh-mega {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transform: none;
+	transition-delay: 0s;
+}
+
+.pfh-mega__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding: var(--pfh-mega-pad-y) calc(var(--pfh-gutter) + var(--pfh-mega-pad-x));
+}
+
+.pfh-mega__grid {
+	display: grid;
+	grid-template-columns: repeat(var(--pfh-mega-cols), minmax(0, 1fr));
+	gap: var(--pfh-mega-gap);
+}
+
+/* Cards */
+
+.pfh-card {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.pfh-card__media {
+	display: grid;
+	place-items: center;
+	aspect-ratio: var(--pfh-card-ratio);
+	padding: var(--pfh-card-pad);
+	background: var(--pfh-card-bg);
+	border-radius: var(--pfh-card-radius);
+	overflow: hidden;
+}
+
+.pfh-card__img {
+	width: auto;
+	height: auto;
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+	transition: transform 0.4s var(--pfh-ease);
+}
+
+.pfh-card:hover .pfh-card__img {
+	transform: scale(1.05);
+}
+
+.pfh-card__title {
+	margin-top: 20px;
+	font-size: var(--pfh-card-title);
+	font-weight: var(--pfh-card-title-w);
+	line-height: 1.32;
+	color: var(--pfh-card-title-c);
+}
+
+.pfh-card__link {
+	margin-top: 16px;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: var(--pfh-card-link);
+	font-weight: 500;
+	line-height: 1;
+	color: var(--pfh-card-link-c);
+}
+
+.pfh-card__arrow {
+	width: 16px;
+	height: 16px;
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-card:hover .pfh-card__arrow {
+	transform: translateX(4px);
+}
+
+/* ------------------------------------------------------------------ *
+ * Action icons
+ * ------------------------------------------------------------------ */
+
+.pfh-actions {
+	justify-self: end;
+	display: flex;
+	align-items: center;
+	gap: var(--pfh-icon-gap);
+}
+
+.pfh-actions__btn {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--pfh-icon-color);
+	transition: opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-actions__btn:hover {
+	opacity: 0.65;
+}
+
+.pfh-actions__icon {
+	width: var(--pfh-icon-size);
+	height: var(--pfh-icon-size);
+	object-fit: contain;
+}
+
+.pfh-actions__badge {
+	position: absolute;
+	top: -7px;
+	right: -9px;
+	min-width: 17px;
+	height: 17px;
+	padding: 0 4px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--pfh-badge-bg);
+	color: var(--pfh-badge-color);
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1;
+	border-radius: 999px;
+}
+
+.pfh-actions__badge.is-empty {
+	display: none;
+}
+
+/* Burger (mobile only) */
+
+.pfh-burger {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	color: var(--pfh-icon-color);
+}
+
+.pfh-burger svg {
+	width: 24px;
+	height: 24px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Portal: scrim, search popup, drawers
+ * ------------------------------------------------------------------ */
+
+.pfh-portal {
+	--pfh-scrim: rgba(20, 24, 27, 0.45);
+	--pfh-search-bg: #fff;
+	--pfh-cart-w: 420px;
+	--pfh-cart-bg: #fff;
+	--pfh-mobile-w: 340px;
+	--pfh-mobile-bg: #fff;
+}
+
+.pfh-scrim[hidden],
+[data-pfh-panel][hidden] {
+	display: none;
+}
+
+.pfh-scrim {
+	position: fixed;
+	inset: 0;
+	z-index: calc(var(--pfh-z) - 1);
+	background: var(--pfh-mega-scrim, rgba(20, 24, 27, 0.12));
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity var(--pfh-speed) var(--pfh-ease), visibility 0s linear var(--pfh-speed);
+}
+
+.pfh-scrim.is-open {
+	opacity: 1;
+	visibility: visible;
+	transition-delay: 0s;
+}
+
+/* Search popup */
+
+.pfh-search {
+	position: fixed;
+	inset: 0;
+	z-index: calc(var(--pfh-z) + 20);
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	padding: clamp(16px, 8vh, 120px) var(--pfh-gutter);
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity var(--pfh-speed) var(--pfh-ease), visibility 0s linear var(--pfh-speed);
+}
+
+.pfh-search.is-open {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transition-delay: 0s;
+}
+
+.pfh-search__backdrop {
+	position: absolute;
+	inset: 0;
+	background: var(--pfh-scrim);
+}
+
+.pfh-search__panel {
+	position: relative;
+	width: 100%;
+	max-width: 720px;
+	max-height: min(76vh, 720px);
+	overflow-y: auto;
+	padding: 40px;
+	background: var(--pfh-search-bg);
+	border-radius: 24px;
+	box-shadow: 0 32px 80px rgba(20, 24, 27, 0.24);
+	transform: translateY(-14px);
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-search.is-open .pfh-search__panel {
+	transform: none;
+}
+
+.pfh-search__close {
+	position: absolute;
+	top: 18px;
+	right: 18px;
+	width: 36px;
+	height: 36px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	color: var(--pfh-ink);
+	transition: background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-search__close:hover {
+	background: var(--pfh-muted);
+}
+
+.pfh-search__close svg {
+	width: 18px;
+	height: 18px;
+}
+
+.pfh-search__heading {
+	margin-bottom: 20px;
+	padding-right: 44px;
+	font-size: 24px;
+	font-weight: 500;
+	line-height: 1.25;
+}
+
+.pfh-search__form {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 56px;
+	padding: 0 8px 0 18px;
+	border: 1px solid var(--pfh-line);
+	border-radius: 14px;
+	transition: border-color var(--pfh-speed) var(--pfh-ease);
+}
+
+/*
+ * The ring is on the field, not the input: the input's own outline is off, so
+ * without this there would be no visible focus state at all.
+ */
+.pfh-search__form:focus-within {
+	border-color: var(--pfh-accent);
+	box-shadow: 0 0 0 3px rgba(111, 133, 102, 0.18);
+}
+
+.pfh-search__icon {
+	display: flex;
+	color: rgba(20, 24, 27, 0.5);
+}
+
+.pfh-search__icon svg {
+	width: 20px;
+	height: 20px;
+}
+
+.pfh-search__input {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	border: 0;
+	background: none;
+	font: inherit;
+	font-size: 16px;
+	color: var(--pfh-ink);
+	outline: none;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+/*
+ * A text field always matches :focus-visible, so the keyboard ring would sit
+ * on the input inside the already-bordered pill and read as a broken box. The
+ * pill takes the focus styling instead; !important is here to survive theme
+ * rules on a site we do not control.
+ */
+.pfh-search__input:focus,
+.pfh-search__input:focus-visible {
+	outline: none !important;
+	box-shadow: none !important;
+	border: 0 !important;
+}
+
+.pfh-search__input::-webkit-search-cancel-button {
+	-webkit-appearance: none;
+}
+
+.pfh-search__submit {
+	flex: none;
+	height: 40px;
+	padding: 0 20px;
+	border-radius: 10px;
+	background: var(--pfh-accent);
+	color: #fff;
+	font-size: 15px;
+	font-weight: 500;
+	transition: opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-search__submit:hover {
+	opacity: 0.9;
+}
+
+.pfh-search__output:not(:empty) {
+	margin-top: 22px;
+}
+
+.pfh-search__results {
+	display: grid;
+	gap: 6px;
+}
+
+.pfh-search__result-link {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 10px;
+	border-radius: 14px;
+	transition: background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-search__result-link:hover {
+	background: var(--pfh-muted);
+}
+
+.pfh-search__thumb {
+	flex: none;
+	width: 56px;
+	height: 56px;
+	display: grid;
+	place-items: center;
+	overflow: hidden;
+	background: var(--pfh-muted);
+	border-radius: 10px;
+}
+
+.pfh-search__thumb-img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.pfh-search__result-body {
+	display: grid;
+	gap: 4px;
+	min-width: 0;
+}
+
+.pfh-search__result-title {
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1.3;
+}
+
+.pfh-search__result-price {
+	font-size: 14px;
+	color: var(--pfh-accent);
+}
+
+.pfh-search__result-price del {
+	opacity: 0.55;
+	margin-right: 6px;
+}
+
+.pfh-search__message {
+	padding: 14px 4px;
+	font-size: 15px;
+	color: rgba(20, 24, 27, 0.62);
+}
+
+.pfh-search__output.is-loading {
+	opacity: 0.5;
+}
+
+/* ------------------------------------------------------------------ *
+ * Drawers (cart + mobile)
+ * ------------------------------------------------------------------ */
+
+.pfh-drawer {
+	position: fixed;
+	inset: 0;
+	z-index: calc(var(--pfh-z) + 20);
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.pfh-drawer.is-open {
+	visibility: visible;
+	pointer-events: auto;
+}
+
+.pfh-drawer__backdrop {
+	position: absolute;
+	inset: 0;
+	background: var(--pfh-scrim);
+	opacity: 0;
+	transition: opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-drawer.is-open .pfh-drawer__backdrop {
+	opacity: 1;
+}
+
+.pfh-drawer__panel {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	background: var(--pfh-cart-bg);
+	box-shadow: 0 0 60px rgba(20, 24, 27, 0.2);
+	transition: transform 0.36s var(--pfh-ease);
+}
+
+.pfh-drawer--right .pfh-drawer__panel {
+	right: 0;
+	max-width: var(--pfh-cart-w);
+	transform: translateX(100%);
+}
+
+.pfh-drawer--left .pfh-drawer__panel {
+	left: 0;
+	max-width: var(--pfh-mobile-w);
+	background: var(--pfh-mobile-bg);
+	transform: translateX(-100%);
+}
+
+.pfh-drawer.is-open .pfh-drawer__panel {
+	transform: none;
+}
+
+.pfh-drawer__head {
+	flex: none;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 22px 24px;
+	border-bottom: 1px solid var(--pfh-line);
+}
+
+.pfh-drawer__title {
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+	font-size: 19px;
+	font-weight: 500;
+	line-height: 1.2;
+}
+
+.pfh-drawer__count {
+	font-size: 15px;
+	color: rgba(20, 24, 27, 0.55);
+}
+
+.pfh-drawer__close {
+	flex: none;
+	width: 36px;
+	height: 36px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-drawer__close:hover {
+	background: var(--pfh-muted);
+}
+
+.pfh-drawer__close svg {
+	width: 18px;
+	height: 18px;
+}
+
+.pfh-drawer__body {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 8px 24px;
+}
+
+.pfh-drawer__foot:not(:empty) {
+	flex: none;
+	padding: 20px 24px 24px;
+	border-top: 1px solid var(--pfh-line);
+}
+
+.pfh-drawer__loader {
+	position: absolute;
+	inset: 0;
+	background: rgba(255, 255, 255, 0.55);
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.2s var(--pfh-ease);
+}
+
+.pfh-drawer.is-busy .pfh-drawer__loader {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* Cart lines */
+
+.pfh-cart__list {
+	display: grid;
+	gap: 4px;
+	padding: 8px 0;
+}
+
+.pfh-cart__item {
+	display: flex;
+	gap: 14px;
+	padding: 14px 0;
+	border-bottom: 1px solid var(--pfh-line);
+}
+
+.pfh-cart__item:last-child {
+	border-bottom: 0;
+}
+
+.pfh-cart__thumb {
+	flex: none;
+	width: 76px;
+	height: 84px;
+	display: grid;
+	place-items: center;
+	padding: 8px;
+	background: var(--pfh-muted);
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.pfh-cart__thumb-img,
+.pfh-cart__thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.pfh-cart__info {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.pfh-cart__row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.pfh-cart__row--bottom {
+	margin-top: auto;
+	align-items: center;
+}
+
+.pfh-cart__name {
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1.35;
+}
+
+.pfh-cart__meta {
+	font-size: 13px;
+	line-height: 1.4;
+	color: rgba(20, 24, 27, 0.6);
+}
+
+.pfh-cart__meta p {
+	margin: 0;
+}
+
+.pfh-cart__remove {
+	flex: none;
+	width: 28px;
+	height: 28px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 8px;
+	color: rgba(20, 24, 27, 0.5);
+	transition: color var(--pfh-speed) var(--pfh-ease), background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-cart__remove:hover {
+	color: #b3261e;
+	background: rgba(179, 38, 30, 0.08);
+}
+
+.pfh-cart__remove svg {
+	width: 16px;
+	height: 16px;
+}
+
+.pfh-cart__qty {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	border: 1px solid var(--pfh-line);
+	border-radius: 999px;
+	padding: 2px;
+}
+
+.pfh-cart__qty--static {
+	padding: 4px 14px;
+	font-size: 14px;
+}
+
+.pfh-cart__qty-btn {
+	width: 26px;
+	height: 26px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-cart__qty-btn:hover:not(:disabled) {
+	background: var(--pfh-muted);
+}
+
+.pfh-cart__qty-btn:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+.pfh-cart__qty-btn svg {
+	width: 14px;
+	height: 14px;
+}
+
+.pfh-cart__qty-value {
+	min-width: 26px;
+	text-align: center;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.pfh-cart__price {
+	font-size: 15px;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.pfh-cart__price del {
+	opacity: 0.5;
+	margin-right: 4px;
+	font-weight: 400;
+}
+
+.pfh-cart__empty {
+	display: grid;
+	justify-items: center;
+	gap: 16px;
+	padding: 64px 0;
+	text-align: center;
+	color: rgba(20, 24, 27, 0.7);
+}
+
+.pfh-cart__empty-icon {
+	width: 42px;
+	height: 42px;
+	color: rgba(20, 24, 27, 0.28);
+}
+
+.pfh-cart__totals {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	font-size: 17px;
+	font-weight: 500;
+}
+
+.pfh-cart__note {
+	margin-top: 6px;
+	font-size: 13px;
+	color: rgba(20, 24, 27, 0.6);
+}
+
+.pfh-cart__actions {
+	display: grid;
+	gap: 10px;
+	margin-top: 18px;
+}
+
+/* Mobile drawer */
+
+.pfh-mobile__list {
+	display: grid;
+	padding: 8px 0;
+}
+
+.pfh-mobile__item {
+	border-bottom: 1px solid var(--pfh-line);
+}
+
+.pfh-mobile__row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.pfh-mobile__link {
+	flex: 1;
+	padding: 16px 0;
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 1.2;
+}
+
+.pfh-mobile__toggle {
+	flex: none;
+	width: 40px;
+	height: 40px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-mobile__toggle:hover {
+	background: var(--pfh-muted);
+}
+
+.pfh-mobile__toggle svg {
+	width: 18px;
+	height: 18px;
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-mobile__toggle[aria-expanded="true"] svg {
+	transform: rotate(180deg);
+}
+
+.pfh-mobile__sub[hidden] {
+	display: none;
+}
+
+.pfh-mobile__sub {
+	display: grid;
+	gap: 2px;
+	padding: 0 0 14px;
+}
+
+.pfh-mobile__sub-link {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px;
+	border-radius: 12px;
+	font-size: 15px;
+	line-height: 1.3;
+	color: rgba(20, 24, 27, 0.78);
+	transition: background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-mobile__sub-link:hover {
+	background: var(--pfh-muted);
+}
+
+.pfh-mobile__sub-img {
+	flex: none;
+	width: 44px;
+	height: 44px;
+	object-fit: contain;
+	background: var(--pfh-muted);
+	border-radius: 8px;
+	padding: 4px;
+}
+
+.pfh-mobile__foot {
+	display: grid;
+	gap: 12px;
+}
+
+.pfh-mobile__account {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 15px;
+	font-weight: 500;
+}
+
+.pfh-mobile__account svg {
+	width: 20px;
+	height: 20px;
+}
+
+.pfh-mobile__note {
+	font-size: 13px;
+	color: rgba(20, 24, 27, 0.6);
+}
+
+/* Locks page scroll while a panel is open. */
+html.pfh-locked,
+body.pfh-locked {
+	overflow: hidden !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 1199px) {
+	.pfh-header {
+		--pfh-nav-gap: 26px;
+	}
+}
+
+/* Mobile switch — one block per breakpoint option. */
+@media (max-width: 1200px) {
+	.pfh-bp-1200 .pfh-nav { display: none; }
+	.pfh-bp-1200 .pfh-burger { display: inline-flex; }
+	.pfh-bp-1200 .pfh-bar__inner { grid-template-columns: auto 1fr auto; }
+
+	/* ------------------------------------------------------------------ *
+	 * Mobile bar
+	 *
+	 * Below the menu breakpoint the bar stops being a three-column grid and
+	 * becomes a flex row, so the logo can hold the left edge while the icons and
+	 * the burger order themselves freely after it. `display: contents` on the
+	 * actions wrapper lifts the individual icons into that row, which is what
+	 * lets the burger sit between them rather than only before or after the whole
+	 * group.
+	 * ------------------------------------------------------------------ */
+	
+	.pfh-bp-1200 .pfh-bar__inner {
+		display: flex;
+		align-items: center;
+		gap: var(--pfh-icon-gap);
+		grid-template-columns: none;
+	}
+	
+	.pfh-bp-1200 .pfh-logo {
+		justify-self: auto;
+		/* Holds the left edge and pushes everything else to the right. */
+		margin-right: auto;
+		order: 0;
+	}
+	
+	.pfh-bp-1200 .pfh-actions {
+		display: contents;
+	}
+	
+	.pfh-bp-1200 .pfh-burger,
+	.pfh-bp-1200 .pfh-actions__btn {
+		order: 5;
+	}
+	
+	/* Search, cart, menu — the menu furthest right. */
+	.pfh-bp-1200.pfh-mo-search-cart-menu .pfh-actions__btn--search { order: 1; }
+	.pfh-bp-1200.pfh-mo-search-cart-menu .pfh-actions__btn--cart   { order: 2; }
+	.pfh-bp-1200.pfh-mo-search-cart-menu .pfh-actions__btn--account { order: 3; }
+	.pfh-bp-1200.pfh-mo-search-cart-menu .pfh-burger               { order: 4; }
+	
+	/* Search, menu, cart. */
+	.pfh-bp-1200.pfh-mo-search-menu-cart .pfh-actions__btn--search { order: 1; }
+	.pfh-bp-1200.pfh-mo-search-menu-cart .pfh-burger               { order: 2; }
+	.pfh-bp-1200.pfh-mo-search-menu-cart .pfh-actions__btn--cart   { order: 3; }
+	.pfh-bp-1200.pfh-mo-search-menu-cart .pfh-actions__btn--account { order: 4; }
+	
+	/* Menu, search, cart. */
+	.pfh-bp-1200.pfh-mo-menu-search-cart .pfh-burger               { order: 1; }
+	.pfh-bp-1200.pfh-mo-menu-search-cart .pfh-actions__btn--search { order: 2; }
+	.pfh-bp-1200.pfh-mo-menu-search-cart .pfh-actions__btn--cart   { order: 3; }
+	.pfh-bp-1200.pfh-mo-menu-search-cart .pfh-actions__btn--account { order: 4; }
+	
+	/* Cart, search, menu. */
+	.pfh-bp-1200.pfh-mo-cart-search-menu .pfh-actions__btn--cart   { order: 1; }
+	.pfh-bp-1200.pfh-mo-cart-search-menu .pfh-actions__btn--search { order: 2; }
+	.pfh-bp-1200.pfh-mo-cart-search-menu .pfh-burger               { order: 4; }
+	.pfh-bp-1200.pfh-mo-cart-search-menu .pfh-actions__btn--account { order: 3; }
+	
+	/* The account link lives in the mobile menu, not in the bar. */
+	.pfh-bp-1200.hide-account-mobile .pfh-actions__btn--account {
+		display: none;
+	}
+
+}
+
+@media (max-width: 991px) {
+	.pfh-bp-991 .pfh-nav { display: none; }
+	.pfh-bp-991 .pfh-burger { display: inline-flex; }
+	.pfh-bp-991 .pfh-bar__inner { grid-template-columns: auto 1fr auto; }
+
+	/* ------------------------------------------------------------------ *
+	 * Mobile bar
+	 *
+	 * Below the menu breakpoint the bar stops being a three-column grid and
+	 * becomes a flex row, so the logo can hold the left edge while the icons and
+	 * the burger order themselves freely after it. `display: contents` on the
+	 * actions wrapper lifts the individual icons into that row, which is what
+	 * lets the burger sit between them rather than only before or after the whole
+	 * group.
+	 * ------------------------------------------------------------------ */
+	
+	.pfh-bp-991 .pfh-bar__inner {
+		display: flex;
+		align-items: center;
+		gap: var(--pfh-icon-gap);
+		grid-template-columns: none;
+	}
+	
+	.pfh-bp-991 .pfh-logo {
+		justify-self: auto;
+		/* Holds the left edge and pushes everything else to the right. */
+		margin-right: auto;
+		order: 0;
+	}
+	
+	.pfh-bp-991 .pfh-actions {
+		display: contents;
+	}
+	
+	.pfh-bp-991 .pfh-burger,
+	.pfh-bp-991 .pfh-actions__btn {
+		order: 5;
+	}
+	
+	/* Search, cart, menu — the menu furthest right. */
+	.pfh-bp-991.pfh-mo-search-cart-menu .pfh-actions__btn--search { order: 1; }
+	.pfh-bp-991.pfh-mo-search-cart-menu .pfh-actions__btn--cart   { order: 2; }
+	.pfh-bp-991.pfh-mo-search-cart-menu .pfh-actions__btn--account { order: 3; }
+	.pfh-bp-991.pfh-mo-search-cart-menu .pfh-burger               { order: 4; }
+	
+	/* Search, menu, cart. */
+	.pfh-bp-991.pfh-mo-search-menu-cart .pfh-actions__btn--search { order: 1; }
+	.pfh-bp-991.pfh-mo-search-menu-cart .pfh-burger               { order: 2; }
+	.pfh-bp-991.pfh-mo-search-menu-cart .pfh-actions__btn--cart   { order: 3; }
+	.pfh-bp-991.pfh-mo-search-menu-cart .pfh-actions__btn--account { order: 4; }
+	
+	/* Menu, search, cart. */
+	.pfh-bp-991.pfh-mo-menu-search-cart .pfh-burger               { order: 1; }
+	.pfh-bp-991.pfh-mo-menu-search-cart .pfh-actions__btn--search { order: 2; }
+	.pfh-bp-991.pfh-mo-menu-search-cart .pfh-actions__btn--cart   { order: 3; }
+	.pfh-bp-991.pfh-mo-menu-search-cart .pfh-actions__btn--account { order: 4; }
+	
+	/* Cart, search, menu. */
+	.pfh-bp-991.pfh-mo-cart-search-menu .pfh-actions__btn--cart   { order: 1; }
+	.pfh-bp-991.pfh-mo-cart-search-menu .pfh-actions__btn--search { order: 2; }
+	.pfh-bp-991.pfh-mo-cart-search-menu .pfh-burger               { order: 4; }
+	.pfh-bp-991.pfh-mo-cart-search-menu .pfh-actions__btn--account { order: 3; }
+	
+	/* The account link lives in the mobile menu, not in the bar. */
+	.pfh-bp-991.hide-account-mobile .pfh-actions__btn--account {
+		display: none;
+	}
+
+}
+
+@media (max-width: 767px) {
+	.pfh-bp-767 .pfh-nav { display: none; }
+	.pfh-bp-767 .pfh-burger { display: inline-flex; }
+	.pfh-bp-767 .pfh-bar__inner { grid-template-columns: auto 1fr auto; }
+
+	/* ------------------------------------------------------------------ *
+	 * Mobile bar
+	 *
+	 * Below the menu breakpoint the bar stops being a three-column grid and
+	 * becomes a flex row, so the logo can hold the left edge while the icons and
+	 * the burger order themselves freely after it. `display: contents` on the
+	 * actions wrapper lifts the individual icons into that row, which is what
+	 * lets the burger sit between them rather than only before or after the whole
+	 * group.
+	 * ------------------------------------------------------------------ */
+	
+	.pfh-bp-767 .pfh-bar__inner {
+		display: flex;
+		align-items: center;
+		gap: var(--pfh-icon-gap);
+		grid-template-columns: none;
+	}
+	
+	.pfh-bp-767 .pfh-logo {
+		justify-self: auto;
+		/* Holds the left edge and pushes everything else to the right. */
+		margin-right: auto;
+		order: 0;
+	}
+	
+	.pfh-bp-767 .pfh-actions {
+		display: contents;
+	}
+	
+	.pfh-bp-767 .pfh-burger,
+	.pfh-bp-767 .pfh-actions__btn {
+		order: 5;
+	}
+	
+	/* Search, cart, menu — the menu furthest right. */
+	.pfh-bp-767.pfh-mo-search-cart-menu .pfh-actions__btn--search { order: 1; }
+	.pfh-bp-767.pfh-mo-search-cart-menu .pfh-actions__btn--cart   { order: 2; }
+	.pfh-bp-767.pfh-mo-search-cart-menu .pfh-actions__btn--account { order: 3; }
+	.pfh-bp-767.pfh-mo-search-cart-menu .pfh-burger               { order: 4; }
+	
+	/* Search, menu, cart. */
+	.pfh-bp-767.pfh-mo-search-menu-cart .pfh-actions__btn--search { order: 1; }
+	.pfh-bp-767.pfh-mo-search-menu-cart .pfh-burger               { order: 2; }
+	.pfh-bp-767.pfh-mo-search-menu-cart .pfh-actions__btn--cart   { order: 3; }
+	.pfh-bp-767.pfh-mo-search-menu-cart .pfh-actions__btn--account { order: 4; }
+	
+	/* Menu, search, cart. */
+	.pfh-bp-767.pfh-mo-menu-search-cart .pfh-burger               { order: 1; }
+	.pfh-bp-767.pfh-mo-menu-search-cart .pfh-actions__btn--search { order: 2; }
+	.pfh-bp-767.pfh-mo-menu-search-cart .pfh-actions__btn--cart   { order: 3; }
+	.pfh-bp-767.pfh-mo-menu-search-cart .pfh-actions__btn--account { order: 4; }
+	
+	/* Cart, search, menu. */
+	.pfh-bp-767.pfh-mo-cart-search-menu .pfh-actions__btn--cart   { order: 1; }
+	.pfh-bp-767.pfh-mo-cart-search-menu .pfh-actions__btn--search { order: 2; }
+	.pfh-bp-767.pfh-mo-cart-search-menu .pfh-burger               { order: 4; }
+	.pfh-bp-767.pfh-mo-cart-search-menu .pfh-actions__btn--account { order: 3; }
+	
+	/* The account link lives in the mobile menu, not in the bar. */
+	.pfh-bp-767.hide-account-mobile .pfh-actions__btn--account {
+		display: none;
+	}
+
+}
+
+@media (max-width: 991px) {
+	.pfh-header {
+		--pfh-header-h: 64px;
+		--pfh-gutter: 20px;
+		--pfh-mega-cols: 3;
+		--pfh-mega-pad-y: 28px;
+		--pfh-mega-pad-x: 0px;
+	}
+
+	.pfh-search__panel {
+		padding: 28px 20px;
+		border-radius: 18px;
+	}
+
+	.pfh-search__heading {
+		font-size: 20px;
+	}
+
+	.pfh-search__form {
+		height: 52px;
+		padding-left: 14px;
+	}
+
+	.pfh-search__submit {
+		padding: 0 14px;
+	}
+}
+
+@media (max-width: 640px) {
+	.pfh-header {
+		--pfh-icon-gap: 16px;
+	}
+
+	.pfh-drawer--right .pfh-drawer__panel {
+		max-width: min(var(--pfh-cart-w), calc(100vw - 32px));
+	}
+
+	.pfh-drawer--left .pfh-drawer__panel {
+		max-width: min(var(--pfh-mobile-w), calc(100vw - 48px));
+	}
+
+	.pfh-drawer__head,
+	.pfh-drawer__body,
+	.pfh-drawer__foot:not(:empty) {
+		padding-inline: 18px;
+	}
+
+	.pfh-search__submit {
+		padding: 0 12px;
+		font-size: 14px;
+	}
+}
+
+/* Avoid layout shift when the page scrollbar is removed by the scroll lock. */
+body.pfh-locked {
+	padding-right: var(--pfh-sbw, 0px);
+}

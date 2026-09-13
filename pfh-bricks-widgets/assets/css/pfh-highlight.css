@@ -1,0 +1,338 @@
+/**
+ * Product highlight banner.
+ *
+ * Two columns inside a rounded card: the pitch on one side, the product
+ * photograph on the other. The photograph carries its own background in the
+ * supplied artwork, so it sits flush against the card's fill rather than in a
+ * frame of its own.
+ */
+
+.pfh-hl {
+	--pfh-hl-max: 1240px;
+	--pfh-hl-min-h: 468px;
+	--pfh-hl-pt: 0px;
+	--pfh-hl-pb: 56px;
+	--pfh-hl-bg: #d9e6dc;
+	--pfh-hl-radius: 20px;
+	--pfh-hl-px: var(--pfh-hl-px-set, 52px);
+	--pfh-hl-py: var(--pfh-hl-py-set, 48px);
+	--pfh-hl-media-w: 50%;
+	--pfh-hl-ink: #22301c;
+	--pfh-hl-eyebrow: var(--pfh-hl-eyebrow-set, 22px);
+	--pfh-hl-title: var(--pfh-hl-title-set, 32px);
+	--pfh-hl-text: 14px;
+	--pfh-hl-price: 24px;
+	--pfh-hl-point: #3f4c3e;
+	--pfh-hl-tick: #7d9569;
+
+	display: block;
+	padding-block: var(--pfh-hl-pt) var(--pfh-hl-pb);
+	color: var(--pfh-hl-ink);
+}
+
+.pfh-hl__inner {
+	max-width: calc(var(--pfh-hl-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	width: 100%;
+}
+
+.pfh-hl__card {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 24px;
+	min-height: var(--pfh-hl-min-h);
+	padding: var(--pfh-hl-py) 0 var(--pfh-hl-py) var(--pfh-hl-px);
+	background: var(--pfh-hl-bg);
+	border-radius: var(--pfh-hl-radius);
+	/* The photograph runs to the card's edge, so the corners must clip it. */
+	overflow: hidden;
+}
+
+.pfh-hl--media-left .pfh-hl__card {
+	flex-direction: row-reverse;
+	padding: var(--pfh-hl-py) var(--pfh-hl-px) var(--pfh-hl-py) 0;
+}
+
+.pfh-hl__body {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+/* ---------- eyebrow ---------- */
+
+/* Playfair, italic, as drawn — the one serif note in the banner. */
+.pfh-hl__eyebrow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 18px;
+	font-family: var(--pfh-hl-eyebrow-font, "Playfair Display", Georgia, serif);
+	font-size: var(--pfh-hl-eyebrow);
+	font-style: italic;
+	font-weight: 500;
+	line-height: 1.05;
+	color: rgba(0, 0, 0, .78);
+}
+
+.pfh-hl__eyebrow-icon {
+	font-style: normal;
+	line-height: 1;
+}
+
+/* ---------- title ---------- */
+
+/*
+ * Two lines, two weights: a light first line and a medium second, which is
+ * what gives the pairing its shape. They are spans inside one heading so the
+ * document still has a single title here.
+ */
+.pfh-hl__title {
+	margin: 0 0 16px;
+	font-size: var(--pfh-hl-title);
+	line-height: 1.1;
+	letter-spacing: 0;
+}
+
+.pfh-hl__title-top,
+.pfh-hl__title-bottom {
+	display: block;
+}
+
+.pfh-hl__title-top { font-weight: 300; }
+.pfh-hl__title-bottom { font-weight: 500; }
+
+.pfh-hl__link {
+	color: inherit;
+	text-decoration: none;
+}
+
+/*
+ * The whole card is the click target, without wrapping it in an anchor: that
+ * would fold every word inside into the link's own name and make the banner
+ * unreadable to a screen reader.
+ */
+.pfh-hl__card.is-clickable .pfh-hl__link::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+.pfh-hl__card.is-clickable .pfh-hl__link:focus-visible::after {
+	outline: 2px solid var(--pfh-hl-ink);
+	outline-offset: -4px;
+	border-radius: var(--pfh-hl-radius);
+}
+
+/* ---------- copy ---------- */
+
+.pfh-hl__text {
+	max-width: 46ch;
+	margin: 0 0 22px;
+	font-size: var(--pfh-hl-text);
+	font-weight: 400;
+	line-height: 1.5;
+}
+
+.pfh-hl__points {
+	display: grid;
+	gap: 8px;
+	margin: 0 0 26px;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-hl__point {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: var(--pfh-hl-text);
+	font-weight: 400;
+	line-height: 1.5;
+	color: var(--pfh-hl-point);
+}
+
+.pfh-hl__tick {
+	flex: none;
+	width: 15px;
+	height: 15px;
+	color: var(--pfh-hl-tick);
+}
+
+/* ---------- price ---------- */
+
+.pfh-hl__price-row {
+	display: flex;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 0;
+}
+
+.pfh-hl__price-now {
+	font-size: var(--pfh-hl-price);
+	font-weight: 500;
+	line-height: 1.1;
+	color: rgba(0, 0, 0, .78);
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-hl__price-was {
+	font-size: var(--pfh-hl-text);
+	font-weight: 200;
+	line-height: 1.1;
+	color: rgba(0, 0, 0, .38);
+	text-decoration: line-through;
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-hl__price .amount,
+.pfh-hl__price bdi {
+	color: inherit;
+	font: inherit;
+}
+
+.pfh-hl__save {
+	margin: 6px 0 0;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.5;
+	color: var(--pfh-hl-ink);
+}
+
+/* ---------- button ---------- */
+
+.pfh-hl__btn {
+	position: relative;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	margin-top: 24px;
+	padding: 10px 26px;
+	border-radius: 5px;
+	background: var(--pfh-hl-btn-bg, #51604f);
+	color: var(--pfh-hl-btn-ink, #fff);
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1;
+	text-decoration: none;
+	transition: filter .18s ease;
+}
+
+.pfh-hl__btn:hover { filter: brightness(.94); }
+
+/* ---------- media ---------- */
+
+/*
+ * Bottom-aligned and flush to the card's edge: the supplied photograph is cut
+ * off at the foot of the frame, so anchoring it anywhere else leaves a band
+ * of its baked-in background floating above the card's own.
+ */
+.pfh-hl__media {
+	flex: 0 0 var(--pfh-hl-media-w);
+	align-self: stretch;
+	display: flex;
+	align-items: flex-end;
+	justify-content: flex-end;
+	margin-block: calc(var(--pfh-hl-py) * -1);
+	min-width: 0;
+}
+
+.pfh-hl--media-left .pfh-hl__media { justify-content: flex-start; }
+
+/*
+ * The supplied photograph carries its own background, and it is not quite the
+ * card's fill — so where the two meet there is a seam down the banner. The
+ * inner edge is faded out over a short distance, which hides the join without
+ * touching the product itself. A cut-out on a transparent background needs
+ * none of this, so it is a setting.
+ */
+.pfh-hl--blend .pfh-hl__media {
+	-webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--pfh-hl-fade, 14%));
+	mask-image: linear-gradient(to right, transparent 0, #000 var(--pfh-hl-fade, 14%));
+}
+
+.pfh-hl--blend.pfh-hl--media-left .pfh-hl__media {
+	-webkit-mask-image: linear-gradient(to left, transparent 0, #000 var(--pfh-hl-fade, 14%));
+	mask-image: linear-gradient(to left, transparent 0, #000 var(--pfh-hl-fade, 14%));
+}
+
+.pfh-hl__img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center bottom;
+	display: block;
+}
+
+/* ---------- builder placeholder ---------- */
+
+.pfh-hl--empty {
+	padding: 40px;
+	border: 1px dashed rgba(34, 48, 28, .3);
+	border-radius: 12px;
+	color: rgba(34, 48, 28, .7);
+	text-align: center;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 991px) {
+	.pfh-hl { --pfh-hl-title: 28px; --pfh-hl-eyebrow: 19px; --pfh-hl-px: 34px; --pfh-hl-py: 34px; }
+	.pfh-hl__card { min-height: 0; }
+}
+
+@media (max-width: 782px) {
+	/*
+	 * Stacked, and the photograph goes underneath whichever side it was on:
+	 * side by side at this width leaves the copy in a column too narrow to
+	 * read and the product too small to recognise.
+	 */
+	.pfh-hl__card,
+	.pfh-hl--media-left .pfh-hl__card {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 28px;
+		padding: var(--pfh-hl-py) var(--pfh-hl-px) 0;
+	}
+
+	.pfh-hl__media {
+		flex: 0 0 auto;
+		margin-block: 0;
+		justify-content: center;
+		max-height: 320px;
+	}
+
+	.pfh-hl--media-left .pfh-hl__media { justify-content: center; }
+
+	.pfh-hl__img {
+		width: auto;
+		max-width: 100%;
+		height: auto;
+		object-fit: contain;
+	}
+
+	.pfh-hl__text { max-width: none; }
+
+	.pfh-hl--blend .pfh-hl__media,
+	.pfh-hl--blend.pfh-hl--media-left .pfh-hl__media {
+		-webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--pfh-hl-fade, 14%));
+		mask-image: linear-gradient(to bottom, transparent 0, #000 var(--pfh-hl-fade, 14%));
+	}
+}
+
+@media (max-width: 560px) {
+	.pfh-hl { --pfh-hl-title: 25px; --pfh-hl-px: 22px; --pfh-hl-py: 26px; }
+	.pfh-hl__btn { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-hl__btn { transition: none; }
+}

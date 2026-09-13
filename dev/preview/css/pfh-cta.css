@@ -1,0 +1,319 @@
+/**
+ * Products For Home – closing call to action.
+ *
+ * A rounded card on a mint gradient with copy on the left and a cut-out photo
+ * bleeding off the bottom right. The section carries a negative bottom margin
+ * and a stacking context so the footer slides up underneath it.
+ *
+ * Figma geometry (1440 frame): card 1110 x 419, radius 20, text column 503
+ * inset 80 from the card's left edge, button 206 x 50.
+ *
+ * The card keeps its proportions through `aspect-ratio` rather than a fixed
+ * height, so the photo — which is sized off the card height — stays in step
+ * with the text column as the container narrows.
+ */
+
+.pfh-cta {
+	/* Section */
+	--pfh-cta-pad-t: var(--pfh-cta-pad-t-set, 0px);
+	--pfh-cta-pad-b: var(--pfh-cta-pad-b-set, 0px);
+	--pfh-cta-overlap: var(--pfh-cta-overlap-set, 80px);
+	--pfh-cta-z: 2;
+
+	/* Card */
+	--pfh-cta-ratio: var(--pfh-cta-ratio-set, 1110 / 419);
+	--pfh-cta-min: var(--pfh-cta-min-set, 419px);
+	--pfh-cta-radius: 20px;
+	--pfh-cta-bg: linear-gradient(180deg, #f5f7f4 0%, #e5f1f1 52%, #d7eced 100%);
+	--pfh-cta-bg-img: none;
+	--pfh-cta-bg-size: cover;
+	--pfh-cta-bg-pos: center center;
+	--pfh-cta-shadow: none;
+
+	/* Copy */
+	--pfh-cta-pad-x: var(--pfh-cta-pad-x-set, 7.2072%);
+	--pfh-cta-text-w: var(--pfh-cta-text-w-set, 45.3153%);
+
+	--pfh-head-font: inherit;
+	--pfh-cta-head-size: var(--pfh-cta-head-size-set, 34px);
+	--pfh-cta-head-weight: 400;
+	--pfh-cta-head-lh: 1.05;
+	--pfh-cta-head-color: #22301c;
+	--pfh-cta-accent: #6f8566;
+	--pfh-cta-accent-weight: 400;
+	--pfh-cta-ul-offset: 6px;
+	--pfh-cta-ul-width: 1px;
+
+	--pfh-cta-text-size: var(--pfh-cta-text-size-set, 14px);
+	--pfh-cta-text-weight: 300;
+	--pfh-cta-text-lh: 1.5;
+	--pfh-cta-text-color: #22301c;
+
+	--pfh-cta-gap-1: 32px;
+	--pfh-cta-gap-2: 20px;
+
+	/* Button */
+	--pfh-cta-btn-h: 50px;
+	--pfh-cta-btn-pad: var(--pfh-cta-btn-pad-set, 20px);
+	--pfh-cta-btn-gap: 4px;
+	--pfh-cta-btn-radius: 70px;
+	--pfh-cta-btn-size: 15px;
+	--pfh-cta-btn-weight: 500;
+	--pfh-cta-btn-bg: #2b5f63;
+	--pfh-cta-btn-op: 0.8;
+	--pfh-cta-btn-color: #ffffff;
+	--pfh-cta-btn-hover-op: 1;
+	--pfh-cta-btn-icon: 16px;
+	--pfh-cta-btn-shift: -2px;
+
+	/* Photo */
+	--pfh-cta-img-h: var(--pfh-cta-img-h-set, 102%);
+	--pfh-cta-img-right: var(--pfh-cta-img-right-set, 3.6036%);
+	--pfh-cta-img-bottom: 0px;
+
+	position: relative;
+	z-index: var(--pfh-cta-z);
+	width: 100%;
+	padding-block: var(--pfh-cta-pad-t) var(--pfh-cta-pad-b);
+
+	/*
+	 * The whole point of this section: pull whatever follows up underneath the
+	 * card. The z-index above keeps the card painting over it.
+	 */
+	margin-bottom: calc(-1 * var(--pfh-cta-overlap));
+}
+
+.pfh-cta__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+.pfh-cta__card {
+	position: relative;
+	display: flex;
+	align-items: center;
+	aspect-ratio: var(--pfh-cta-ratio);
+	min-height: var(--pfh-cta-min);
+	padding-inline: var(--pfh-cta-pad-x);
+	border-radius: var(--pfh-cta-radius);
+	background-color: #eef4f2;
+	background-image: var(--pfh-cta-bg-img), var(--pfh-cta-bg);
+	background-size: var(--pfh-cta-bg-size), auto;
+	background-position: var(--pfh-cta-bg-pos), center center;
+	background-repeat: no-repeat, no-repeat;
+	box-shadow: var(--pfh-cta-shadow);
+	overflow: hidden;
+	isolation: isolate;
+}
+
+/* ---------------------------------------------------------------------------
+ * Copy
+ * ------------------------------------------------------------------------ */
+
+.pfh-cta__content {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	max-width: var(--pfh-cta-text-w);
+}
+
+.pfh-cta__title {
+	font-family: var(--pfh-head-font);
+	font-size: var(--pfh-cta-head-size);
+	font-weight: var(--pfh-cta-head-weight);
+	line-height: var(--pfh-cta-head-lh);
+	color: var(--pfh-cta-head-color);
+	letter-spacing: 0;
+}
+
+.pfh-cta__title em,
+.pfh-cta__title i {
+	font-style: italic;
+	font-weight: var(--pfh-cta-accent-weight);
+	color: var(--pfh-cta-accent);
+	text-decoration: underline;
+	text-underline-offset: var(--pfh-cta-ul-offset);
+	text-decoration-thickness: var(--pfh-cta-ul-width);
+}
+
+.pfh-cta__text {
+	margin-top: var(--pfh-cta-gap-1);
+	font-size: var(--pfh-cta-text-size);
+	font-weight: var(--pfh-cta-text-weight);
+	line-height: var(--pfh-cta-text-lh);
+	color: var(--pfh-cta-text-color);
+}
+
+.pfh-cta__text a {
+	color: inherit;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Button
+ * ------------------------------------------------------------------------ */
+
+.pfh-cta__btn {
+	position: relative;
+	margin-top: var(--pfh-cta-gap-2);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--pfh-cta-btn-gap);
+	height: var(--pfh-cta-btn-h);
+	padding: 0 var(--pfh-cta-btn-pad);
+	border-radius: var(--pfh-cta-btn-radius);
+	color: var(--pfh-cta-btn-color);
+	font-size: var(--pfh-cta-btn-size);
+	font-weight: var(--pfh-cta-btn-weight);
+	line-height: 1;
+	white-space: nowrap;
+	text-decoration: none;
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+/*
+ * Figma has the fill at 80% but the label at full strength, so the translucent
+ * fill is a pseudo-element rather than opacity on the button itself.
+ */
+.pfh-cta__btn::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	background: var(--pfh-cta-btn-bg);
+	opacity: var(--pfh-cta-btn-op);
+	transition: opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-cta__btn:hover,
+.pfh-cta__btn:focus-visible {
+	transform: translateY(var(--pfh-cta-btn-shift));
+}
+
+.pfh-cta__btn:hover::before,
+.pfh-cta__btn:focus-visible::before {
+	opacity: var(--pfh-cta-btn-hover-op);
+}
+
+.pfh-cta__btn svg,
+.pfh-cta__btn img {
+	width: var(--pfh-cta-btn-icon);
+	height: var(--pfh-cta-btn-icon);
+	flex: none;
+}
+
+.pfh-cta__btn:focus-visible {
+	outline: 2px solid var(--pfh-cta-head-color);
+	outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Photo
+ *
+ * Sized off the card height so it tracks the card's aspect ratio, and anchored
+ * to the bottom edge — the artwork is already cropped there, which is what
+ * gives the hands their run off the card.
+ * ------------------------------------------------------------------------ */
+
+.pfh-cta__media {
+	position: absolute;
+	right: var(--pfh-cta-img-right);
+	bottom: var(--pfh-cta-img-bottom);
+	height: var(--pfh-cta-img-h);
+	width: auto;
+	pointer-events: none;
+}
+
+.pfh-cta__media img {
+	display: block;
+	height: 100%;
+	width: auto;
+	max-width: none;
+	/* width/height attributes are published for the ratio, not as a size. */
+	object-fit: contain;
+}
+
+/* ---------------------------------------------------------------------------
+ * Responsive
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 1199px) {
+	.pfh-cta {
+		--pfh-cta-head-size: 30px;
+		--pfh-cta-min: 360px;
+		--pfh-cta-overlap: 70px;
+	}
+}
+
+@media (max-width: 991px) {
+	.pfh-cta {
+		--pfh-cta-head-size: var(--pfh-cta-head-size-m, 28px);
+		--pfh-cta-min: 320px;
+		--pfh-cta-overlap: 60px;
+		--pfh-gutter: 20px;
+	}
+}
+
+/*
+ * Stacked. The card drops its ratio and the photo rejoins the flow, running
+ * full width to the card's bottom edge so the crop still reads deliberately.
+ */
+@media (max-width: 767px) {
+	.pfh-cta {
+		--pfh-cta-overlap: var(--pfh-cta-overlap-m, 48px);
+		--pfh-cta-btn-pad: 24px;
+	}
+
+	.pfh-cta__card {
+		display: block;
+		aspect-ratio: auto;
+		min-height: 0;
+		padding: var(--pfh-cta-pad-m, 32px) var(--pfh-cta-pad-m, 32px) 0;
+	}
+
+	.pfh-cta__content {
+		max-width: 100%;
+	}
+
+	.pfh-cta__media {
+		position: relative;
+		right: auto;
+		bottom: auto;
+		height: auto;
+		width: calc(100% + (var(--pfh-cta-pad-m, 32px) * 2));
+		margin-top: 28px;
+		margin-inline: calc(-1 * var(--pfh-cta-pad-m, 32px));
+	}
+
+	.pfh-cta__media img {
+		width: 100%;
+		height: auto;
+	}
+
+	.pfh-cta.hide-media-mobile .pfh-cta__media {
+		display: none;
+	}
+
+	.pfh-cta.hide-media-mobile .pfh-cta__card {
+		padding-bottom: var(--pfh-cta-pad-m, 32px);
+	}
+}
+
+@media (max-width: 575px) {
+	.pfh-cta {
+		--pfh-cta-head-size: var(--pfh-cta-head-size-s, 24px);
+		--pfh-cta-pad-m: 24px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-cta__btn,
+	.pfh-cta__btn::before {
+		transition: none;
+	}
+}

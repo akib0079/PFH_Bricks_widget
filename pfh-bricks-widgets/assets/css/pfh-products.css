@@ -1,0 +1,684 @@
+/**
+ * Products For Home – product slider element.
+ *
+ * Shares the drag-slider engine with the category slider (pfh-slider.js); the
+ * generic data attributes are what bind them, so only the chrome is restyled
+ * here.
+ */
+
+.pfh-prod {
+	--pfh-p-pad-top: var(--pfh-p-pad-top-set, 88px);
+	--pfh-p-pad-bot: var(--pfh-p-pad-bot-set, 88px);
+	--pfh-p-bg: #fff;
+
+	--pfh-head-font: inherit;
+	--pfh-head-size: var(--pfh-head-size-set, 38px);
+	--pfh-head-size-m: 28px;
+	--pfh-head-color: #22301c;
+	--pfh-head-accent: #5f6d46;
+	--pfh-head-gap: var(--pfh-head-gap-set, 40px);
+	--pfh-more-color: #5f6d46;
+	--pfh-more-h: 44px;
+
+	--pfh-per: var(--pfh-per-set, 3.5);
+	--pfh-per-t: 2.4;
+	--pfh-per-m: 1.35;
+	--pfh-card-gap: 20px;
+
+	--pfh-media-bg: #f4f4f4;
+	--pfh-media-radius: 18px;
+	--pfh-media-ratio: 310 / 358;
+	--pfh-media-pad: var(--pfh-media-pad-set, 26px);
+	/*
+	 * The small-screen values below, as tokens. The slider wants its roomy
+	 * desktop type and padding to shrink on a phone whatever the author set;
+	 * an archive card is already small and must not grow back to 17px. So an
+	 * element can pin these, and the slider's shrink stays the default.
+	 */
+	--pfh-media-pad-t: 20px;
+	--pfh-t-size-m: 17px;
+	--pfh-gap-1: 14px;
+	--pfh-gap-2: 14px;
+	--pfh-gap-3: 12px;
+	--pfh-img-zoom: 1.06;
+	--pfh-speed: var(--pfh-speed-set, 360ms);
+
+	--pfh-badge-bg: #7d9569;
+	--pfh-badge-color: #fff;
+	--pfh-badge-size: var(--pfh-badge-size-set, 12px);
+	--pfh-badge-radius: 8px;
+	--pfh-badge-pad-x: var(--pfh-badge-pad-x-set, 13px);
+	--pfh-badge-pad-y: var(--pfh-badge-pad-y-set, 7px);
+	--pfh-badge-offset: var(--pfh-badge-offset-set, 16px);
+
+	--pfh-cart-size: var(--pfh-cart-size-set, 46px);
+	--pfh-cart-icon: 20px;
+	--pfh-cart-bg: #51604f;
+	--pfh-cart-color: #fff;
+	--pfh-cart-hover: #3f4c3e;
+	--pfh-cart-radius: 999px;
+
+	--pfh-star: #5f6d46;
+	--pfh-star-empty: rgba(95, 109, 70, 0.25);
+	--pfh-star-size: 14px;
+	--pfh-rev-size: 13px;
+	--pfh-rev-color: #3d4a3a;
+
+	--pfh-t-size: var(--pfh-t-size-set, 20px);
+	--pfh-t-weight: 500;
+	--pfh-t-lh: 1;
+	--pfh-t-color: #22301c;
+	--pfh-t-lines: 2;
+	--pfh-pr-size: 14px;
+	--pfh-pr-lh: 1;
+	--pfh-pr-weight: 500;
+	--pfh-pr-color: #5f6d46;
+	--pfh-pr-old: rgba(95, 109, 70, 0.5);
+	--pfh-pr-gap: 12px;
+
+	--pfh-bar-gap: var(--pfh-bar-gap-set, 40px);
+	--pfh-bar-h: 2px;
+	--pfh-bar-track: rgba(34, 80, 74, 0.07);
+	--pfh-bar-thumb: rgba(34, 80, 74, 0.3);
+
+
+	position: relative;
+	width: 100%;
+	padding-block: var(--pfh-p-pad-top) var(--pfh-p-pad-bot);
+	background: var(--pfh-p-bg);
+}
+
+.pfh-prod--empty {
+	min-height: 140px;
+	display: grid;
+	place-items: center;
+	padding: 24px;
+	text-align: center;
+	color: rgba(20, 24, 27, 0.5);
+	border: 1px dashed rgba(20, 24, 27, 0.2);
+}
+
+.pfh-prod__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* ------------------------------------------------------------------ *
+ * Heading row
+ * ------------------------------------------------------------------ */
+
+.pfh-prod__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 20px;
+	margin-bottom: var(--pfh-head-gap);
+}
+
+.pfh-prod__title {
+	font-family: var(--pfh-head-font);
+	font-size: var(--pfh-head-size);
+	font-weight: 400;
+	line-height: 1.2;
+	color: var(--pfh-head-color);
+}
+
+.pfh-prod__title em,
+.pfh-prod__title i {
+	font-style: italic;
+	color: var(--pfh-head-accent);
+	text-decoration: underline;
+	text-underline-offset: 6px;
+	text-decoration-thickness: 1px;
+}
+
+.pfh-prod__more {
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	height: var(--pfh-more-h);
+	padding: 0 22px;
+	border: 1px solid var(--pfh-more-color);
+	border-radius: 999px;
+	color: var(--pfh-more-color);
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1;
+	white-space: nowrap;
+	transition: background-color var(--pfh-speed) var(--pfh-ease), color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-prod__more:hover {
+	background: var(--pfh-more-color);
+	color: #fff;
+}
+
+.pfh-prod__more-icon {
+	width: 14px;
+	height: 14px;
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-prod__more:hover .pfh-prod__more-icon {
+	transform: translate(3px, -3px);
+}
+
+/* ------------------------------------------------------------------ *
+ * Track
+ * ------------------------------------------------------------------ */
+
+.pfh-prod__viewport {
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-x: contain;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: none;
+	padding-inline: var(--pfh-edge);
+	/* Room for the card lift and the button, which would otherwise be clipped. */
+	padding-block: 10px;
+	margin-block: -10px;
+}
+
+.pfh-prod__viewport::-webkit-scrollbar {
+	display: none;
+}
+
+.pfh-prod__viewport:focus-visible {
+	outline: 2px solid var(--pfh-head-accent);
+	outline-offset: -2px;
+	border-radius: 4px;
+}
+
+.pfh-prod:not(.is-bleed) .pfh-prod__viewport {
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+.pfh-prod.is-snap .pfh-prod__viewport {
+	scroll-snap-type: x mandatory;
+}
+
+.pfh-prod__track {
+	display: flex;
+	align-items: stretch;
+	gap: var(--pfh-card-gap);
+	width: max-content;
+}
+
+.pfh-prod__item {
+	flex: 0 0 auto;
+	display: flex;
+	width: calc(
+		(min(var(--pfh-container), 100vw - var(--pfh-gutter) * 2) - (var(--pfh-per) - 1) * var(--pfh-card-gap))
+		/ var(--pfh-per)
+	);
+}
+
+.pfh-prod.is-snap .pfh-prod__item {
+	scroll-snap-align: start;
+}
+
+/* ------------------------------------------------------------------ *
+ * Card
+ * ------------------------------------------------------------------ */
+
+.pfh-prod__card {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+}
+
+/* Media box */
+
+.pfh-prod__media {
+	position: relative;
+	display: grid;
+	place-items: center;
+	aspect-ratio: var(--pfh-media-ratio);
+	padding: var(--pfh-media-pad);
+	margin-bottom: var(--pfh-gap-1);
+	background: var(--pfh-media-bg);
+	border-radius: var(--pfh-media-radius);
+	overflow: hidden;
+	isolation: isolate;
+}
+
+.pfh-prod__media-link {
+	display: grid;
+	place-items: center;
+	width: 100%;
+	height: 100%;
+}
+
+.pfh-prod__img {
+	max-width: 100%;
+	max-height: 100%;
+	width: auto;
+	height: auto;
+	object-fit: contain;
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+/* The product sits inside the box padding, so the zoom has room and the
+   image never reaches the clipped edge. */
+@media (hover: hover) {
+	.pfh-prod__card:hover .pfh-prod__img {
+		transform: scale(var(--pfh-img-zoom));
+	}
+}
+
+/* Badge */
+
+.pfh-prod__badge {
+	position: absolute;
+	top: var(--pfh-badge-offset);
+	left: var(--pfh-badge-offset);
+	z-index: 2;
+	padding: var(--pfh-badge-pad-y) var(--pfh-badge-pad-x);
+	background: var(--pfh-badge-bg);
+	color: var(--pfh-badge-color);
+	border-radius: var(--pfh-badge-radius);
+	font-size: var(--pfh-badge-size);
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	pointer-events: none;
+}
+
+/* Add to cart */
+
+.pfh-prod__cart {
+	position: absolute;
+	z-index: 3;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--pfh-cart-size);
+	height: var(--pfh-cart-size);
+	background: var(--pfh-cart-bg);
+	color: var(--pfh-cart-color);
+	border-radius: var(--pfh-cart-radius);
+	box-shadow: 0 6px 18px -6px rgba(20, 24, 27, 0.35);
+	transition:
+		opacity var(--pfh-speed) var(--pfh-ease),
+		transform var(--pfh-speed) var(--pfh-ease),
+		background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-prod__cart:hover {
+	background: var(--pfh-cart-hover);
+}
+
+.pfh-prod__cart-icon {
+	width: var(--pfh-cart-icon);
+	height: var(--pfh-cart-icon);
+	object-fit: contain;
+}
+
+.pfh-cart-br .pfh-prod__cart { right: var(--pfh-badge-offset); bottom: var(--pfh-badge-offset); }
+.pfh-cart-tr .pfh-prod__cart { right: var(--pfh-badge-offset); top: var(--pfh-badge-offset); }
+.pfh-cart-bl .pfh-prod__cart { left: var(--pfh-badge-offset); bottom: var(--pfh-badge-offset); }
+
+/*
+ * Hidden until hover on pointer devices only. Touch devices have no hover, so
+ * the button stays visible there rather than being unreachable.
+ */
+@media (hover: hover) {
+	.pfh-reveal-up .pfh-prod__cart,
+	.pfh-reveal-scale .pfh-prod__cart,
+	.pfh-reveal-fade .pfh-prod__cart {
+		opacity: 0;
+	}
+
+	.pfh-reveal-up .pfh-prod__cart {
+		transform: translateY(12px);
+	}
+
+	.pfh-reveal-scale .pfh-prod__cart {
+		transform: scale(0.8);
+	}
+
+	.pfh-prod__card:hover .pfh-prod__cart,
+	.pfh-prod__cart:focus-visible {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* WooCommerce injects its own markup into ajax buttons; keep it out of sight. */
+.pfh-prod__cart.added::after,
+.pfh-prod__cart .blockUI {
+	display: none !important;
+}
+
+.pfh-prod__cart.loading {
+	opacity: 1 !important;
+	pointer-events: none;
+}
+
+.pfh-prod__cart.loading .pfh-prod__cart-icon {
+	animation: pfh-prod-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes pfh-prod-pulse {
+	50% { opacity: 0.35; }
+}
+
+/* Body */
+
+.pfh-prod__body {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+
+.pfh-prod__reviews {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: var(--pfh-gap-2);
+	color: var(--pfh-rev-color);
+	font-size: var(--pfh-rev-size);
+	line-height: 1;
+	align-self: flex-start;
+}
+
+a.pfh-prod__reviews:hover .pfh-prod__reviews-text {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.pfh-prod__stars {
+	display: inline-flex;
+	gap: 2px;
+}
+
+/* Each star paints an empty layer with a clipped filled layer over it, so
+   half stars come out exactly right. */
+.pfh-prod__star {
+	position: relative;
+	display: inline-block;
+	width: var(--pfh-star-size);
+	height: var(--pfh-star-size);
+}
+
+.pfh-prod__star-bg,
+.pfh-prod__star-fg {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.pfh-prod__star-bg {
+	color: var(--pfh-star-empty);
+}
+
+.pfh-prod__star-fg {
+	color: var(--pfh-star);
+	clip-path: inset(0 calc(100% - var(--pfh-fill, 100%)) 0 0);
+}
+
+.pfh-prod__name {
+	margin-bottom: var(--pfh-gap-3);
+	font-size: var(--pfh-t-size);
+	font-weight: var(--pfh-t-weight);
+	line-height: var(--pfh-t-lh);
+	color: var(--pfh-t-color);
+	/*
+	 * Reserved as well as capped. Capping alone keeps a long name from pushing
+	 * a card taller, but a short one still leaves its card shorter — so a
+	 * shelf of mixed product names comes out ragged. Reserving the same number
+	 * of lines makes every card identical, whatever the catalogue is called.
+	 */
+	min-height: calc(var(--pfh-t-lines) * var(--pfh-t-lh) * var(--pfh-t-size));
+	display: -webkit-box;
+	-webkit-line-clamp: var(--pfh-t-lines);
+	line-clamp: var(--pfh-t-lines);
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.pfh-prod__name a {
+	transition: color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-prod__card:hover .pfh-prod__name a {
+	color: var(--pfh-head-accent);
+}
+
+.pfh-prod__prices {
+	margin-top: auto;
+	display: flex;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: var(--pfh-pr-gap);
+	font-size: var(--pfh-pr-size);
+	font-weight: var(--pfh-pr-weight);
+	line-height: var(--pfh-pr-lh);
+}
+
+.pfh-prod__price {
+	color: var(--pfh-pr-color);
+}
+
+.pfh-prod__old {
+	font-size: var(--pfh-pr-old-size, var(--pfh-pr-size));
+	color: var(--pfh-pr-old);
+	text-decoration: line-through;
+}
+
+.pfh-prod__price .amount,
+.pfh-prod__old .amount {
+	color: inherit;
+}
+
+.pfh-prod__suffix {
+	font-weight: inherit;
+}
+
+/* ------------------------------------------------------------------ *
+ * Scrollbar
+ * ------------------------------------------------------------------ */
+
+.pfh-prod__bar[hidden] {
+	display: none;
+}
+
+.pfh-prod__bar {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	margin-top: var(--pfh-bar-gap);
+}
+
+.pfh-prod__bar-track {
+	position: relative;
+	width: 100%;
+	height: var(--pfh-bar-h);
+	border-radius: 999px;
+	background: var(--pfh-bar-track);
+	cursor: pointer;
+}
+
+.pfh-prod__bar-thumb {
+	position: absolute;
+	top: 50%;
+	left: 0;
+	height: var(--pfh-bar-h);
+	min-width: 28px;
+	/* JS sets the width from the track; clamping here means a stale value
+	   after a resize can never push the page into horizontal overflow. */
+	max-width: 100%;
+	border-radius: 999px;
+	background: var(--pfh-bar-thumb);
+	transform: translate3d(0, -50%, 0);
+	cursor: grab;
+	touch-action: none;
+	transition: height 0.2s var(--pfh-ease), background-color 0.2s var(--pfh-ease);
+}
+
+.pfh-prod__bar-thumb:hover,
+.pfh-prod__bar-thumb:focus-visible,
+.pfh-prod__bar-thumb.is-dragging {
+	height: calc(var(--pfh-bar-h) + 2px);
+	background: var(--pfh-bar-thumb-hover, var(--pfh-bar-thumb));
+}
+
+.pfh-prod__bar-thumb.is-dragging {
+	cursor: grabbing;
+}
+
+/* Drag state */
+
+.pfh-prod.is-draggable .pfh-prod__viewport {
+	cursor: grab;
+}
+
+.pfh-prod.is-dragging .pfh-prod__viewport {
+	cursor: grabbing;
+	scroll-snap-type: none;
+}
+
+.pfh-prod.is-dragging .pfh-prod__card {
+	pointer-events: none;
+}
+
+.pfh-prod.is-dragging .pfh-prod__img {
+	transition: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 991px) {
+	.pfh-prod {
+		--pfh-per: var(--pfh-per-t);
+		--pfh-p-pad-top: 60px;
+		--pfh-p-pad-bot: 60px;
+		--pfh-gutter: 20px;
+		--pfh-head-gap: 28px;
+		--pfh-bar-gap: 26px;
+		--pfh-media-pad: var(--pfh-media-pad-t);
+	}
+}
+
+@media (max-width: 767px) {
+	.pfh-prod {
+		--pfh-per: var(--pfh-per-m);
+		--pfh-head-size: var(--pfh-head-size-m);
+		--pfh-t-size: var(--pfh-t-size-m);
+		--pfh-cart-size: 40px;
+	}
+
+	.pfh-prod__head {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 16px;
+	}
+
+	/*
+	 * Always show the button on small screens. Matches the reveal rules'
+	 * specificity so it wins over them even when the browser still reports
+	 * hover support (a narrow desktop window, for instance).
+	 */
+	.pfh-reveal-up .pfh-prod__cart,
+	.pfh-reveal-scale .pfh-prod__cart,
+	.pfh-reveal-fade .pfh-prod__cart {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-prod__img,
+	.pfh-prod__cart,
+	.pfh-prod__more-icon {
+		transition: none !important;
+	}
+
+	.pfh-prod__cart-icon {
+		animation: none !important;
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * Full-width add-to-cart
+ *
+ * A fourth position for the cart control: a real button under the price
+ * rather than an icon floating over the image. Higher specificity than the
+ * reveal rules above on purpose — in this mode the button is the primary
+ * action and must never be hidden until hover.
+ * ------------------------------------------------------------------ */
+
+.pfh-prod.pfh-cart-block .pfh-prod__cart {
+	position: static;
+	inset: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	width: 100%;
+	height: auto;
+	min-height: var(--pfh-cart-h, 36px);
+	padding: 6px 12px;
+	border-radius: var(--pfh-card-radius, 5px);
+	box-shadow: none;
+	opacity: 1;
+	transform: none;
+	translate: none;
+}
+
+.pfh-prod.pfh-cart-block .pfh-prod__cart-icon {
+	width: 12px;
+	height: 12px;
+	flex: none;
+}
+
+/*
+ * Out of stock: still the shape of the button so the grid keeps its rhythm,
+ * but plainly not one. No pointer, no hover, nothing to tab to.
+ */
+.pfh-prod__cart.is-unavailable {
+	background: var(--pfh-cart-off-bg, #e7e9e5);
+	color: var(--pfh-cart-off-ink, #8a9287);
+	cursor: not-allowed;
+	pointer-events: none;
+	box-shadow: none;
+	opacity: 1;
+	transform: none;
+	translate: none;
+}
+
+/* Screen-reader-only, scoped: the theme's own helper may not be present. */
+.pfh-prod__sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.pfh-prod__cart-label {
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+/* The media box keeps its rounded corners with nothing floating in it. */
+.pfh-prod.pfh-cart-block .pfh-prod__media { overflow: hidden; }

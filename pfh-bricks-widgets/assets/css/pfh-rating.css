@@ -1,0 +1,60 @@
+/**
+ * Products For Home – inline rating badge.
+ *
+ * "Excellent 9,7 | 270 reviews on WebwinkelKeur" — one line, wrapping
+ * gracefully rather than overflowing in a narrow column.
+ */
+
+.pfh-rating {
+	--pfh-rt-size: 14px;
+	--pfh-rt-weight: 400;
+	--pfh-rt-strong: 600;
+	--pfh-rt-color: #22301c;
+	--pfh-rt-gap: var(--pfh-rt-gap-set, 8px);
+	--pfh-rt-logo: 16px;
+	--pfh-rt-align: flex-start;
+
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: var(--pfh-rt-align);
+	gap: var(--pfh-rt-gap);
+	font-size: var(--pfh-rt-size);
+	font-weight: var(--pfh-rt-weight);
+	line-height: 1.2;
+	color: var(--pfh-rt-color);
+	text-decoration: none;
+}
+
+a.pfh-rating:hover .pfh-rating__count {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.pfh-rating__label,
+.pfh-rating__score {
+	font-weight: var(--pfh-rt-strong);
+	color: inherit;
+}
+
+.pfh-rating__sep {
+	opacity: 0.45;
+}
+
+.pfh-rating__count {
+	/* Falls back to the line colour when no count colour is set. */
+	color: var(--pfh-rt-muted, inherit);
+}
+
+.pfh-rating__logo {
+	height: var(--pfh-rt-logo);
+	width: auto;
+	flex: none;
+}
+
+/* The separator earns its keep only while the line is unbroken. */
+@media (max-width: 420px) {
+	.pfh-rating {
+		--pfh-rt-gap: 6px;
+	}
+}

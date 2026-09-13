@@ -1,0 +1,494 @@
+/**
+ * Products For Home – review slider element.
+ *
+ * Left rail (heading, lede, prev/next) beside a horizontally scrolling grid of
+ * review cards, `--pfh-rv-rows` deep and `--pfh-rv-cols` wide per view, with
+ * dots underneath.
+ *
+ * Figma geometry (1440 frame): content column 1110, rail 362, gap 68,
+ * cards 330 with a 20 gutter — 362 + 68 + 330 + 20 + 330 = 1110.
+ *
+ * The track is a native overflow-x scroller with scroll snapping; the arrows,
+ * the dots and pointer drag all write to the same scrollLeft, so nothing
+ * reimplements momentum or keyboard scrolling.
+ */
+
+.pfh-rev {
+	/* Section */
+	--pfh-rv-pad-y: var(--pfh-rv-pad-y-set, 120px);
+	--pfh-rv-bg: transparent;
+	--pfh-rv-radius: 0px;
+
+	/* Split */
+	--pfh-rv-aside-w: var(--pfh-rv-aside-w-set, 32.6126%);
+	--pfh-rv-split-gap: var(--pfh-rv-split-gap-set, 6.1261%);
+	--pfh-rv-stack-gap: var(--pfh-rv-stack-gap-set, 48px);
+
+	/* Grid of cards */
+	--pfh-rv-cols: var(--pfh-rv-cols-set, 2);
+	--pfh-rv-rows: var(--pfh-rv-rows-set, 2);
+	--pfh-rv-gap: var(--pfh-rv-gap-set, 20px);
+
+	/* Card */
+	--pfh-rv-card-bg: #eef3f1;
+	--pfh-rv-card-radius: 16px;
+	--pfh-rv-card-pad: var(--pfh-rv-card-pad-set, 20px);
+	--pfh-rv-card-shadow: none;
+
+	--pfh-rv-avatar: 32px;
+	--pfh-rv-avatar-gap: 12px;
+	--pfh-rv-avatar-bg: #d9e4e0;
+	--pfh-rv-avatar-color: #2b5f63;
+
+	--pfh-rv-name-size: 14px;
+	--pfh-rv-name-weight: 500;
+	--pfh-rv-name-color: #3d0023;
+	--pfh-rv-role-size: 14px;
+	--pfh-rv-role-weight: 400;
+	--pfh-rv-role-color: rgba(0, 0, 0, 0.62);
+
+	--pfh-rv-star: 16px;
+	--pfh-rv-star-gap: 4px;
+	--pfh-rv-star-on: #2f7e7c;
+	--pfh-rv-star-off: #cfdcd8;
+
+	--pfh-rv-text-size: var(--pfh-rv-text-size-set, 16px);
+	--pfh-rv-text-weight: 300;
+	--pfh-rv-text-lh: 1.5;
+	--pfh-rv-text-color: #3d4a4d;
+	--pfh-rv-lines: 4;
+
+	--pfh-rv-logo-h: 16px;
+	--pfh-rv-gap-1: 18px; /* head row -> stars */
+	--pfh-rv-gap-2: 16px; /* stars -> text */
+	--pfh-rv-gap-3: 16px; /* text -> logo */
+
+	/* Rail */
+	--pfh-head-font: inherit;
+	--pfh-head-size: var(--pfh-head-size-set, 42px);
+	--pfh-head-weight: 400;
+	--pfh-head-lh: 1.15;
+	--pfh-head-color: #22504a;
+	--pfh-head-accent: #6b9691;
+	--pfh-head-accent-weight: 400;
+	--pfh-head-ul-offset: 6px;
+	--pfh-head-ul-width: 1px;
+
+	--pfh-rv-lede-size: 14px;
+	--pfh-rv-lede-weight: 300;
+	--pfh-rv-lede-lh: 1.5;
+	--pfh-rv-lede-color: rgba(0, 0, 0, 0.62);
+	--pfh-rv-gap-head: 20px;
+	--pfh-rv-gap-lede: 24px;
+
+	/* Controls */
+	--pfh-rv-btn: 38px;
+	--pfh-rv-btn-gap: 8px;
+	--pfh-rv-btn-border: #d3dedb;
+	--pfh-rv-btn-color: #2b5f63;
+	--pfh-rv-btn-bg: transparent;
+	--pfh-rv-btn-hover-bg: #2b5f63;
+	--pfh-rv-btn-hover-color: #ffffff;
+	--pfh-rv-btn-icon: 13px;
+	--pfh-rv-btn-off: 0.35;
+
+	--pfh-rv-dot: 8px;
+	--pfh-rv-dot-gap: 10px;
+	--pfh-rv-dot-on: #2b5f63;
+	--pfh-rv-dot-off: #cfdcd8;
+	--pfh-rv-dots-gap: 28px;
+
+	position: relative;
+	width: 100%;
+	padding-block: var(--pfh-rv-pad-y);
+	background: var(--pfh-rv-bg);
+	border-radius: var(--pfh-rv-radius);
+}
+
+.pfh-rev__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+.pfh-rev__layout {
+	display: grid;
+	grid-template-columns: var(--pfh-rv-aside-w) minmax(0, 1fr);
+	column-gap: var(--pfh-rv-split-gap);
+	align-items: center;
+}
+
+.pfh-rev.is-rail-right .pfh-rev__layout {
+	grid-template-columns: minmax(0, 1fr) var(--pfh-rv-aside-w);
+}
+
+.pfh-rev.is-rail-right .pfh-rev__aside {
+	order: 2;
+}
+
+/* ---------------------------------------------------------------------------
+ * Rail
+ * ------------------------------------------------------------------------ */
+
+.pfh-rev__title {
+	font-family: var(--pfh-head-font);
+	font-size: var(--pfh-head-size);
+	font-weight: var(--pfh-head-weight);
+	line-height: var(--pfh-head-lh);
+	color: var(--pfh-head-color);
+	letter-spacing: 0;
+}
+
+.pfh-rev__title em,
+.pfh-rev__title i {
+	font-style: italic;
+	font-weight: var(--pfh-head-accent-weight);
+	color: var(--pfh-head-accent);
+	text-decoration: underline;
+	text-underline-offset: var(--pfh-head-ul-offset);
+	text-decoration-thickness: var(--pfh-head-ul-width);
+}
+
+.pfh-rev__lede {
+	margin-top: var(--pfh-rv-gap-head);
+	font-size: var(--pfh-rv-lede-size);
+	font-weight: var(--pfh-rv-lede-weight);
+	line-height: var(--pfh-rv-lede-lh);
+	color: var(--pfh-rv-lede-color);
+}
+
+.pfh-rev__nav {
+	margin-top: var(--pfh-rv-gap-lede);
+	display: flex;
+	align-items: center;
+	gap: var(--pfh-rv-btn-gap);
+}
+
+.pfh-rev__arrow {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--pfh-rv-btn);
+	height: var(--pfh-rv-btn);
+	padding: 0;
+	border: 1px solid var(--pfh-rv-btn-border);
+	border-radius: 50%;
+	background: var(--pfh-rv-btn-bg);
+	color: var(--pfh-rv-btn-color);
+	cursor: pointer;
+	transition: background-color var(--pfh-speed) var(--pfh-ease),
+		color var(--pfh-speed) var(--pfh-ease),
+		border-color var(--pfh-speed) var(--pfh-ease),
+		opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-rev__arrow svg {
+	width: auto;
+	height: var(--pfh-rv-btn-icon);
+}
+
+.pfh-rev__arrow--prev svg {
+	transform: scaleX(-1);
+}
+
+.pfh-rev__arrow:hover:not([disabled]),
+.pfh-rev__arrow:focus-visible:not([disabled]) {
+	background: var(--pfh-rv-btn-hover-bg);
+	border-color: var(--pfh-rv-btn-hover-bg);
+	color: var(--pfh-rv-btn-hover-color);
+}
+
+.pfh-rev__arrow[disabled] {
+	opacity: var(--pfh-rv-btn-off);
+	cursor: default;
+}
+
+/* ---------------------------------------------------------------------------
+ * Track
+ * ------------------------------------------------------------------------ */
+
+.pfh-rev__viewport {
+	overflow-x: auto;
+	overflow-y: hidden;
+	scroll-snap-type: x mandatory;
+	scroll-behavior: smooth;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	overscroll-behavior-x: contain;
+}
+
+.pfh-rev__viewport::-webkit-scrollbar {
+	display: none;
+}
+
+.pfh-rev.is-dragging .pfh-rev__viewport {
+	scroll-snap-type: none;
+	scroll-behavior: auto;
+	cursor: grabbing;
+}
+
+.pfh-rev.is-draggable .pfh-rev__viewport {
+	cursor: grab;
+}
+
+.pfh-rev__track {
+	display: grid;
+	grid-auto-flow: column;
+	grid-template-rows: repeat(var(--pfh-rv-rows), auto);
+	grid-auto-columns: calc(
+		(100% - ((var(--pfh-rv-cols) - 1) * var(--pfh-rv-gap))) / var(--pfh-rv-cols)
+	);
+	gap: var(--pfh-rv-gap);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Card
+ * ------------------------------------------------------------------------ */
+
+.pfh-rev__card {
+	display: flex;
+	flex-direction: column;
+	padding: var(--pfh-rv-card-pad);
+	background: var(--pfh-rv-card-bg);
+	border-radius: var(--pfh-rv-card-radius);
+	box-shadow: var(--pfh-rv-card-shadow);
+	scroll-snap-align: start;
+}
+
+.pfh-rev__who {
+	display: flex;
+	align-items: center;
+	gap: var(--pfh-rv-avatar-gap);
+}
+
+.pfh-rev__avatar {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: var(--pfh-rv-avatar);
+	height: var(--pfh-rv-avatar);
+	border-radius: 50%;
+	overflow: hidden;
+	background: var(--pfh-rv-avatar-bg);
+	color: var(--pfh-rv-avatar-color);
+	font-size: calc(var(--pfh-rv-avatar) * 0.38);
+	font-weight: 500;
+	line-height: 1;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	user-select: none;
+}
+
+.pfh-rev__avatar img,
+.pfh-rev__avatar svg {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.pfh-rev__name {
+	display: block;
+	font-size: var(--pfh-rv-name-size);
+	font-weight: var(--pfh-rv-name-weight);
+	line-height: 1;
+	color: var(--pfh-rv-name-color);
+}
+
+.pfh-rev__role {
+	display: block;
+	margin-top: 6px;
+	font-size: var(--pfh-rv-role-size);
+	font-weight: var(--pfh-rv-role-weight);
+	line-height: 1;
+	color: var(--pfh-rv-role-color);
+}
+
+/* Stars: one grey row with a clipped coloured row over it, so any fraction
+   renders — the design's 4.5 included — from a single filled glyph. */
+.pfh-rev__stars {
+	position: relative;
+	margin-top: var(--pfh-rv-gap-1);
+	display: inline-block;
+	line-height: 0;
+}
+
+.pfh-rev__stars-row {
+	display: flex;
+	gap: var(--pfh-rv-star-gap);
+	color: var(--pfh-rv-star-off);
+}
+
+.pfh-rev__stars-fill {
+	position: absolute;
+	inset-block: 0;
+	inset-inline-start: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	color: var(--pfh-rv-star-on);
+}
+
+/* The overlay holds its own copy of the row, which would otherwise re-apply
+   the empty colour and cancel the fill. */
+.pfh-rev__stars-fill .pfh-rev__stars-row {
+	color: inherit;
+}
+
+.pfh-rev__stars svg {
+	width: var(--pfh-rv-star);
+	height: var(--pfh-rv-star);
+	flex: none;
+}
+
+.pfh-rev__text {
+	margin-top: var(--pfh-rv-gap-2);
+	font-size: var(--pfh-rv-text-size);
+	font-weight: var(--pfh-rv-text-weight);
+	line-height: var(--pfh-rv-text-lh);
+	color: var(--pfh-rv-text-color);
+
+	/* Reserve and cap the same number of lines, so every card matches. */
+	min-height: calc(var(--pfh-rv-lines) * var(--pfh-rv-text-lh) * var(--pfh-rv-text-size));
+	display: -webkit-box;
+	-webkit-line-clamp: var(--pfh-rv-lines);
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.pfh-rev__foot {
+	/* auto pins the badge to the bottom when a row stretches the card; the
+	   padding keeps the designed gap when it does not. */
+	margin-top: auto;
+	padding-top: var(--pfh-rv-gap-3);
+	display: flex;
+	align-items: center;
+}
+
+.pfh-rev__logo {
+	height: var(--pfh-rv-logo-h);
+	width: auto;
+}
+
+.pfh-rev__foot a {
+	display: inline-flex;
+	align-items: center;
+}
+
+/* ---------------------------------------------------------------------------
+ * Dots
+ * ------------------------------------------------------------------------ */
+
+.pfh-rev__dots {
+	margin-top: var(--pfh-rv-dots-gap);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--pfh-rv-dot-gap);
+}
+
+.pfh-rev__dot {
+	width: var(--pfh-rv-dot);
+	height: var(--pfh-rv-dot);
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: var(--pfh-rv-dot-off);
+	cursor: pointer;
+	transition: background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-rev__dot.is-active {
+	background: var(--pfh-rv-dot-on);
+}
+
+/* Past the dot cap the same row becomes a page counter. */
+.pfh-rev__count {
+	font-size: var(--pfh-rv-role-size);
+	font-weight: 500;
+	line-height: 1;
+	color: var(--pfh-rv-dot-on);
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-rev__dot:focus-visible,
+.pfh-rev__arrow:focus-visible {
+	outline: 2px solid var(--pfh-rv-btn-color);
+	outline-offset: 3px;
+}
+
+.pfh-rev__dots:empty,
+.pfh-rev.is-static .pfh-rev__dots,
+.pfh-rev.is-static .pfh-rev__nav {
+	display: none;
+}
+
+.pfh-rev__empty {
+	padding: 24px;
+	border: 1px dashed var(--pfh-rv-btn-border);
+	border-radius: var(--pfh-rv-card-radius);
+	color: var(--pfh-rv-role-color);
+}
+
+/* ---------------------------------------------------------------------------
+ * Responsive
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 1199px) {
+	.pfh-rev {
+		--pfh-rv-pad-y: 90px;
+		--pfh-head-size: 36px;
+	}
+}
+
+@media (max-width: 991px) {
+	.pfh-rev {
+		--pfh-rv-pad-y: 72px;
+		--pfh-head-size: var(--pfh-head-size-m, 30px);
+		--pfh-gutter: 20px;
+	}
+
+	/* Rail moves above the slider. */
+	.pfh-rev__layout,
+	.pfh-rev.is-rail-right .pfh-rev__layout {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		row-gap: var(--pfh-rv-stack-gap);
+		grid-template-columns: none;
+	}
+
+	.pfh-rev.is-rail-right .pfh-rev__aside {
+		order: 0;
+	}
+}
+
+@media (max-width: 767px) {
+	.pfh-rev {
+		--pfh-rv-cols: 1;
+		--pfh-rv-pad-y: 64px;
+		--pfh-rv-text-size: 15px;
+	}
+}
+
+@media (max-width: 575px) {
+	.pfh-rev {
+		--pfh-rv-rows: 1;
+		--pfh-rv-pad-y: 56px;
+		--pfh-rv-stack-gap: 32px;
+		--pfh-rv-card-pad: 18px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-rev__viewport {
+		scroll-behavior: auto;
+	}
+
+	.pfh-rev__arrow,
+	.pfh-rev__dot {
+		transition: none;
+	}
+}

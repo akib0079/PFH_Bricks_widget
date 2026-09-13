@@ -1,0 +1,445 @@
+/**
+ * Products For Home – footer element.
+ */
+
+.pfh-footer {
+	--pfh-f-bg: #51604f;
+	--pfh-f-image: none;
+	--pfh-f-color: #ffffff;
+	--pfh-f-pad-top: var(--pfh-f-pad-top-set, 120px);
+	--pfh-f-pad-bottom: var(--pfh-f-pad-bottom-set, 60px);
+	--pfh-f-radius: 0px;
+	--pfh-col-gap: 50px;
+	--pfh-head-size: 18px;
+	--pfh-head-weight: 500;
+	--pfh-head-lh: 1.05;
+	--pfh-head-gap: 14px;
+	--pfh-link-size: 14px;
+	--pfh-link-lh: var(--pfh-link-lh-set, 2.1);
+	--pfh-link-gap: 0px;
+	--pfh-link-color: rgba(255, 255, 255, 0.88);
+	--pfh-link-hover: #ffffff;
+	--pfh-news-w: 348px;
+	--pfh-news-h: 42px;
+	--pfh-news-radius: 12px;
+	--pfh-news-border: rgba(255, 255, 255, 0.85);
+	--pfh-news-btn-bg: #a9bfa5;
+	--pfh-news-btn-c: #51604f;
+	--pfh-news-btn-size: 14px;
+	--pfh-news-btn-pad: 24px;
+	--pfh-brand-w: 203px;
+	--pfh-brand-gap: var(--pfh-brand-gap-set, 50px);
+	--pfh-brand-blend: screen;
+	--pfh-brand-align: flex-end;
+	--pfh-social-size: 20px;
+	--pfh-social-gap: 16px;
+	--pfh-social-color: #ffffff;
+	--pfh-bottom-size: 14px;
+	--pfh-bottom-gap: var(--pfh-bottom-gap-set, 32px);
+	--pfh-bottom-ls: 0em;
+	--pfh-divider: rgba(255, 255, 255, 0.18);
+	--pfh-review-w: 126px;
+
+	position: relative;
+	width: 100%;
+	padding-block: var(--pfh-f-pad-top) var(--pfh-f-pad-bottom);
+	background-color: var(--pfh-f-bg);
+	background-image: var(--pfh-f-image);
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	border-radius: var(--pfh-f-radius) var(--pfh-f-radius) 0 0;
+	color: var(--pfh-f-color);
+	/*
+	 * Confines the logo's mix-blend-mode to the footer, so it blends against
+	 * the footer background and can never affect anything outside it.
+	 */
+	isolation: isolate;
+}
+
+.pfh-footer__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* ------------------------------------------------------------------ *
+ * Columns + newsletter
+ * ------------------------------------------------------------------ */
+
+.pfh-footer__top {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 56px;
+}
+
+/*
+ * Figma layout: each column sizes to its own content, separated by a fixed
+ * gap, and the newsletter is pushed to the right edge by the parent's
+ * space-between. "is-spread" distributes the columns across the whole row
+ * instead.
+ */
+.pfh-footer__cols {
+	flex: 0 1 auto;
+	display: flex;
+	align-items: flex-start;
+	justify-content: flex-start;
+	gap: var(--pfh-col-gap);
+	min-width: 0;
+}
+
+.pfh-footer__top.is-spread .pfh-footer__cols {
+	flex: 1 1 auto;
+	justify-content: space-between;
+}
+
+.pfh-footer__col {
+	flex: 0 1 auto;
+	min-width: 0;
+	/* Per-column override from the repeater; auto = size to content. */
+	width: var(--pfh-col-w, auto);
+}
+
+.pfh-footer__heading {
+	margin-bottom: var(--pfh-head-gap);
+	font-size: var(--pfh-head-size);
+	font-weight: var(--pfh-head-weight);
+	line-height: var(--pfh-head-lh);
+	color: var(--pfh-f-color);
+}
+
+.pfh-footer__links {
+	display: grid;
+	gap: var(--pfh-link-gap);
+}
+
+/* Links carry their spacing in the line height, so keep the grid tight. */
+.pfh-footer__links li {
+	min-width: 0;
+}
+
+.pfh-footer__link {
+	display: inline-block;
+	font-size: var(--pfh-link-size);
+	line-height: var(--pfh-link-lh);
+	color: var(--pfh-link-color);
+	transition: color var(--pfh-speed) var(--pfh-ease), opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-footer__link:hover {
+	color: var(--pfh-link-hover);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* Newsletter */
+
+.pfh-footer__news {
+	flex: 0 0 auto;
+	width: var(--pfh-news-w);
+	max-width: 100%;
+}
+
+.pfh-footer__form {
+	display: grid;
+	justify-items: start;
+	gap: 16px;
+}
+
+.pfh-footer__input {
+	width: 100%;
+	height: var(--pfh-news-h);
+	padding: 0 20px;
+	background: transparent;
+	border: 1px solid var(--pfh-news-border);
+	border-radius: var(--pfh-news-radius);
+	color: var(--pfh-f-color);
+	font: inherit;
+	font-size: 15px;
+	line-height: 1;
+	outline: none;
+	-webkit-appearance: none;
+	appearance: none;
+	transition: border-color var(--pfh-speed) var(--pfh-ease), background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-footer__input::placeholder {
+	color: var(--pfh-f-color);
+	opacity: 0.72;
+}
+
+.pfh-footer__input:focus {
+	background: rgba(255, 255, 255, 0.08);
+	border-color: var(--pfh-f-color);
+}
+
+.pfh-footer__submit {
+	height: var(--pfh-news-h);
+	padding: 0 var(--pfh-news-btn-pad);
+	background: var(--pfh-news-btn-bg);
+	color: var(--pfh-news-btn-c);
+	border-radius: var(--pfh-news-radius);
+	font-size: var(--pfh-news-btn-size);
+	font-weight: 500;
+	line-height: 1;
+	transition: opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-footer__submit:hover {
+	opacity: 0.88;
+}
+
+.pfh-footer__form.is-busy .pfh-footer__submit {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+.pfh-footer__news-shortcode input[type="email"],
+.pfh-footer__news-shortcode input[type="text"] {
+	width: 100%;
+	height: var(--pfh-news-h);
+	padding: 0 20px;
+	background: transparent;
+	border: 1px solid var(--pfh-news-border);
+	border-radius: var(--pfh-news-radius);
+	color: var(--pfh-f-color);
+	font: inherit;
+}
+
+.pfh-footer__news-shortcode input[type="submit"],
+.pfh-footer__news-shortcode button[type="submit"] {
+	margin-top: 16px;
+	height: var(--pfh-news-h);
+	padding: 0 var(--pfh-news-btn-pad);
+	background: var(--pfh-news-btn-bg);
+	color: var(--pfh-news-btn-c);
+	border: 0;
+	border-radius: var(--pfh-news-radius);
+	font: inherit;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ *
+ * Brand row
+ * ------------------------------------------------------------------ */
+
+.pfh-footer__brand {
+	display: flex;
+	align-items: var(--pfh-brand-align);
+	justify-content: space-between;
+	gap: 24px;
+	margin-top: var(--pfh-brand-gap);
+}
+
+.pfh-footer__brand-link {
+	display: block;
+	line-height: 0;
+}
+
+.pfh-footer__brand-img {
+	width: var(--pfh-brand-w);
+	height: auto;
+	/*
+	 * The supplied logo is a JPG: white artwork on solid black. "screen" makes
+	 * the black read as transparent over any footer colour while keeping the
+	 * white artwork intact. Set Logo background -> "Keep as uploaded" when a
+	 * transparent PNG/SVG replaces it.
+	 */
+	mix-blend-mode: var(--pfh-brand-blend);
+}
+
+.pfh-footer__social {
+	display: flex;
+	align-items: center;
+	gap: var(--pfh-social-gap);
+}
+
+.pfh-footer__social-link {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--pfh-f-color);
+	transition: opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-footer__social-link:hover {
+	opacity: 0.72;
+}
+
+.pfh-footer__social-link svg,
+.pfh-footer__social-img {
+	width: var(--pfh-social-size);
+	height: var(--pfh-social-size);
+}
+
+.pfh-footer__social-img {
+	object-fit: contain;
+}
+
+/* Masked variant: recolours any single-colour SVG via the icon colour control. */
+.pfh-footer__social-img.is-masked {
+	display: block;
+	background-color: var(--pfh-social-color);
+	-webkit-mask: var(--pfh-social-icon) center / contain no-repeat;
+	mask: var(--pfh-social-icon) center / contain no-repeat;
+}
+
+/* ------------------------------------------------------------------ *
+ * Bottom row
+ * ------------------------------------------------------------------ */
+
+.pfh-footer__bottom {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 16px 24px;
+	margin-top: var(--pfh-bottom-gap);
+	font-size: var(--pfh-bottom-size);
+	line-height: 1.4;
+}
+
+.pfh-footer__bottom.has-divider {
+	padding-top: var(--pfh-bottom-gap);
+	border-top: 1px solid var(--pfh-divider);
+}
+
+.pfh-footer__reviews {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.pfh-footer__reviews-label,
+.pfh-footer__reviews-score {
+	font-weight: 600;
+}
+
+.pfh-footer__reviews-text {
+	opacity: 0.92;
+}
+
+.pfh-footer__reviews-logo {
+	width: var(--pfh-review-w);
+	height: auto;
+	margin-left: 6px;
+}
+
+.pfh-footer__copyright {
+	text-transform: uppercase;
+	letter-spacing: var(--pfh-bottom-ls);
+	opacity: 0.94;
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 1100px) {
+	.pfh-footer__top {
+		flex-wrap: wrap;
+		gap: 48px;
+	}
+
+	.pfh-footer__cols,
+	.pfh-footer__top.is-spread .pfh-footer__cols {
+		flex: 1 1 100%;
+		flex-wrap: wrap;
+		justify-content: flex-start;
+		gap: 40px var(--pfh-col-gap);
+	}
+
+	.pfh-footer__col {
+		flex: 1 1 180px;
+		width: auto;
+	}
+
+	.pfh-footer__news {
+		flex: 1 1 100%;
+		width: 100%;
+		max-width: var(--pfh-news-w);
+	}
+}
+
+@media (max-width: 767px) {
+	.pfh-footer {
+		--pfh-f-pad-top: 56px;
+		--pfh-f-pad-bottom: 40px;
+		--pfh-brand-gap: 40px;
+		--pfh-bottom-gap: 28px;
+		--pfh-gutter: 20px;
+		--pfh-link-lh: 1.9;
+	}
+
+	.pfh-footer__cols {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0;
+	}
+
+	/* Columns become accordions. */
+	.pfh-footer__col {
+		flex: none;
+		border-bottom: 1px solid var(--pfh-divider);
+	}
+
+	.pfh-footer__col.is-accordion > .pfh-footer__heading {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin: 0;
+		padding: 18px 0;
+		cursor: pointer;
+	}
+
+	.pfh-footer__col.is-accordion > .pfh-footer__heading::after {
+		content: "";
+		flex: none;
+		width: 10px;
+		height: 10px;
+		margin-right: 4px;
+		border-right: 2px solid currentColor;
+		border-bottom: 2px solid currentColor;
+		transform: rotate(45deg) translate(-2px, -2px);
+		transition: transform var(--pfh-speed) var(--pfh-ease);
+	}
+
+	.pfh-footer__col.is-accordion.is-open > .pfh-footer__heading::after {
+		transform: rotate(-135deg) translate(-2px, -2px);
+	}
+
+	.pfh-footer__col.is-accordion .pfh-footer__links {
+		padding-bottom: 20px;
+	}
+
+	.pfh-footer__col.is-accordion:not(.is-open) .pfh-footer__links {
+		display: none;
+	}
+
+	.pfh-footer__news {
+		max-width: 100%;
+		/* The row gap already separates it from the last accordion. */
+		margin-top: 0;
+	}
+
+	.pfh-footer__form {
+		justify-items: stretch;
+	}
+
+	.pfh-footer__brand {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 28px;
+	}
+
+	.pfh-footer__bottom {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}

@@ -1,0 +1,322 @@
+/**
+ * Sticky WebwinkelKeur trust badge.
+ *
+ * A small tab pinned to one edge; the panel expands beside it. Neither state
+ * covers the page — the panel sits inside the viewport gutter and collapses
+ * to the tab on narrow screens.
+ */
+
+.pfh-bdg {
+	--pfh-bdg-star: #f5a623;
+	--pfh-bdg-check: #2fa84f;
+	--pfh-bdg-brand: #e5007d;
+	--pfh-bdg-surface: #fff;
+	--pfh-bdg-ink: #1f2b2e;
+	--pfh-bdg-bottom: 180px;
+	--pfh-bdg-tab-bg: #22282a;
+	--pfh-bdg-tab-ink: #fff;
+	--pfh-bdg-mark: 20px;
+	--pfh-bdg-line: color-mix(in srgb, var(--pfh-bdg-ink) 12%, transparent);
+
+	position: fixed;
+	bottom: var(--pfh-bdg-bottom);
+	z-index: 99980;
+	display: flex;
+	align-items: flex-end;
+	gap: 0;
+	color: var(--pfh-bdg-ink);
+	/*
+	 * var(--pfh-font), not inherit. These stylesheets load after pfh-base
+	 * and match with the same one-class specificity, so `inherit` won and
+	 * pulled the theme's body font in — the widget rendered in whatever
+	 * face the theme happened to use instead of Outfit.
+	 */
+	font-family: var(--pfh-font);
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.pfh-bdg--left  { left: 0; flex-direction: row; }
+.pfh-bdg--right { right: 0; flex-direction: row-reverse; }
+
+/* ---------- tab ---------- */
+
+.pfh-bdg__tab {
+	appearance: none;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	width: calc(var(--pfh-bdg-mark) + 20px);
+	min-width: 36px;
+	padding: 10px 4px;
+	border: 0;
+	background: var(--pfh-bdg-tab-bg);
+	color: var(--pfh-bdg-tab-ink);
+	font: inherit;
+	cursor: pointer;
+	transition: filter .18s ease;
+}
+
+.pfh-bdg--left .pfh-bdg__tab  { border-radius: 0 8px 8px 0; }
+.pfh-bdg--right .pfh-bdg__tab { border-radius: 8px 0 0 8px; }
+
+.pfh-bdg__tab:hover { filter: brightness(1.18); }
+
+.pfh-bdg__tab:focus-visible {
+	outline: 2px solid var(--pfh-bdg-brand);
+	outline-offset: 2px;
+}
+
+.pfh-bdg__tab-mark {
+	display: block;
+	color: var(--pfh-bdg-brand);
+	line-height: 0;
+}
+
+/*
+ * Visually hidden, still read aloud. Scoped rather than borrowing the theme's
+ * .screen-reader-text: the badge ships on every page without pfh-base.css, so
+ * it cannot assume anything else has defined one.
+ */
+.pfh-bdg__sr {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.pfh-bdg__tab-score {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: .01em;
+	font-variant-numeric: tabular-nums;
+}
+
+/* ---------- panel ---------- */
+
+.pfh-bdg__panel {
+	box-sizing: border-box;
+	width: 290px;
+	padding: 16px 18px 14px;
+	background: var(--pfh-bdg-surface);
+	border: 1px solid var(--pfh-bdg-line);
+	border-radius: 10px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, .04), 0 20px 40px -26px rgba(0, 0, 0, .4);
+}
+
+.pfh-bdg__panel[hidden] { display: none !important; }
+
+.pfh-bdg--left .pfh-bdg__panel  { margin-left: 10px; }
+.pfh-bdg--right .pfh-bdg__panel { margin-right: 10px; }
+
+.pfh-bdg.is-open .pfh-bdg__panel {
+	animation: pfh-bdg-in .22s cubic-bezier(.22, .61, .36, 1) both;
+}
+
+@keyframes pfh-bdg-in {
+	from { opacity: 0; translate: -8px 0; }
+	to   { opacity: 1; translate: 0 0; }
+}
+
+.pfh-bdg--right.is-open .pfh-bdg__panel {
+	animation-name: pfh-bdg-in-r;
+}
+
+@keyframes pfh-bdg-in-r {
+	from { opacity: 0; translate: 8px 0; }
+	to   { opacity: 1; translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-bdg.is-open .pfh-bdg__panel { animation: none; }
+}
+
+.pfh-bdg__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--pfh-bdg-line);
+}
+
+.pfh-bdg__title {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.pfh-bdg__close {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: color-mix(in srgb, var(--pfh-bdg-ink) 55%, transparent);
+	cursor: pointer;
+}
+
+.pfh-bdg__close:hover {
+	background: color-mix(in srgb, var(--pfh-bdg-ink) 7%, transparent);
+	color: var(--pfh-bdg-ink);
+}
+
+.pfh-bdg__close:focus-visible {
+	outline: 2px solid var(--pfh-bdg-brand);
+	outline-offset: 1px;
+}
+
+/* ---------- score ---------- */
+
+.pfh-bdg__score {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 0;
+	border-bottom: 1px solid var(--pfh-bdg-line);
+}
+
+.pfh-bdg__stars { display: inline-flex; }
+
+.pfh-bdg__stars-track {
+	position: relative;
+	display: inline-block;
+	line-height: 0;
+	color: color-mix(in srgb, var(--pfh-bdg-ink) 18%, transparent);
+}
+
+.pfh-bdg__stars-row {
+	display: inline-flex;
+	gap: 1px;
+	line-height: 0;
+}
+
+.pfh-bdg__stars-fill {
+	position: absolute;
+	inset: 0 auto 0 0;
+	overflow: hidden;
+	white-space: nowrap;
+	color: var(--pfh-bdg-star);
+}
+
+/* The nested row inherits the empty colour otherwise, and every star goes grey. */
+.pfh-bdg__stars-fill .pfh-bdg__stars-row { color: inherit; }
+
+.pfh-bdg__value {
+	font-size: 15px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-bdg__count {
+	font-size: 13.5px;
+	color: color-mix(in srgb, var(--pfh-bdg-ink) 58%, transparent);
+	font-variant-numeric: tabular-nums;
+}
+
+/* ---------- points ---------- */
+
+.pfh-bdg__points {
+	display: grid;
+	gap: 9px;
+	margin: 0;
+	padding: 13px 0;
+	list-style: none;
+	border-bottom: 1px solid var(--pfh-bdg-line);
+}
+
+.pfh-bdg__point {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	font-size: 14px;
+}
+
+.pfh-bdg__check {
+	flex: none;
+	line-height: 0;
+	color: var(--pfh-bdg-check);
+}
+
+/* Uploaded mark, in place of the built-in SVG. */
+.pfh-bdg__mark-img {
+	display: block;
+	width: var(--pfh-bdg-mark);
+	height: var(--pfh-bdg-mark);
+	max-width: none;
+	object-fit: contain;
+}
+
+/* ---------- link ---------- */
+
+.pfh-bdg__link {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	margin-top: 12px;
+	text-decoration: none;
+	color: inherit;
+}
+
+.pfh-bdg__link-mark { flex: none; line-height: 0; color: var(--pfh-bdg-brand); }
+
+.pfh-bdg__link-label {
+	flex: 1 1 auto;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.pfh-bdg__link-go {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 24px;
+	height: 24px;
+	border: 1px solid var(--pfh-bdg-line);
+	border-radius: 50%;
+	color: color-mix(in srgb, var(--pfh-bdg-ink) 62%, transparent);
+	transition: border-color .18s ease, color .18s ease;
+}
+
+.pfh-bdg__link:hover .pfh-bdg__link-go {
+	border-color: var(--pfh-bdg-ink);
+	color: var(--pfh-bdg-ink);
+}
+
+.pfh-bdg__link:focus-visible {
+	outline: 2px solid var(--pfh-bdg-brand);
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 782px) {
+	.pfh-bdg {
+		bottom: min(var(--pfh-bdg-bottom), 120px);
+	}
+
+	.pfh-bdg__panel {
+		width: min(290px, calc(100vw - 74px));
+	}
+}
+
+@media (max-width: 600px) {
+	.pfh-bdg--desktop { display: none; }
+}

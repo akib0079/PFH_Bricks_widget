@@ -1,0 +1,145 @@
+/**
+ * Settings screen.
+ *
+ * Deliberately close to core's own form-table look, so the screen reads as
+ * part of WordPress rather than as a plugin with opinions.
+ */
+
+.pfh-settings__tabs { margin-bottom: 20px; }
+
+.pfh-settings__section {
+	margin: 0 0 22px;
+	padding: 4px 22px 6px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.pfh-settings__section > h2 {
+	margin: 16px 0 2px;
+	padding: 0;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.pfh-settings__intro {
+	margin: 0 0 4px;
+	max-width: 76ch;
+	color: #50575e;
+}
+
+.pfh-settings__section .form-table th {
+	width: 210px;
+	padding-left: 0;
+	font-weight: 500;
+}
+
+.pfh-settings__section .form-table td { padding-left: 0; }
+
+.pfh-settings__section .description { max-width: 72ch; }
+
+.pfh-settings__toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.pfh-settings__suffix { color: #646970; }
+
+.pfh-settings__note {
+	margin: 6px 0 14px;
+	padding: 12px 14px;
+	background: #f6f7f7;
+	border-left: 3px solid #72aee6;
+	border-radius: 0 3px 3px 0;
+	max-width: 80ch;
+}
+
+.pfh-settings__note--warn { border-left-color: #dba617; background: #fcf9e8; }
+.pfh-settings__note--bad  { border-left-color: #d63638; background: #fcf0f1; }
+.pfh-settings__note--good { border-left-color: #00a32a; background: #f0f6f1; }
+
+.pfh-settings__note p:first-child { margin-top: 0; }
+.pfh-settings__note p:last-child { margin-bottom: 0; }
+
+.pfh-settings__note table {
+	margin-top: 8px;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.pfh-settings__note th,
+.pfh-settings__note td {
+	padding: 4px 16px 4px 0;
+	text-align: left;
+	vertical-align: top;
+}
+
+.pfh-settings__preview {
+	margin-top: 8px;
+}
+
+.pfh-settings__preview code {
+	display: inline-block;
+	padding: 4px 8px;
+	background: #f0f0f1;
+	font-size: 12px;
+}
+
+.pfh-settings__preview code[hidden] { display: none; }
+
+/* colour field */
+
+.pfh-color { width: 120px !important; }
+
+.pfh-color__swatch {
+	width: 34px;
+	height: 30px;
+	margin-left: 6px;
+	padding: 2px;
+	vertical-align: middle;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	background: #fff;
+	cursor: pointer;
+}
+
+/* media field */
+
+.pfh-media {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.pfh-media__frame {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 132px;
+	height: 60px;
+	padding: 4px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.pfh-media__frame img {
+	max-width: 100%;
+	max-height: 100%;
+	display: block;
+}
+
+.pfh-media__frame:empty::after {
+	content: "—";
+	color: #a7aaad;
+}
+
+/* order screen */
+
+.pfh-doc-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}

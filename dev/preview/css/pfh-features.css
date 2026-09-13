@@ -1,0 +1,368 @@
+/**
+ * Products For Home – highlighted features element.
+ *
+ * A header row (heading left, intro right) over a bento grid: three columns of
+ * tiles that either carry a photo or a title + copy on a pre-composed card
+ * background, each with its own column and row span.
+ *
+ * Figma geometry (1440 frame): content 1110, 3 columns, 20 gutter — column
+ * 356.67, row 234, so the grid is 3 x 234 + 2 x 20 = 742.
+ *
+ * Row height is expressed as a ratio of the *column* width in container query
+ * units, not as a fixed px value, so the tiles keep their proportions when the
+ * column count changes at a breakpoint.
+ */
+
+.pfh-hf {
+	/* Section */
+	--pfh-hf-pad-t: var(--pfh-hf-pad-t-set, 140px);
+	--pfh-hf-pad-b: var(--pfh-hf-pad-b-set, 128px);
+	--pfh-hf-bg: transparent;
+	--pfh-hf-radius: 0px;
+
+	/* Header */
+	--pfh-hf-head-w: var(--pfh-hf-head-w-set, 417px);
+	--pfh-hf-lede-w: var(--pfh-hf-lede-w-set, 352px);
+	--pfh-hf-head-gap: var(--pfh-hf-head-gap-set, 56px);
+
+	--pfh-head-font: inherit;
+	--pfh-head-size: var(--pfh-head-size-set, 36px);
+	--pfh-head-weight: 400;
+	--pfh-head-lh: 1.15;
+	--pfh-head-color: #22504a;
+	--pfh-head-accent: #6b9691;
+	--pfh-head-accent-weight: 400;
+	--pfh-head-ul-offset: 6px;
+	--pfh-head-ul-width: 1px;
+
+	--pfh-hf-lede-size: 14px;
+	--pfh-hf-lede-weight: 300;
+	--pfh-hf-lede-lh: 1.4;
+	--pfh-hf-lede-color: #3d4a4d;
+
+	/* Grid */
+	--pfh-hf-cols: var(--pfh-hf-cols-set, 3);
+	--pfh-hf-gap: var(--pfh-hf-gap-set, 20px);
+	--pfh-hf-ratio: var(--pfh-hf-ratio-set, 0.656);
+	--pfh-hf-col: calc(
+		(100cqw - ((var(--pfh-hf-cols) - 1) * var(--pfh-hf-gap))) / var(--pfh-hf-cols)
+	);
+	--pfh-hf-row: calc(var(--pfh-hf-col) * var(--pfh-hf-ratio));
+
+	/* Tile */
+	--pfh-hf-tile-radius: 16px;
+	--pfh-hf-tile-pad: var(--pfh-hf-tile-pad-set, 24px);
+	--pfh-hf-tile-bg: #eef0e9;
+
+	--pfh-hf-title-size: var(--pfh-hf-title-size-set, 24px);
+	--pfh-hf-title-weight: 400;
+	--pfh-hf-title-lh: 1.2;
+	--pfh-hf-title-color: #49492b;
+	--pfh-hf-title-accent-weight: 400;
+
+	--pfh-hf-text-size: var(--pfh-hf-text-size-set, 14px);
+	--pfh-hf-text-weight: 300;
+	--pfh-hf-text-lh: 1.4;
+	--pfh-hf-text-color: #49492b;
+	--pfh-hf-text-gap: 20px;
+	--pfh-hf-text-w: 100%;
+
+	/* Motion */
+	--pfh-hf-lift: 4px;
+	--pfh-hf-zoom: 1.05;
+	--pfh-hf-hover-speed: 0.55s;
+	--pfh-hf-hover-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+	--pfh-hf-shadow: 0 18px 38px rgba(34, 80, 74, 0.14);
+	--pfh-hf-rise: 18px;
+	--pfh-hf-reveal-speed: 0.62s;
+	--pfh-hf-stagger: 70ms;
+
+	position: relative;
+	width: 100%;
+	padding-block: var(--pfh-hf-pad-t) var(--pfh-hf-pad-b);
+	background: var(--pfh-hf-bg);
+	border-radius: var(--pfh-hf-radius);
+}
+
+.pfh-hf__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* ---------------------------------------------------------------------------
+ * Header
+ * ------------------------------------------------------------------------ */
+
+.pfh-hf__head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 40px;
+	margin-bottom: var(--pfh-hf-head-gap);
+}
+
+.pfh-hf__title {
+	flex: 0 1 auto;
+	max-width: var(--pfh-hf-head-w);
+	font-family: var(--pfh-head-font);
+	font-size: var(--pfh-head-size);
+	font-weight: var(--pfh-head-weight);
+	line-height: var(--pfh-head-lh);
+	color: var(--pfh-head-color);
+	letter-spacing: 0;
+}
+
+.pfh-hf__title em,
+.pfh-hf__title i {
+	font-style: italic;
+	font-weight: var(--pfh-head-accent-weight);
+	color: var(--pfh-head-accent);
+	text-decoration: underline;
+	text-underline-offset: var(--pfh-head-ul-offset);
+	text-decoration-thickness: var(--pfh-head-ul-width);
+}
+
+.pfh-hf__lede {
+	flex: 0 1 auto;
+	max-width: var(--pfh-hf-lede-w);
+	font-size: var(--pfh-hf-lede-size);
+	font-weight: var(--pfh-hf-lede-weight);
+	line-height: var(--pfh-hf-lede-lh);
+	color: var(--pfh-hf-lede-color);
+}
+
+/* ---------------------------------------------------------------------------
+ * Grid
+ * ------------------------------------------------------------------------ */
+
+/*
+ * The query container has to be an ANCESTOR of whatever reads cqw — an element
+ * that establishes a container cannot query itself, so putting container-type
+ * on the grid would silently resolve 100cqw against the viewport instead.
+ */
+.pfh-hf__gridwrap {
+	container-type: inline-size;
+}
+
+.pfh-hf__grid {
+	display: grid;
+	grid-template-columns: repeat(var(--pfh-hf-cols), minmax(0, 1fr));
+	grid-auto-rows: var(--pfh-hf-row);
+	gap: var(--pfh-hf-gap);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* No container queries: fall back to the authored row height. */
+@supports not (container-type: inline-size) {
+	.pfh-hf__grid {
+		grid-auto-rows: var(--pfh-hf-row-px, 234px);
+	}
+}
+
+.pfh-hf__tile {
+	position: relative;
+	grid-column: span var(--pfh-hf-c, 1);
+	grid-row: span var(--pfh-hf-r, 1);
+	display: flex;
+	flex-direction: column;
+	justify-content: var(--pfh-hf-align, center);
+	min-width: 0;
+	padding: var(--pfh-hf-tile-pad);
+	border-radius: var(--pfh-hf-tile-radius);
+	background-color: var(--pfh-hf-tile-bg);
+	overflow: hidden;
+	isolation: isolate;
+	text-decoration: none;
+	transition: transform var(--pfh-hf-hover-speed) var(--pfh-hf-hover-ease),
+		box-shadow var(--pfh-hf-hover-speed) var(--pfh-hf-hover-ease);
+}
+
+/* The artwork is its own layer so it can scale without moving the copy. */
+.pfh-hf__art {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background-image: var(--pfh-hf-img, none);
+	background-size: cover;
+	background-position: var(--pfh-hf-img-pos, center center);
+	background-repeat: no-repeat;
+	transform: scale(1);
+	transition: transform var(--pfh-hf-hover-speed) var(--pfh-hf-hover-ease);
+}
+
+.pfh-hf__tile.is-photo {
+	padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Tile content
+ * ------------------------------------------------------------------------ */
+
+.pfh-hf__tile-title {
+	font-family: var(--pfh-head-font);
+	font-size: var(--pfh-hf-title-size);
+	font-weight: var(--pfh-hf-title-weight);
+	line-height: var(--pfh-hf-title-lh);
+	color: var(--pfh-hf-tile-title, var(--pfh-hf-title-color));
+}
+
+.pfh-hf__tile-title em,
+.pfh-hf__tile-title i {
+	font-style: italic;
+	font-weight: var(--pfh-hf-title-accent-weight);
+	color: inherit;
+}
+
+.pfh-hf__tile-text {
+	margin-top: var(--pfh-hf-text-gap);
+	max-width: var(--pfh-hf-text-w);
+	font-size: var(--pfh-hf-text-size);
+	font-weight: var(--pfh-hf-text-weight);
+	line-height: var(--pfh-hf-text-lh);
+	color: var(--pfh-hf-tile-text, var(--pfh-hf-text-color));
+}
+
+/* Screen-reader label for a photo tile that carries no visible copy. */
+.pfh-hf__sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Hover — minimal: the art breathes, the tile lifts a little.
+ * ------------------------------------------------------------------------ */
+
+.pfh-hover-zoom .pfh-hf__tile:hover .pfh-hf__art,
+.pfh-hover-both .pfh-hf__tile:hover .pfh-hf__art,
+.pfh-hover-zoom .pfh-hf__tile:focus-visible .pfh-hf__art,
+.pfh-hover-both .pfh-hf__tile:focus-visible .pfh-hf__art {
+	transform: scale(var(--pfh-hf-zoom));
+}
+
+.pfh-hover-lift .pfh-hf__tile:hover,
+.pfh-hover-both .pfh-hf__tile:hover,
+.pfh-hover-lift .pfh-hf__tile:focus-visible,
+.pfh-hover-both .pfh-hf__tile:focus-visible {
+	transform: translateY(calc(-1 * var(--pfh-hf-lift)));
+	box-shadow: var(--pfh-hf-shadow);
+}
+
+.pfh-hf__tile:focus-visible {
+	outline: 2px solid var(--pfh-head-accent);
+	outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Reveal — staggered rise, driven by the `is-in` class the script adds.
+ *
+ * The reveal moves the tile with the independent `translate` property while
+ * hover uses `transform`, so the two compose instead of competing: the revealed
+ * state carries four classes and would otherwise out-specify the hover rule and
+ * pin the lift to none. The per-property delay list staggers only the reveal,
+ * leaving hover instant.
+ * ------------------------------------------------------------------------ */
+
+.pfh-hf.is-ready .pfh-hf__head > *,
+.pfh-hf.is-ready .pfh-hf__tile {
+	opacity: 0;
+	translate: 0 var(--pfh-hf-rise);
+	transition-property: opacity, translate, transform, box-shadow;
+	transition-duration: var(--pfh-hf-reveal-speed), var(--pfh-hf-reveal-speed),
+		var(--pfh-hf-hover-speed), var(--pfh-hf-hover-speed);
+	transition-timing-function: var(--pfh-hf-hover-ease);
+	transition-delay: calc(var(--pfh-hf-i, 0) * var(--pfh-hf-stagger)),
+		calc(var(--pfh-hf-i, 0) * var(--pfh-hf-stagger)), 0s, 0s;
+}
+
+.pfh-hf.is-ready.is-in .pfh-hf__head > *,
+.pfh-hf.is-ready.is-in .pfh-hf__tile {
+	opacity: 1;
+	translate: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Responsive
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 1199px) {
+	.pfh-hf {
+		--pfh-hf-pad-t: 100px;
+		--pfh-hf-pad-b: 92px;
+		--pfh-head-size: 32px;
+	}
+}
+
+@media (max-width: 991px) {
+	.pfh-hf {
+		--pfh-hf-cols: 2;
+		--pfh-hf-pad-t: 76px;
+		--pfh-hf-pad-b: 72px;
+		--pfh-hf-head-gap: 40px;
+		--pfh-head-size: var(--pfh-head-size-m, 28px);
+		--pfh-gutter: 20px;
+	}
+
+	.pfh-hf__head {
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.pfh-hf__title,
+	.pfh-hf__lede {
+		max-width: 100%;
+	}
+
+	.pfh-hf__tile {
+		grid-column: span var(--pfh-hf-c-md, 1);
+	}
+}
+
+@media (max-width: 575px) {
+	.pfh-hf {
+		--pfh-hf-cols: 1;
+		--pfh-hf-pad-t: 60px;
+		--pfh-hf-pad-b: 56px;
+		--pfh-hf-tile-pad: 20px;
+		--pfh-hf-title-size: var(--pfh-hf-title-size-m, 22px);
+	}
+
+	.pfh-hf__tile {
+		grid-column: span 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-hf.is-ready .pfh-hf__head > *,
+	.pfh-hf.is-ready .pfh-hf__tile {
+		opacity: 1;
+		translate: none;
+		transform: none;
+		transition: none;
+	}
+
+	.pfh-hf__tile,
+	.pfh-hf__art {
+		transition: none;
+	}
+
+	.pfh-hover-zoom .pfh-hf__tile:hover .pfh-hf__art,
+	.pfh-hover-both .pfh-hf__tile:hover .pfh-hf__art {
+		transform: none;
+	}
+
+	.pfh-hover-lift .pfh-hf__tile:hover,
+	.pfh-hover-both .pfh-hf__tile:hover {
+		transform: none;
+	}
+}

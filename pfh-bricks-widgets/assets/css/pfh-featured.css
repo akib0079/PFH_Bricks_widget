@@ -1,0 +1,432 @@
+/**
+ * Products For Home – featured section element.
+ *
+ * Full-bleed band: patterned background, a text column inside the content
+ * container, and a masked photo that runs to the edge of the screen. The
+ * curved edge lives in the image's own alpha channel, so nothing here clips it.
+ */
+
+.pfh-feat {
+	--pfh-f-min: var(--pfh-f-min-set, 600px);
+	--pfh-f-min-m: 320px;
+	--pfh-f-pad-y: var(--pfh-f-pad-y-set, 64px);
+	--pfh-f-bg: #f7e8cb;
+	--pfh-f-bg-img: none;
+	--pfh-f-bg-size: cover;
+	--pfh-f-bg-pos: center center;
+	--pfh-f-radius: 0px;
+
+	--pfh-head-font: inherit;
+	--pfh-head-size: var(--pfh-head-size-set, 36px);
+	--pfh-head-size-m: 28px;
+	--pfh-head-weight: 500;
+	--pfh-head-lh: 1.05;
+	--pfh-head-color: #5c2e15;
+
+	--pfh-txt-size: 14px;
+	--pfh-txt-weight: 400;
+	--pfh-txt-lh: 1.5;
+	--pfh-txt-color: #7e4a28;
+	--pfh-txt-width: 370px;
+	--pfh-link-color: #5c2e15;
+	--pfh-link-weight: 600;
+	--pfh-gap-1: 18px;
+	--pfh-gap-2: 28px;
+
+	--pfh-btn-h: 40px;
+	--pfh-btn-pad: var(--pfh-btn-pad-set, 36px);
+	--pfh-btn-gap: 10px;
+	--pfh-btn-radius: 70px;
+	--pfh-btn-size: 14px;
+	--pfh-btn-weight: 500;
+	--pfh-btn-bg: #fff;
+	--pfh-btn-op: 0.8;
+	--pfh-btn-color: #ad6738;
+	--pfh-btn-border: #f2e0bf;
+	--pfh-btn-bw: 1px;
+	--pfh-btn-hover: #fff;
+	--pfh-btn-icon: 16px;
+
+	--pfh-media-w: var(--pfh-media-w-set, 57%);
+	--pfh-media-fit: cover;
+	--pfh-media-pos: center center;
+	--pfh-media-h-m: 280px;
+
+	--pfh-mq-bg: #f5dfa8;
+	--pfh-mq-color: #9b4713;
+	--pfh-mq-h: var(--pfh-mq-h-set, 52px);
+	--pfh-mq-size: var(--pfh-mq-size-set, 18px);
+	--pfh-mq-weight: 500;
+	--pfh-mq-gap: var(--pfh-mq-gap-set, 40px);
+	--pfh-mq-icon: var(--pfh-mq-icon-set, 24px);
+	--pfh-mq-time: 32s;
+
+	position: relative;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-height: var(--pfh-f-min);
+	padding-block: var(--pfh-f-pad-y);
+	background-color: var(--pfh-f-bg);
+	background-image: var(--pfh-f-bg-img);
+	background-size: var(--pfh-f-bg-size);
+	background-position: var(--pfh-f-bg-pos);
+	background-repeat: no-repeat;
+	border-radius: var(--pfh-f-radius);
+	overflow: hidden;
+	isolation: isolate;
+}
+
+/* Room for the notice bar when it is pinned over the section. */
+.pfh-feat.has-overlap-bar {
+	padding-bottom: calc(var(--pfh-f-pad-y) + var(--pfh-mq-h));
+}
+
+/* ------------------------------------------------------------------ *
+ * Image
+ * ------------------------------------------------------------------ */
+
+.pfh-feat__media {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: var(--pfh-media-w);
+	z-index: 0;
+	pointer-events: none;
+}
+
+.pfh-media-right .pfh-feat__media { right: 0; }
+.pfh-media-left .pfh-feat__media { left: 0; }
+
+.pfh-feat__img {
+	width: 100%;
+	height: 100%;
+	object-fit: var(--pfh-media-fit);
+	object-position: var(--pfh-media-pos);
+}
+
+/* The bar sits above the photo. */
+.pfh-feat.has-overlap-bar .pfh-feat__media {
+	bottom: var(--pfh-mq-h);
+}
+
+/*
+ * The decoration is placed inside a box the width of the content column, so a
+ * percentage position holds its place in the design at any viewport width
+ * rather than sliding out toward the edge on a wide screen.
+ */
+.pfh-feat__decor-area {
+	position: absolute;
+	inset: 0 var(--pfh-anchor, var(--pfh-edge));
+	z-index: 1;
+	pointer-events: none;
+}
+
+.pfh-feat.decor-full .pfh-feat__decor-area {
+	--pfh-anchor: 0px;
+}
+
+/* Floating decoration, above the photo but below the text. */
+.pfh-feat__decor {
+	position: absolute;
+	/*
+	 * Pinned to a corner: the offset from the chosen edge holds at every
+	 * width, where the percentage fallbacks slide inward as the band grows and
+	 * eventually run the branch off the right side.
+	 */
+	left: var(--pfh-d-l, var(--pfh-d-x, 82%));
+	right: var(--pfh-d-r, auto);
+	top: var(--pfh-d-t, var(--pfh-d-y, 6%));
+	bottom: var(--pfh-d-b, auto);
+	width: var(--pfh-d-w, 190px);
+	height: auto;
+	z-index: 1;
+	opacity: var(--pfh-d-o, 1);
+	transform: rotate(var(--pfh-d-rot, 0deg));
+	pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Content
+ * ------------------------------------------------------------------ */
+
+.pfh-feat__inner {
+	position: relative;
+	z-index: 2;
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+.pfh-feat__content {
+	max-width: var(--pfh-txt-width);
+}
+
+.pfh-media-left .pfh-feat__content {
+	margin-left: auto;
+}
+
+.pfh-feat__title {
+	font-family: var(--pfh-head-font);
+	font-size: var(--pfh-head-size);
+	font-weight: var(--pfh-head-weight);
+	line-height: var(--pfh-head-lh);
+	color: var(--pfh-head-color);
+}
+
+.pfh-feat.is-head-italic .pfh-feat__title {
+	font-style: italic;
+}
+
+.pfh-feat__text {
+	margin-top: var(--pfh-gap-1);
+	font-size: var(--pfh-txt-size);
+	font-weight: var(--pfh-txt-weight);
+	line-height: var(--pfh-txt-lh);
+	color: var(--pfh-txt-color);
+}
+
+.pfh-feat__text p + p {
+	margin-top: 0.9em;
+}
+
+.pfh-feat__text a {
+	color: var(--pfh-link-color);
+	font-weight: var(--pfh-link-weight);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	transition: opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-feat__text a:hover {
+	opacity: 0.72;
+}
+
+.pfh-feat__text strong,
+.pfh-feat__text b {
+	font-weight: var(--pfh-link-weight);
+	color: var(--pfh-link-color);
+}
+
+/* Button */
+
+.pfh-feat__btn {
+	position: relative;
+	margin-top: var(--pfh-gap-2);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--pfh-btn-gap);
+	height: var(--pfh-btn-h);
+	padding: 0 var(--pfh-btn-pad);
+	border-radius: var(--pfh-btn-radius);
+	color: var(--pfh-btn-color);
+	font-size: var(--pfh-btn-size);
+	font-weight: var(--pfh-btn-weight);
+	line-height: 1;
+	white-space: nowrap;
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+/*
+ * Figma has the fill at 80% opacity but the label at full strength, so the
+ * translucent fill is a pseudo-element rather than opacity on the button.
+ */
+.pfh-feat__btn::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background: var(--pfh-btn-bg);
+	opacity: var(--pfh-btn-op);
+	border: var(--pfh-btn-bw) solid var(--pfh-btn-border);
+	border-radius: inherit;
+	transition: opacity var(--pfh-speed) var(--pfh-ease), background-color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-feat__btn:hover {
+	transform: translateY(-2px);
+}
+
+.pfh-feat__btn:hover::before {
+	background: var(--pfh-btn-hover);
+	opacity: 1;
+}
+
+.pfh-feat__btn-icon {
+	width: var(--pfh-btn-icon);
+	height: var(--pfh-btn-icon);
+	transition: transform var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-feat__btn:hover .pfh-feat__btn-icon {
+	transform: translate(3px, -3px);
+}
+
+/* ------------------------------------------------------------------ *
+ * Notice bar
+ * ------------------------------------------------------------------ */
+
+.pfh-feat__mq {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	height: var(--pfh-mq-h);
+	overflow: hidden;
+	background: var(--pfh-mq-bg);
+	color: var(--pfh-mq-color);
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.pfh-feat.has-overlap-bar .pfh-feat__mq {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.pfh-feat__mq-track {
+	display: flex;
+	width: max-content;
+	animation: pfh-feat-marquee var(--pfh-mq-time) linear infinite;
+}
+
+.pfh-feat__mq.is-right .pfh-feat__mq-track {
+	animation-direction: reverse;
+}
+
+.pfh-feat__mq.is-pausable:hover .pfh-feat__mq-track {
+	animation-play-state: paused;
+}
+
+.pfh-feat__mq-group {
+	display: flex;
+	align-items: center;
+	gap: var(--pfh-mq-gap);
+	padding-right: var(--pfh-mq-gap);
+	flex: none;
+}
+
+.pfh-feat__mq-item {
+	font-size: var(--pfh-mq-size);
+	font-weight: var(--pfh-mq-weight);
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.pfh-feat__mq-icon {
+	width: var(--pfh-mq-icon);
+	height: var(--pfh-mq-icon);
+	flex: none;
+	object-fit: contain;
+}
+
+@keyframes pfh-feat-marquee {
+	from { transform: translate3d(0, 0, 0); }
+	to   { transform: translate3d(-50%, 0, 0); }
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 1199px) {
+	.pfh-feat {
+		--pfh-media-w: 52%;
+		--pfh-btn-pad: 26px;
+	}
+}
+
+@media (max-width: 991px) {
+	.pfh-feat {
+		--pfh-f-pad-y: 48px;
+		--pfh-gutter: 20px;
+		--pfh-mq-size: 15px;
+		--pfh-mq-h: 44px;
+		--pfh-mq-gap: 28px;
+	}
+
+	/*
+	 * Stacked. Stays a flex column rather than switching to block, so `order`
+	 * still works and the image / text order is a control.
+	 */
+	.pfh-feat,
+	.pfh-feat.has-overlap-bar {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		min-height: 0;
+		padding-block: 0;
+	}
+
+	/* Full-width band; the desktop absolute positioning is undone here. */
+	/*
+	 * Stacked: a single fixed height leaves the photo squat on a small phone
+	 * and stretched on a large one, so it tracks the viewport and only uses
+	 * the authored height as a ceiling.
+	 */
+	.pfh-feat__media,
+	.pfh-media-right .pfh-feat__media,
+	.pfh-media-left .pfh-feat__media,
+	.pfh-feat.has-overlap-bar .pfh-feat__media {
+		position: relative;
+		inset: auto;
+		width: 100%;
+		height: min(var(--pfh-media-h-m), 62vw);
+		margin: 0;
+	}
+
+	.pfh-feat__inner {
+		padding-block: var(--pfh-f-pad-y);
+	}
+
+	.pfh-feat__content,
+	.pfh-media-left .pfh-feat__content {
+		max-width: 100%;
+		margin-left: 0;
+	}
+
+	/* Stacking order. */
+	.pfh-morder-image .pfh-feat__media { order: 1; }
+	.pfh-morder-image .pfh-feat__inner { order: 2; }
+	.pfh-morder-text .pfh-feat__inner  { order: 1; }
+	.pfh-morder-text .pfh-feat__media  { order: 2; }
+
+	.pfh-feat__mq,
+	.pfh-feat.has-overlap-bar .pfh-feat__mq {
+		position: relative;
+		inset: auto;
+		order: 3;
+	}
+
+	.pfh-feat.hide-media-mobile .pfh-feat__media {
+		display: none;
+	}
+
+	.pfh-feat__decor.is-hidden-mobile {
+		display: none;
+	}
+}
+
+@media (max-width: 767px) {
+	.pfh-feat {
+		--pfh-head-size: var(--pfh-head-size-m);
+		--pfh-mq-size: 14px;
+		--pfh-mq-icon: 20px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-feat__mq-track {
+		animation: none;
+	}
+
+	.pfh-feat__btn,
+	.pfh-feat__btn-icon,
+	.pfh-feat__btn::before {
+		transition: none !important;
+	}
+}
