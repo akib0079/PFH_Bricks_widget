@@ -617,3 +617,22 @@ at boot and that every element require sits behind a Bricks guard.
 Verified both ways: it exits 1 against the v1.25.1 tree that broke the site,
 naming the two unguarded requires, and passes against the fix. Run it before
 any release — it is the only check here that sees the real load order.
+
+### Verifying it, rather than asserting it
+
+`test-boot-without-bricks.php` proves the files *parse*. That is not the same
+as proving a site comes up, so `wp-testbed/test-no-bricks.php` runs the real
+thing: a live WordPress with the stub moved out of `mu-plugins`, checking that
+the plugin activates, boots its services, loads **no** element class while
+doing so, renders wp-admin and its own settings screen as a real
+administrator, shows a notice saying Bricks is needed instead of dying, and
+survives deactivation and reactivation with its rewrite rules intact.
+
+```bash
+mv wp-content/mu-plugins/bricks-stub.php /tmp/
+curl .../pfh-test-no-bricks.php
+mv /tmp/bricks-stub.php wp-content/mu-plugins/
+```
+
+It skips itself if Bricks is loaded, because then the ordering it guards is
+not in play. 17 assertions. Both suites go into the release check.
