@@ -48,8 +48,16 @@ class PFH_Widgets_Diagnose {
 
 		echo '<div class="wrap"><h1>' . esc_html__( 'Diagnose', 'pfh-widgets' ) . '</h1>';
 		echo '<p>' . esc_html__( 'Everything below is read from the database as it stands. Copy the whole box and send it over.', 'pfh-widgets' ) . '</p>';
+		$report = self::report();
+
+		// The routing report already existed behind a query string on the
+		// settings screen. One page, not two.
+		if ( class_exists( 'PFH_Widgets_Diagnostics' ) && method_exists( 'PFH_Widgets_Diagnostics', 'report' ) ) {
+			$report .= "\n\n" . PFH_Widgets_Diagnostics::report();
+		}
+
 		echo '<textarea readonly style="width:100%;height:32em;font-family:Menlo,Consolas,monospace;font-size:12px;white-space:pre;overflow:auto">';
-		echo esc_textarea( self::report() );
+		echo esc_textarea( $report );
 		echo '</textarea></div>';
 	}
 
@@ -132,6 +140,9 @@ class PFH_Widgets_Diagnose {
 		}
 
 		$out[] = '';
+		$out = array_merge( $out, self::templates() );
+
+		$out[] = '';
 		$out[] = '== what a highlight renders right now, outside the builder ==';
 		$out[] = self::render_probe();
 
@@ -206,6 +217,114 @@ class PFH_Widgets_Diagnose {
 		}
 
 		return $lines;
+	}
+
+	/**
+	 * Every Bricks template, what it is for, and how big it is.
+	 *
+	 * The question this exists to answer: the shop page was showing an older
+	 * version of the template being edited. Either two templates both claim
+	 * that page and Bricks renders the other one, or the shop page carries
+	 * Bricks content of its own — which wins over any template. Both look
+	 * exactly like "my edits do not save".
+	 *
+	 * @return array Lines.
+	 */
+	private static function templates() {
+		$out = [ '== Bricks templates, and what claims the shop page ==' ];
+
+		$templates = get_posts(
+			[
+				'post_type'        => 'bricks_template',
+				'post_status'      => [ 'publish', 'draft', 'private' ],
+				'numberposts'      => 100,
+				'suppress_filters' => true,
+			]
+		);
+
+		if ( ! $templates ) {
+			$out[] = 'No Bricks templates on this site.';
+		}
+
+		foreach ( $templates as $t ) {
+			$content = get_post_meta( $t->ID, '_bricks_page_content_2', true );
+			$type    = get_post_meta( $t->ID, '_bricks_template_type', true );
+			$conds   = get_post_meta( $t->ID, '_bricks_template_settings', true );
+			$names   = [];
+
+			if ( is_array( $content ) ) {
+				foreach ( $content as $el ) {
+					if ( isset( $el['name'] ) && 0 === strpos( (string) $el['name'], 'pfh-' ) ) {
+						$names[] = $el['name'];
+					}
+				}
+			}
+
+			$out[] = sprintf(
+				'#%d "%s" [%s] %s — %d element(s), pfh: %s | edited %s',
+				$t->ID,
+				$t->post_title,
+				$t->post_status,
+				$type ? $type : 'no type',
+				is_array( $content ) ? count( $content ) : 0,
+				$names ? implode( ', ', $names ) : 'none',
+				$t->post_modified
+			);
+
+			if ( is_array( $conds ) && ! empty( $conds['templateConditions'] ) ) {
+				foreach ( (array) $conds['templateConditions'] as $c ) {
+					$out[] = '      condition: ' . wp_json_encode( $c );
+				}
+			} else {
+				$out[] = '      condition: none set — Bricks will not apply it anywhere on its own';
+			}
+		}
+
+		/* ---- and the shop page itself ---- */
+
+		$out[] = '';
+		$out[] = '== the WooCommerce shop page ==';
+
+		if ( ! function_exists( 'wc_get_page_id' ) ) {
+			$out[] = 'WooCommerce is not loaded here.';
+
+			return $out;
+		}
+
+		$shop = (int) wc_get_page_id( 'shop' );
+
+		if ( $shop < 1 ) {
+			$out[] = 'No shop page is set in WooCommerce.';
+
+			return $out;
+		}
+
+		$own = get_post_meta( $shop, '_bricks_page_content_2', true );
+
+		$out[] = sprintf( '#%d "%s" — %s', $shop, get_the_title( $shop ), get_permalink( $shop ) );
+
+		if ( is_array( $own ) && $own ) {
+			$names = [];
+
+			foreach ( $own as $el ) {
+				if ( isset( $el['name'] ) && 0 === strpos( (string) $el['name'], 'pfh-' ) ) {
+					$names[] = $el['name'];
+				}
+			}
+
+			$out[] = sprintf(
+				'      HAS ITS OWN BRICKS CONTENT: %d element(s), pfh: %s, edited %s',
+				count( $own ),
+				$names ? implode( ', ', $names ) : 'none',
+				get_post_field( 'post_modified', $shop )
+			);
+			$out[] = '      This wins over any template. Editing the template will not change this page —';
+			$out[] = '      edit the page itself, or clear its Bricks content so the template applies.';
+		} else {
+			$out[] = '      No Bricks content of its own, so a template decides what it looks like.';
+		}
+
+		return $out;
 	}
 
 	/**
