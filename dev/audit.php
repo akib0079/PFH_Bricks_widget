@@ -275,6 +275,32 @@ foreach ( $weight as $path => $size ) {
 	$packaged += $size;
 }
 
+/*
+ * A shipped file that can emit a byte of its own breaks every JSON response
+ * the plugin is anywhere near — a Bricks save above all, which then reports
+ * nothing more useful than "could not save". A closing tag at end of file and
+ * a byte-order mark are the two ways it happens by accident.
+ */
+$emitters = [];
+
+foreach ( $weight as $path => $size ) {
+	if ( '.php' !== substr( $path, -4 ) ) {
+		continue;
+	}
+
+	$src = (string) file_get_contents( $dir . ltrim( $path, "/" ) );
+
+	if ( preg_match( '/\?>\s*$/', $src ) ) {
+		$emitters[] = $path . ' (ends with a closing tag)';
+	}
+
+	if ( "\xEF\xBB\xBF" === substr( $src, 0, 3 ) ) {
+		$emitters[] = $path . ' (byte-order mark)';
+	}
+}
+
+echo 'files that could emit a stray byte: ' . ( $emitters ? implode( ', ', $emitters ) : 'none' ) . "\n";
+
 $estimate = (int) ( $packaged * 0.28 );
 $over     = $estimate > $budget;
 
@@ -298,4 +324,4 @@ if ( $over ) {
 	}
 }
 
-exit( ( $problems || $dead || $unread || $style || $over ) ? 1 : 0 );
+exit( ( $problems || $dead || $unread || $style || $over || $emitters ) ? 1 : 0 );
