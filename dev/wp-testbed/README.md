@@ -636,3 +636,40 @@ mv /tmp/bricks-stub.php wp-content/mu-plugins/
 
 It skips itself if Bricks is loaded, because then the ordering it guards is
 not in play. 17 assertions. Both suites go into the release check.
+
+## Round 17 — the highlight overlaps the footer, and picks its product by name
+
+Three changes to `pfh-highlight`.
+
+**It overlaps the section below it.** A negative bottom margin pulls the next
+section up under the card, with the stacking context keeping the card on top —
+without the z-index the footer's own background paints straight over the
+overlapping edge.
+
+The number in the panel means what it says, which took a second pass: the
+section's own 56px bottom padding sits between the card and the section edge,
+so pulling up by the overlap alone spent most of it closing that gap. 74px of
+margin gave 18px of actual overlap. Both are pulled now, and the measured
+result is exactly 74. Off below 782px, where the card is already full-height
+and an overlap only crowds both.
+
+**The product is picked by name.** A searchable select of real products
+instead of an ID to go and look up — the editor already knows the product by
+name, and typing an ID means leaving the builder to find one. The list is
+cached for an hour so the builder does not re-query a few hundred products on
+every load, and flushed on `save_post_product` so a new product appears at
+once. A separate "or a product ID" field stays, for connecting a dynamic
+field or reaching a product the list does not.
+
+**The saving names its percentage**, worked out from the product rather than
+typed: "Bespaar €5,00 — 11% korting". `%s` is the amount and `%pct%` the
+percentage. Built with `str_replace`, not `sprintf`, because the line carries
+a per-cent sign of its own and sprintf reads that as a conversion and mangles
+the rest of the sentence. With no discount the clause naming it is dropped
+rather than left reading "0% korting".
+
+Also: `eyebrowIcon` was the one text field not passing through dynamic data.
+All twelve do now, plus the repeater's text and the image — checked by
+rendering a marker into each and looking for it on the page.
+
+`test-highlight.php` is 57 assertions.

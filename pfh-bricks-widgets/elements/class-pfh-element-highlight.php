@@ -65,14 +65,32 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * ------------------------------------------------------------------ */
 
 	private function product_controls() {
+		/*
+		 * A searchable list of real products, not an ID to go and look up.
+		 * Typing an ID means leaving the builder, finding the product, and
+		 * copying a number out of the address bar — for something the editor
+		 * already knows by name.
+		 */
 		$this->controls['product'] = [
 			'tab'         => 'content',
 			'group'       => 'product',
 			'label'       => esc_html__( 'Product', 'pfh-widgets' ),
+			'type'        => 'select',
+			'searchable'  => true,
+			'clearable'   => true,
+			'options'     => self::product_options(),
+			'placeholder' => esc_html__( 'Search for a product…', 'pfh-widgets' ),
+			'description' => esc_html__( 'The product this banner prices. Leave empty to type the prices in yourself below.', 'pfh-widgets' ),
+		];
+
+		$this->controls['productId'] = [
+			'tab'         => 'content',
+			'group'       => 'product',
+			'label'       => esc_html__( 'Or a product ID', 'pfh-widgets' ),
 			'type'        => 'text',
 			'inline'      => true,
-			'placeholder' => esc_html__( 'Product ID', 'pfh-widgets' ),
-			'description' => esc_html__( 'The product whose price this banner shows. Its ID is in the address bar when you edit it. Leave empty to type the prices yourself below.', 'pfh-widgets' ),
+			'placeholder' => esc_html__( 'e.g. 1482', 'pfh-widgets' ),
+			'description' => esc_html__( 'Only needed to connect a dynamic field, or for a product the list above does not reach. It wins over the choice above.', 'pfh-widgets' ),
 		];
 
 		$this->controls['link'] = [
@@ -172,8 +190,8 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			'titleProperty' => 'text',
 			'default'       => [
 				[ 'text' => 'Kies zelf 3 smaken uit het assortiment' ],
-				[ 'text' => 'Ideaal cadeau' ],
-				[ 'text' => 'Krijg er 2 gratis glazen bij' ],
+				[ 'text' => 'Ideaal cadeau — inclusief receptenkaart' ],
+				[ 'text' => 'Gratis verzending bij bestelling' ],
 			],
 			'fields'        => [
 				'text' => [
@@ -238,8 +256,19 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			'group'       => 'price',
 			'label'       => esc_html__( 'Saving line', 'pfh-widgets' ),
 			'type'        => 'text',
-			'default'     => 'Bespaar %s',
-			'description' => esc_html__( '%s becomes the amount saved, worked out from the product. Without %s the line is printed as typed.', 'pfh-widgets' ),
+			'default'     => 'Bespaar %s — %pct%% korting',
+			'description' => esc_html__( '%s becomes the amount saved and %pct% the percentage, both worked out from the product. When there is no discount the clause naming it is dropped rather than left reading "0%".', 'pfh-widgets' ),
+		];
+
+		$this->controls['savePercentFallback'] = [
+			'tab'      => 'content',
+			'group'    => 'price',
+			'label'    => esc_html__( 'Saving percentage, when there is no product', 'pfh-widgets' ),
+			'type'     => 'number',
+			'min'      => 0,
+			'max'      => 99,
+			'inline'   => true,
+			'default'  => 11,
 		];
 
 		$this->controls['saveFallback'] = [
@@ -444,6 +473,18 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			'default' => 0,
 		];
 
+		$this->controls['overlap'] = [
+			'tab'         => 'content',
+			'group'       => 'layout',
+			'label'       => esc_html__( 'Overlap the section below (px)', 'pfh-widgets' ),
+			'type'        => 'number',
+			'min'         => 0,
+			'max'         => 300,
+			'inline'      => true,
+			'default'     => 74,
+			'description' => esc_html__( 'The banner sits over the top of whatever follows it — the footer, in the design. Set to 0 for no overlap.', 'pfh-widgets' ),
+		];
+
 		$this->controls['padBottom'] = [
 			'tab'     => 'content',
 			'group'   => 'layout',
@@ -478,6 +519,10 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			'pfh-scope',
 			'pfh-hl--media-' . (string) $this->get( 'imageSide', 'right' ),
 		];
+
+		if ( (int) $this->get( 'overlap', 74 ) > 0 ) {
+			$classes[] = 'pfh-hl--overlaps';
+		}
 
 		if ( $this->is_on( 'imageBlend' ) ) {
 			$classes[] = 'pfh-hl--blend';
@@ -525,7 +570,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			return;
 		}
 
-		$icon = trim( (string) $this->get( 'eyebrowIcon', '' ) );
+		$icon = trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'eyebrowIcon', '' ) ) );
 
 		printf(
 			'<p class="pfh-hl__eyebrow">%s<span>%s</span></p>',
@@ -676,12 +721,63 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 *
 	 * @return \WC_Product|null
 	 */
+	/**
+	 * Every published product, for the picker.
+	 *
+	 * Built once per request and cached for the hour, because Bricks asks
+	 * each element for its controls on every builder load and a shop with a
+	 * few hundred products should not be queried each time.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function product_options() {
+		if ( ! PFH_Widgets_Helpers::has_woocommerce() || ! function_exists( 'wc_get_products' ) ) {
+			return [];
+		}
+
+		$cached = get_transient( 'pfh_highlight_products' );
+
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+
+		$products = wc_get_products(
+			[
+				'status'  => 'publish',
+				'limit'   => 300,
+				'orderby' => 'title',
+				'order'   => 'ASC',
+				'return'  => 'objects',
+			]
+		);
+
+		$options = [];
+
+		foreach ( $products as $product ) {
+			if ( ! is_object( $product ) ) {
+				continue;
+			}
+
+			$sku = $product->get_sku();
+
+			$options[ (string) $product->get_id() ] = $sku
+				? sprintf( '%s — %s', $product->get_name(), $sku )
+				: $product->get_name();
+		}
+
+		set_transient( 'pfh_highlight_products', $options, HOUR_IN_SECONDS );
+
+		return $options;
+	}
+
 	private function product() {
 		if ( ! PFH_Widgets_Helpers::has_woocommerce() || ! function_exists( 'wc_get_product' ) ) {
 			return null;
 		}
 
-		$id = (int) PFH_Widgets_Helpers::dd( (string) $this->get( 'product', '' ) );
+		// A typed ID wins, so a dynamic field can drive this.
+		$typed = trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'productId', '' ) ) );
+		$id    = (int) ( '' !== $typed ? $typed : PFH_Widgets_Helpers::dd( (string) $this->get( 'product', '' ) ) );
 
 		if ( $id <= 0 ) {
 			return null;
@@ -701,7 +797,10 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		$manual = [
 			'now'  => trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'priceManual', '' ) ) ),
 			'was'  => trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'oldManual', '' ) ) ),
-			'save' => $this->save_line( trim( (string) $this->get( 'saveFallback', '' ) ) ),
+			'save' => $this->save_line(
+				trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'saveFallback', '' ) ) ),
+				(float) $this->get( 'savePercentFallback', 0 )
+			),
 		];
 
 		if ( 'product' !== (string) $this->get( 'priceSource', 'product' ) ) {
@@ -721,13 +820,16 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			return $manual;
 		}
 
-		$saving = (float) $was - (float) $now;
+		$saving  = (float) $was - (float) $now;
+		$percent = (float) $was > 0 ? ( $saving / (float) $was ) * 100 : 0.0;
 
 		return [
 			'now'  => wc_price( $now ),
 			// Only worth showing when the product is actually reduced.
 			'was'  => $saving > 0 ? wc_price( $was ) : '',
-			'save' => $saving > 0 ? $this->save_line( wp_strip_all_tags( wc_price( $saving ) ) ) : '',
+			'save' => $saving > 0
+				? $this->save_line( wp_strip_all_tags( wc_price( $saving ) ), $percent )
+				: '',
 		];
 	}
 
@@ -735,16 +837,33 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * @param string $amount Already formatted.
 	 * @return string
 	 */
-	private function save_line( $amount ) {
+	/**
+	 * @param string $amount  Already formatted, e.g. "€5,00".
+	 * @param float  $percent Discount as a percentage, 0 when unknown.
+	 * @return string
+	 */
+	private function save_line( $amount, $percent = 0.0 ) {
 		$template = trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'saveText', '' ) ) );
 
 		if ( '' === $template || '' === $amount ) {
 			return '';
 		}
 
-		return false !== strpos( $template, '%s' )
-			? sprintf( $template, $amount )
-			: $template;
+		/*
+		 * str_replace rather than sprintf: the line carries a per-cent sign
+		 * of its own — "Bespaar €5,00 — 11% korting" — and sprintf reads that
+		 * as a conversion and mangles the rest of the sentence.
+		 */
+		$line = str_replace( '%s', $amount, $template );
+
+		if ( false !== strpos( $line, '%pct%' ) ) {
+			$line = $percent > 0
+				? str_replace( '%pct%', (string) (int) round( $percent ), $line )
+				// No discount to name, so the clause naming it goes too.
+				: trim( preg_replace( '/\s*[—–-]?\s*[^—–-]*%pct%[^—–-]*/u', '', $line ) );
+		}
+
+		return trim( $line );
 	}
 
 	/**
@@ -802,6 +921,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 				'--pfh-hl-min-h'   => PFH_Widgets_Helpers::unit( $this->get( 'minHeight', 468 ) ),
 				'--pfh-hl-pt'      => PFH_Widgets_Helpers::unit( $this->get( 'padTop', 0 ) ),
 				'--pfh-hl-pb'      => PFH_Widgets_Helpers::unit( $this->get( 'padBottom', 56 ) ),
+				'--pfh-hl-overlap' => PFH_Widgets_Helpers::unit( max( 0, (int) $this->get( 'overlap', 74 ) ) ),
 				'--pfh-hl-bg'      => PFH_Widgets_Helpers::color( $this->get( 'bg' ), '#d9e6dc' ),
 				'--pfh-hl-radius'  => PFH_Widgets_Helpers::unit( $this->get( 'radius', 20 ) ),
 				'--pfh-hl-px-set'      => PFH_Widgets_Helpers::unit( $this->get( 'padX', 52 ) ),

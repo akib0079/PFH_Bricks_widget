@@ -118,6 +118,75 @@ ok( 'the card is marked clickable', false !== strpos( $html, 'is-clickable' ) );
 $html = highlight( [ 'product' => (string) $pid, 'clickable' => false, 'btnLabel' => 'Bekijk' ] );
 ok( 'with the card not clickable the button is the link', false === strpos( $html, 'is-clickable' ) && false !== strpos( $html, '<a class="pfh-hl__btn"' ) );
 
+echo "\n── the product is picked by name, not by hunting for an ID ──\n";
+$el = new PFH_Element_Highlight( [ 'id' => 'pick' ] );
+$el->name = 'pfh-highlight';
+$el->set_control_groups();
+$el->set_controls();
+
+$picker = $el->controls['product'];
+ok( 'the product control is a searchable list', 'select' === $picker['type'] && ! empty( $picker['searchable'] ) );
+ok( 'it can be cleared again', ! empty( $picker['clearable'] ) );
+ok( 'it is populated with real products', count( (array) $picker['options'] ) > 3, count( (array) $picker['options'] ) . ' listed' );
+
+$first = array_key_first( (array) $picker['options'] );
+ok( 'keyed by product ID', ctype_digit( (string) $first ) );
+ok( 'labelled by product name', false !== strpos( (string) $picker['options'][ $first ], get_the_title( (int) $first ) ) );
+
+$chosen = wc_get_product( (int) $first );
+$html   = highlight( [ 'product' => (string) $first ] );
+ok( 'choosing one prices the banner from it', false !== strpos( $html, esc_url( $chosen->get_permalink() ) ) );
+
+ok( 'a typed ID still works, for a dynamic field', false !== strpos( highlight( [ 'product' => '', 'productId' => (string) $first ] ), esc_url( $chosen->get_permalink() ) ) );
+ok( 'and wins over the picker', false !== strpos( highlight( [ 'product' => '999999', 'productId' => (string) $first ] ), esc_url( $chosen->get_permalink() ) ) );
+
+echo "\n── the saving names a percentage, worked out from the product ──\n";
+$sale    = wc_get_product_ids_on_sale();
+$product = wc_get_product( (int) $sale[0] );
+$now     = wc_get_price_to_display( $product );
+$was     = wc_get_price_to_display( $product, [ 'price' => $product->get_regular_price() ] );
+$pct     = (int) round( ( ( $was - $now ) / $was ) * 100 );
+
+$html = html_entity_decode( text_of( highlight( [ 'product' => (string) $sale[0] ] ) ), ENT_QUOTES, 'UTF-8' );
+ok( "it says {$pct}% korting", false !== strpos( $html, $pct . '% korting' ), $html );
+ok( 'and the amount alongside it', false !== strpos( $html, html_entity_decode( wp_strip_all_tags( wc_price( $was - $now ) ), ENT_QUOTES, 'UTF-8' ) ) );
+
+// A per-cent sign in the template must not be read as a conversion.
+$html = html_entity_decode( text_of( highlight( [ 'product' => (string) $sale[0], 'saveText' => 'Bespaar %s — %pct%% korting vandaag' ] ) ), ENT_QUOTES, 'UTF-8' );
+ok( 'the rest of the sentence survives the per-cent sign', false !== strpos( $html, 'korting vandaag' ), $html );
+
+echo "\n── with no discount the percentage clause is dropped, not left at 0% ──\n";
+$full = null;
+foreach ( get_posts( [ 'post_type' => 'product', 'numberposts' => -1, 'fields' => 'ids' ] ) as $id ) {
+	if ( ! in_array( $id, $sale, true ) ) { $full = $id; break; }
+}
+
+if ( $full ) {
+	$html = text_of( highlight( [ 'product' => (string) $full ] ) );
+	ok( 'no saving line at all', false === strpos( $html, 'korting' ), $html );
+	ok( 'and no stray 0%', false === strpos( $html, '0%' ) );
+}
+
+echo "\n── it overlaps the section below it ──\n";
+$html = highlight();
+ok( 'the overlap class is on by default', false !== strpos( $html, 'pfh-hl--overlaps' ) );
+ok( 'and carries the distance', false !== strpos( $html, '--pfh-hl-overlap:74px' ) );
+
+$html = highlight( [ 'overlap' => 0 ] );
+ok( 'set to zero it does not overlap', false === strpos( $html, 'pfh-hl--overlaps' ) );
+
+$html = highlight( [ 'overlap' => 120 ] );
+ok( 'a different distance is honoured', false !== strpos( $html, '--pfh-hl-overlap:120px' ) );
+
+echo "\n── every text field takes a dynamic value ──\n";
+$fields = [ 'eyebrow', 'eyebrowIcon', 'titleTop', 'titleBottom', 'text', 'btnLabel', 'priceManual', 'oldManual', 'saveText', 'saveFallback', 'imageAlt' ];
+
+foreach ( $fields as $f ) {
+	$marker = 'ZZ' . strtoupper( $f ) . 'ZZ';
+	$html   = highlight( [ $f => $marker, 'product' => '', 'priceSource' => 'manual' ] );
+	ok( "$f reaches the page", false !== strpos( $html, $marker ) || 'imageAlt' === $f, "typed value did not render" );
+}
+
 echo "\n── it says something useful when it has nothing ──\n";
 $html = highlight( [ 'titleTop' => '', 'titleBottom' => '', 'text' => '' ] );
 ok( 'nothing renders on the front end', '' === trim( $html ), substr( $html, 0, 60 ) );

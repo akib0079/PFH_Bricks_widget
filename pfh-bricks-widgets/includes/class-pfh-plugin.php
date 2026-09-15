@@ -156,6 +156,17 @@ class PFH_Widgets_Plugin {
 		 * result was "Class Bricks\Element not found" on every request,
 		 * wp-admin included — a white screen with no way back in.
 		 */
+		/*
+		 * The highlight's product picker is cached for an hour so the builder
+		 * does not re-query a few hundred products on every load. A new
+		 * product should still show up in it immediately.
+		 */
+		foreach ( [ 'save_post_product', 'deleted_post', 'woocommerce_update_product' ] as $hook ) {
+			add_action( $hook, static function () {
+				delete_transient( 'pfh_highlight_products' );
+			} );
+		}
+
 		add_action( 'wp_ajax_pfh_recent', [ __CLASS__, 'recent_ajax' ] );
 		add_action( 'wp_ajax_nopriv_pfh_recent', [ __CLASS__, 'recent_ajax' ] );
 

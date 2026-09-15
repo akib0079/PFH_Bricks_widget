@@ -25,9 +25,37 @@
 	--pfh-hl-point: #3f4c3e;
 	--pfh-hl-tick: #7d9569;
 
+	--pfh-hl-overlap: 74px;
+
 	display: block;
 	padding-block: var(--pfh-hl-pt) var(--pfh-hl-pb);
 	color: var(--pfh-hl-ink);
+}
+
+/*
+ * The banner sits over the top of whatever follows it — the footer, in the
+ * design. A negative bottom margin pulls the next section up underneath it,
+ * and the stacking context keeps the card on top; without the z-index the
+ * footer's own background paints straight over the overlapping edge.
+ *
+ * The margin goes on the section and the z-index on the card, because the
+ * section is what has to move and the card is what has to stay visible.
+ */
+.pfh-hl--overlaps {
+	position: relative;
+	z-index: 2;
+	/*
+	 * The section's own bottom padding sits between the card and the section
+	 * edge, so pulling up by the overlap alone spends most of it closing that
+	 * gap — 74px of margin gave 18px of actual overlap. Both are pulled, and
+	 * the number in the panel is what the card really hangs over.
+	 */
+	margin-bottom: calc( ( var(--pfh-hl-overlap) + var(--pfh-hl-pb) ) * -1 );
+}
+
+.pfh-hl--overlaps .pfh-hl__card {
+	position: relative;
+	z-index: 1;
 }
 
 .pfh-hl__inner {
@@ -290,6 +318,9 @@
 }
 
 @media (max-width: 782px) {
+	/* Stacked and full height already — an overlap here only crowds both. */
+	.pfh-hl--overlaps { margin-bottom: 0; }
+
 	/*
 	 * Stacked, and the photograph goes underneath whichever side it was on:
 	 * side by side at this width leaves the copy in a column too narrow to
