@@ -26,8 +26,105 @@ class PFH_Widgets_Diagnose {
 
 	const SLUG = 'pfh-diagnose';
 
+	/** Where the last few save attempts are recorded. */
+	const LOG = 'pfh_save_log';
+
 	public static function boot() {
 		add_action( 'admin_menu', [ __CLASS__, 'menu' ], 20 );
+
+		// Early, so a save that dies later has still been noticed.
+		add_action( 'init', [ __CLASS__, 'watch_save' ], 1 );
+	}
+
+	/**
+	 * Notice a Bricks save going past, and record what the server received.
+	 *
+	 * A save that fails leaves nothing behind to look at: the builder says
+	 * only that it could not save. This records the request's own shape — how
+	 * big it was, how many variables actually arrived, what PHP's limits are —
+	 * and then, at shutdown, how it ended and whether it died on a fatal.
+	 *
+	 * It reads nothing it could consume. php://input is deliberately not
+	 * touched: REST reads that body itself, and the one thing this must never
+	 * do is break the save it is trying to explain.
+	 */
+	public static function watch_save() {
+		$action = isset( $_REQUEST['action'] ) ? sanitize_key( wp_unslash( $_REQUEST['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$uri    = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : ''; // phpcs:ignore
+
+		$is_save = ( false !== strpos( $action, 'bricks' ) && false !== strpos( $action, 'save' ) )
+			|| ( false !== stripos( $uri, '/bricks/' ) && false !== stripos( $uri, 'save' ) );
+
+		if ( ! $is_save ) {
+			return;
+		}
+
+		$limit = (int) ini_get( 'max_input_vars' );
+		$vars  = is_array( $_POST ) ? count( $_POST, COUNT_RECURSIVE ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$bytes = isset( $_SERVER['CONTENT_LENGTH'] ) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+
+		$entry = [
+			'when'    => current_time( 'mysql' ),
+			'action'  => $action ? $action : 'REST ' . preg_replace( '/\?.*$/', '', $uri ),
+			'type'    => isset( $_SERVER['CONTENT_TYPE'] ) ? (string) wp_unslash( $_SERVER['CONTENT_TYPE'] ) : '', // phpcs:ignore
+			'bytes'   => $bytes,
+			'vars'    => $vars,
+			'limit'   => $limit,
+			'post_max'=> (string) ini_get( 'post_max_size' ),
+			'memory'  => (string) ini_get( 'memory_limit' ),
+			'time'    => (string) ini_get( 'max_execution_time' ),
+			'user'    => get_current_user_id(),
+			'status'  => 'did not finish',
+			'fatal'   => '',
+		];
+
+		/*
+		 * PHP drops everything past max_input_vars silently — no error, no
+		 * warning to the browser, just a truncated tree. It is the classic
+		 * cause of "it saves but nothing is there", and it gets worse every
+		 * time another element is added to the page.
+		 */
+		if ( $limit > 0 && $vars >= $limit - 10 ) {
+			$entry['status'] = 'TRUNCATED BY max_input_vars — ' . $vars . ' of ' . $limit . ' used';
+		}
+
+		self::record( $entry );
+
+		add_action( 'shutdown', static function () use ( $entry ) {
+			$code  = function_exists( 'http_response_code' ) ? (int) http_response_code() : 0;
+			$fatal = error_get_last();
+
+			if ( 0 === strpos( (string) $entry['status'], 'TRUNCATED' ) ) {
+				$entry['status'] .= ' | HTTP ' . $code;
+			} else {
+				$entry['status'] = 'HTTP ' . $code;
+			}
+
+			if ( is_array( $fatal ) && in_array( (int) $fatal['type'], [ E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR ], true ) ) {
+				$entry['fatal'] = $fatal['message'] . ' @ ' . $fatal['file'] . ':' . $fatal['line'];
+			}
+
+			self::record( $entry, true );
+		}, 1 );
+	}
+
+	/**
+	 * Keep the last few attempts, newest first.
+	 *
+	 * @param array $entry   The attempt.
+	 * @param bool  $replace Replace the newest rather than adding one.
+	 */
+	private static function record( array $entry, $replace = false ) {
+		$log = get_option( self::LOG, [] );
+		$log = is_array( $log ) ? $log : [];
+
+		if ( $replace && $log ) {
+			array_shift( $log );
+		}
+
+		array_unshift( $log, $entry );
+
+		update_option( self::LOG, array_slice( $log, 0, 6 ), false );
 	}
 
 	public static function menu() {
@@ -74,6 +171,64 @@ class PFH_Widgets_Diagnose {
 			. ' | WP ' . get_bloginfo( 'version' )
 			. ' | Woo ' . ( defined( 'WC_VERSION' ) ? WC_VERSION : '-' )
 			. ' | PHP ' . PHP_VERSION;
+		$out[] = 'max_input_vars ' . ini_get( 'max_input_vars' )
+			. ' | post_max_size ' . ini_get( 'post_max_size' )
+			. ' | memory_limit ' . ini_get( 'memory_limit' )
+			. ' | max_execution_time ' . ini_get( 'max_execution_time' );
+		$out[] = '';
+
+		$out[] = '== the last save attempts Bricks made ==';
+
+		$log = get_option( self::LOG, [] );
+
+		if ( ! is_array( $log ) || ! $log ) {
+			$out[] = 'None recorded yet. Open the builder, press save once, then come back here.';
+		} else {
+			$truncated = false;
+			$fataled   = false;
+
+			foreach ( $log as $e ) {
+				$out[] = sprintf(
+					'%s  %s  %s bytes, %d vars of %s  -> %s%s',
+					$e['when'] ?? '?',
+					$e['action'] ?? '?',
+					number_format( (int) ( $e['bytes'] ?? 0 ) ),
+					(int) ( $e['vars'] ?? 0 ),
+					$e['limit'] ?? '?',
+					$e['status'] ?? '?',
+					! empty( $e['fatal'] ) ? "\n      FATAL: " . $e['fatal'] : ''
+				);
+
+				$truncated = $truncated || 0 === strpos( (string) ( $e['status'] ?? '' ), 'TRUNCATED' );
+				$fataled   = $fataled || ! empty( $e['fatal'] );
+			}
+
+			/*
+			 * Saying what to do about it, here, rather than leaving a number
+			 * to be interpreted — this is read by whoever is stuck, not by
+			 * whoever wrote it.
+			 */
+			if ( $truncated ) {
+				$out[] = '';
+				$out[] = 'WHAT THIS MEANS: PHP threw away everything past max_input_vars before';
+				$out[] = 'WordPress ever saw it, without an error. Bricks then saved the part that';
+				$out[] = 'arrived, which is why the page loses what was added. It gets worse with';
+				$out[] = 'every element added to the page.';
+				$out[] = '';
+				$out[] = 'THE FIX: raise max_input_vars to 10000. It cannot be set from PHP at';
+				$out[] = 'runtime, so a plugin cannot do it — it needs one of:';
+				$out[] = '  - a .user.ini file in the site root containing:  max_input_vars = 10000';
+				$out[] = '  - or the host raising it (on Kinsta, ask support — it is a normal request)';
+				$out[] = 'Then reload the builder and save again, and this line should not come back.';
+			}
+
+			if ( $fataled ) {
+				$out[] = '';
+				$out[] = 'A FATAL ended a save. The file and line are above — if it is in';
+				$out[] = 'pfh-bricks-widgets, send this report over and it will be fixed.';
+			}
+		}
+
 		$out[] = '';
 
 		/* ---- are the elements registered where the front end can see them ---- */
