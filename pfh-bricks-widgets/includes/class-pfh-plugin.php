@@ -211,6 +211,7 @@ class PFH_Widgets_Plugin {
 	 */
 	public static function boot_services() {
 		PFH_Widgets_Settings::init();
+		PFH_Widgets_Diagnose::boot();
 		PFH_Widgets_Consent::init();
 		PFH_Widgets_Permalinks::init();
 		PFH_Widgets_Badge::init();
