@@ -22,6 +22,8 @@ defined( 'ABSPATH' ) || exit;
 
 trait PFH_Design_Revision {
 
+	use PFH_Element_Defaults;
+
 	/**
 	 * Drop design-owned settings the editor never actually chose.
 	 *
@@ -61,30 +63,4 @@ trait PFH_Design_Revision {
 	 * @param mixed  $default Used only when the control has no default either.
 	 * @return mixed
 	 */
-	private function setting( $key, $default = null ) {
-		if ( isset( $this->settings[ $key ] ) && '' !== $this->settings[ $key ] ) {
-			return $this->settings[ $key ];
-		}
-
-		/*
-		 * Present but empty means the editor cleared it on purpose — an
-		 * eyebrow they do not want, a button they removed. Handing back the
-		 * control's default there would put the text straight back on the
-		 * page and there would be no way to get rid of it.
-		 */
-		if ( array_key_exists( $key, (array) $this->settings ) ) {
-			return $default;
-		}
-
-		// Absent: this element's own default for it, then the caller's.
-		if ( isset( $this->controls[ $key ] ) && array_key_exists( 'default', $this->controls[ $key ] ) ) {
-			$own = $this->controls[ $key ]['default'];
-
-			if ( '' !== $own && null !== $own ) {
-				return $own;
-			}
-		}
-
-		return $default;
-	}
 }

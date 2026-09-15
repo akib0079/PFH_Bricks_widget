@@ -19,6 +19,7 @@ require $dir . 'includes/class-pfh-cart.php';
 require $dir . 'includes/class-pfh-ajax.php';
 require $dir . 'includes/class-pfh-reviews.php';
 require $dir . 'includes/class-pfh-assets.php';
+require $dir . 'includes/trait-pfh-element-defaults.php';
 require $dir . 'includes/trait-pfh-design-revision.php';
 require $dir . 'includes/trait-pfh-product-card.php';
 require $dir . 'elements/class-pfh-element-products.php';

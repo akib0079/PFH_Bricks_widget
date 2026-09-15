@@ -12,6 +12,8 @@ defined( 'ABSPATH' ) || exit;
 
 class PFH_Element_Header extends \Bricks\Element {
 
+	use PFH_Element_Defaults;
+
 	/**
 	 * Cached navigation items.
 	 *
@@ -1256,11 +1258,7 @@ class PFH_Element_Header extends \Bricks\Element {
 	 * @return mixed
 	 */
 	private function get( $key, $default = null ) {
-		if ( ! isset( $this->settings[ $key ] ) || '' === $this->settings[ $key ] ) {
-			return $default;
-		}
-
-		return $this->settings[ $key ];
+		return $this->setting( $key, $default );
 	}
 
 	/**
@@ -1274,11 +1272,7 @@ class PFH_Element_Header extends \Bricks\Element {
 	 * @return bool
 	 */
 	private function is_on( $key, $default = true ) {
-		if ( ! array_key_exists( $key, (array) $this->settings ) ) {
-			return $default;
-		}
-
-		return ! empty( $this->settings[ $key ] );
+		return $this->switched_on( $key, $default );
 	}
 
 	/**

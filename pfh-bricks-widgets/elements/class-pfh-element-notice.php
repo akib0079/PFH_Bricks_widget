@@ -167,6 +167,17 @@ class PFH_Element_Notice extends \Bricks\Element {
 			'default' => 14,
 		];
 
+		$this->controls['btnRadius'] = [
+			'tab'         => 'content',
+			'group'       => 'action',
+			'label'       => esc_html__( 'Corner radius (px)', 'pfh-widgets' ),
+			'type'        => 'number',
+			'min'         => 0,
+			'max'         => 48,
+			'inline'      => true,
+			'description' => esc_html__( 'Leave empty and the button follows the band\'s own corner radius, which is what it has always done.', 'pfh-widgets' ),
+		];
+
 		$this->controls['padX'] = [
 			'tab'     => 'content',
 			'group'   => 'style',
@@ -297,6 +308,7 @@ class PFH_Element_Notice extends \Bricks\Element {
 				'--pfh-nt-py'        => PFH_Widgets_Helpers::unit( $this->get( 'padY', 20 ) ),
 				'--pfh-nt-title'     => PFH_Widgets_Helpers::unit( $this->get( 'titleSize', 20 ) ),
 				'--pfh-nt-text'      => PFH_Widgets_Helpers::unit( $this->get( 'textSize', 12 ) ),
+				'--pfh-nt-btn-radius' => PFH_Widgets_Helpers::unit( $this->get( 'btnRadius', '' ) ),
 				'--pfh-nt-btn-bg'    => PFH_Widgets_Helpers::color( $this->get( 'btnBg' ) ),
 				'--pfh-nt-btn-ink'   => PFH_Widgets_Helpers::color( $this->get( 'btnColor' ) ),
 			]
@@ -308,10 +320,6 @@ class PFH_Element_Notice extends \Bricks\Element {
 	}
 
 	private function is_on( $key, $default = true ) {
-		if ( ! array_key_exists( $key, (array) $this->settings ) ) {
-			return $default;
-		}
-
-		return ! empty( $this->settings[ $key ] );
+		return $this->switched_on( $key, $default );
 	}
 }

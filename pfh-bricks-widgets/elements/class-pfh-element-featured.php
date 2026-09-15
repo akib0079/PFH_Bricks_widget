@@ -13,6 +13,8 @@ defined( 'ABSPATH' ) || exit;
 
 class PFH_Element_Featured extends \Bricks\Element {
 
+	use PFH_Element_Defaults;
+
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-featured';
 	public $icon         = 'ti-layout-media-right-alt';
@@ -951,19 +953,11 @@ class PFH_Element_Featured extends \Bricks\Element {
 	 * ------------------------------------------------------------------ */
 
 	private function get( $key, $default = null ) {
-		if ( ! isset( $this->settings[ $key ] ) || '' === $this->settings[ $key ] ) {
-			return $default;
-		}
-
-		return $this->settings[ $key ];
+		return $this->setting( $key, $default );
 	}
 
 	private function is_on( $key, $default = true ) {
-		if ( ! array_key_exists( $key, (array) $this->settings ) ) {
-			return $default;
-		}
-
-		return ! empty( $this->settings[ $key ] );
+		return $this->switched_on( $key, $default );
 	}
 
 	/* ---------------------------------------------------------------------

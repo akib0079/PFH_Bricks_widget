@@ -1047,13 +1047,20 @@ The number in the panel is therefore what the card really hangs over. Below
 782px the card is stacked and full height, and the overlap is dropped — there
 it only crowds both sections.
 
-### Corners
+### Corners and the button
 
 *Corner radius* rounds the card (20 as drawn, down to 0 for square) and
 *Image corner radius* rounds the photograph within it. They are separate
 because the card already clips the photo to its own corners: the second is for
 rounding the image itself against a card that is square, or squaring the image
 inside a rounded card.
+
+The **Button** group carries the button's own corner radius, background and
+text colour. Radius left empty keeps the 5px it is drawn with; half the
+button's height or more gives a pill. The notice band's button has the same
+setting — it used to share the band's corner radius, so setting the band to 14
+took the button with it and there was no way to separate them. Left empty it
+still follows the band, so nothing already built moves.
 
 ### Figma values
 
@@ -1071,6 +1078,42 @@ The supplied photograph carries its own background, which is not quite the
 card's fill — so *Blend the image edge* fades the inner edge over a short
 distance and hides the seam. A cut-out on transparency needs none of it, so it
 is a setting rather than something baked in.
+
+---
+
+## Defaults have to survive the front end
+
+Worth knowing before adding a control with a default, because it silently
+deleted whole sections from live pages.
+
+Two Bricks behaviours meet:
+
+* Bricks **builds an element's control list when it needs the panel**. On the
+  front end it does not, so `$this->controls` is empty exactly where the
+  defaults declared in it are wanted.
+* Bricks **does not store a value that still equals its default**. A section
+  the editor drops in and leaves alone is saved with little or nothing in its
+  settings — the defaults are the whole of its content.
+
+An element that answered "no setting, so nothing" therefore rendered *nothing
+at all* on a live page while looking perfectly correct in the builder. That is
+how it was reported: "when I add that widget it doesn't show up".
+
+`PFH_Element_Defaults` is the answer. `setting()` reads the stored value, then
+the control's own default, then the caller's; `ensure_controls()` builds the
+control list on demand, once, guarded against recursion. Every element reads
+its settings through it.
+
+One distinction it keeps: a key that is **absent** was never touched and takes
+the default, while a key that is **present and empty** was cleared on purpose —
+an eyebrow the editor deleted must not come back.
+
+`dev/wp-testbed/test-frontend-defaults.php` holds the line, and it is the test
+to keep green: for every element it renders with the defaults stamped in and
+again with nothing at all, and the two must match. If they ever diverge, some
+call site is falling back to a different value than the panel is advertising —
+which is a second way to get the same bug, and how the shop header came to
+promise a title it did not render.
 
 ---
 

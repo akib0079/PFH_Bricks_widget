@@ -14,6 +14,7 @@ $dir = dirname( __DIR__ ) . '/pfh-bricks-widgets/';
 define('PFH_WIDGETS_VERSION','test'); define('PFH_WIDGETS_DIR',$dir); define('PFH_WIDGETS_URL','./');
 require $dir.'includes/class-pfh-helpers.php'; require $dir.'includes/class-pfh-icons.php';
 require $dir.'includes/class-pfh-reviews.php'; require $dir.'includes/class-pfh-assets.php';
+require $dir.'includes/trait-pfh-element-defaults.php';
 require $dir.'includes/trait-pfh-design-revision.php';
 require $dir.'includes/trait-pfh-product-card.php';
 require $dir.'elements/class-pfh-element-products.php';

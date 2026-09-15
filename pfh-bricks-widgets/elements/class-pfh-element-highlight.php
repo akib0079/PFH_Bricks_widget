@@ -58,6 +58,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		$this->control_groups['points']  = [ 'title' => esc_html__( 'Selling points', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['price']   = [ 'title' => esc_html__( 'Price', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['media']   = [ 'title' => esc_html__( 'Image', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['button']  = [ 'title' => esc_html__( 'Button', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['style']   = [ 'title' => esc_html__( 'Style', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['layout']  = [ 'title' => esc_html__( 'Layout', 'pfh-widgets' ), 'tab' => 'content' ];
 	}
@@ -190,6 +191,33 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			'inline'      => true,
 			'default'     => '',
 			'description' => esc_html__( 'Empty for none — the banner itself is the link.', 'pfh-widgets' ),
+		];
+
+		$this->controls['btnRadius'] = [
+			'tab'         => 'content',
+			'group'       => 'button',
+			'label'       => esc_html__( 'Corner radius (px)', 'pfh-widgets' ),
+			'type'        => 'number',
+			'min'         => 0,
+			'max'         => 40,
+			'inline'      => true,
+			'description' => esc_html__( 'Empty leaves it at the 5px it is drawn with. Half the button\'s height or more gives a pill.', 'pfh-widgets' ),
+		];
+
+		$this->controls['btnBg'] = [
+			'tab'    => 'content',
+			'group'  => 'button',
+			'label'  => esc_html__( 'Background', 'pfh-widgets' ),
+			'type'   => 'color',
+			'inline' => true,
+		];
+
+		$this->controls['btnColor'] = [
+			'tab'    => 'content',
+			'group'  => 'button',
+			'label'  => esc_html__( 'Text colour', 'pfh-widgets' ),
+			'type'   => 'color',
+			'inline' => true,
 		];
 	}
 
@@ -997,6 +1025,9 @@ class PFH_Element_Highlight extends \Bricks\Element {
 				'--pfh-hl-bg'      => PFH_Widgets_Helpers::color( $this->get( 'bg' ), '#d9e6dc' ),
 				'--pfh-hl-radius'  => PFH_Widgets_Helpers::unit( $this->get( 'radius', 20 ) ),
 				'--pfh-hl-img-radius' => PFH_Widgets_Helpers::unit( $this->get( 'imageRadius', 0 ) ),
+				'--pfh-hl-btn-radius' => PFH_Widgets_Helpers::unit( $this->get( 'btnRadius', '' ) ),
+				'--pfh-hl-btn-bg'  => PFH_Widgets_Helpers::color( $this->get( 'btnBg' ) ),
+				'--pfh-hl-btn-ink' => PFH_Widgets_Helpers::color( $this->get( 'btnColor' ) ),
 				'--pfh-hl-px-set'      => PFH_Widgets_Helpers::unit( $this->get( 'padX', 52 ) ),
 				'--pfh-hl-py-set'      => PFH_Widgets_Helpers::unit( $this->get( 'padY', 48 ) ),
 				'--pfh-hl-media-w' => $share . '%',
@@ -1018,6 +1049,8 @@ class PFH_Element_Highlight extends \Bricks\Element {
 
 	private function is_on( $key, $default = true ) {
 		if ( ! array_key_exists( $key, (array) $this->settings ) ) {
+			$this->ensure_controls();
+
 			if ( isset( $this->controls[ $key ] ) && array_key_exists( 'default', $this->controls[ $key ] ) ) {
 				return ! empty( $this->controls[ $key ]['default'] );
 			}

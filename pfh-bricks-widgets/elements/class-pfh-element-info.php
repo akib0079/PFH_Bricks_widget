@@ -17,6 +17,8 @@ defined( 'ABSPATH' ) || exit;
 
 class PFH_Element_Info extends \Bricks\Element {
 
+	use PFH_Element_Defaults;
+
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-info';
 	public $icon         = 'ti-layout-media-left-alt';
@@ -760,11 +762,7 @@ class PFH_Element_Info extends \Bricks\Element {
 	 * ------------------------------------------------------------------ */
 
 	private function get( $key, $default = null ) {
-		if ( ! isset( $this->settings[ $key ] ) || '' === $this->settings[ $key ] ) {
-			return $default;
-		}
-
-		return $this->settings[ $key ];
+		return $this->setting( $key, $default );
 	}
 
 	/**

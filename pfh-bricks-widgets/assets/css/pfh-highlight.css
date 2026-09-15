@@ -245,7 +245,7 @@
 	min-height: 44px;
 	margin-top: 24px;
 	padding: 10px 26px;
-	border-radius: 5px;
+	border-radius: var(--pfh-hl-btn-radius, 5px);
 	background: var(--pfh-hl-btn-bg, #51604f);
 	color: var(--pfh-hl-btn-ink, #fff);
 	font-size: 14px;

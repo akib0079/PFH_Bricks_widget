@@ -15,15 +15,18 @@ function ok( $l, $c, $d = '' ) { global $pass, $fail; if ( $c ) { $pass++; echo 
 function highlight( array $over = [] ) {
 	$el       = new PFH_Element_Highlight( [ 'id' => 'h' . wp_rand( 1, 99999 ) ] );
 	$el->name = 'pfh-highlight';
-	$el->set_control_groups();
-	$el->set_controls();
 
-	$s = [];
-	foreach ( $el->controls as $k => $c ) {
-		if ( array_key_exists( 'default', $c ) ) { $s[ $k ] = $c['default']; }
-	}
-
-	$el->settings = array_merge( $s, $over );
+	/*
+	 * Deliberately no set_controls(), and deliberately no defaults stamped in.
+	 * Bricks does not build the control list on the front end, and it does not
+	 * store a value that still equals its default — so an element the editor
+	 * dropped in and left alone arrives with nothing at all. Building the
+	 * settings out of the defaults, which is what this used to do, is the one
+	 * shape the front end never produces, and it hid a bug where these
+	 * elements rendered nothing on a live page while looking right in the
+	 * builder. This is now the shape a real page hands the element.
+	 */
+	$el->settings = $over;
 
 	ob_start();
 	$el->render();
@@ -186,6 +189,25 @@ ok( 'and the image radius is its own setting', false !== strpos( $html, '--pfh-h
 $html = highlight( [] );
 ok( 'untouched, the card keeps its drawn 20px', false !== strpos( $html, '--pfh-hl-radius:20px' ) );
 ok( 'and the image stays square by default', false !== strpos( $html, '--pfh-hl-img-radius:0px' ) );
+
+echo "\n── the button has corners of its own ──\n";
+/*
+ * It was drawn at 5px and had no control, so the only way to change it was to
+ * edit the stylesheet. Empty still means 5px: the token is simply not emitted
+ * and the stylesheet's own value stands, so no existing banner moves.
+ */
+$html = highlight( [ 'btnLabel' => 'Bekijk' ] );
+ok( 'untouched, no button radius is forced', false === strpos( $html, '--pfh-hl-btn-radius:' ) );
+
+$html = highlight( [ 'btnLabel' => 'Bekijk', 'btnRadius' => 24 ] );
+ok( 'a pill radius reaches the button', false !== strpos( $html, '--pfh-hl-btn-radius:24px' ) );
+
+$html = highlight( [ 'btnLabel' => 'Bekijk', 'btnRadius' => 0 ] );
+ok( 'and 0 squares it rather than falling back', false !== strpos( $html, '--pfh-hl-btn-radius:0px' ) );
+
+$html = highlight( [ 'btnLabel' => 'Bekijk', 'btnBg' => [ 'hex' => '#123456' ], 'btnColor' => [ 'hex' => '#fedcba' ] ] );
+ok( 'the button takes its own background', false !== strpos( $html, '--pfh-hl-btn-bg:#123456' ) );
+ok( 'and its own text colour', false !== strpos( $html, '--pfh-hl-btn-ink:#fedcba' ) );
 
 echo "\n── it says something useful when it has nothing ──\n";
 $html = highlight( [ 'titleTop' => '', 'titleBottom' => '', 'text' => '' ] );

@@ -341,10 +341,6 @@ class PFH_Element_Counter extends \Bricks\Element {
 	}
 
 	private function is_on( $key, $default = true ) {
-		if ( ! array_key_exists( $key, (array) $this->settings ) ) {
-			return $default;
-		}
-
-		return ! empty( $this->settings[ $key ] );
+		return $this->switched_on( $key, $default );
 	}
 }

@@ -22,6 +22,7 @@ require $dir . 'includes/class-pfh-icons.php';
 require $dir . 'includes/class-pfh-reviews.php';
 require $dir . 'includes/class-pfh-assets.php';
 require $dir . 'includes/class-pfh-archive.php';
+require $dir . 'includes/trait-pfh-element-defaults.php';
 require $dir . 'includes/trait-pfh-design-revision.php';
 require $dir . 'includes/trait-pfh-product-card.php';
 
@@ -58,16 +59,17 @@ foreach ( $elements as $class => $file ) {
 
 	$element       = new $class( [ 'id' => strtolower( $class ) ] );
 	$element->name = 'x';
-	$element->set_control_groups();
-	$element->set_controls();
 
+	/*
+	 * No set_controls(), and no defaults copied into the settings. Bricks does
+	 * neither on the front end — it skips the control list there, and it never
+	 * stores a value still equal to its default — so this is what a page that
+	 * was dropped in and left alone actually hands the element. Building the
+	 * settings out of the defaults, which is what this did, is the one shape
+	 * the front end never produces, and it hid four elements rendering nothing
+	 * on live pages.
+	 */
 	$settings = [];
-
-	foreach ( $element->controls as $key => $control ) {
-		if ( array_key_exists( 'default', $control ) ) {
-			$settings[ $key ] = $control['default'];
-		}
-	}
 
 	$element->settings            = $settings;
 	$element->element['settings'] = $settings;
@@ -96,6 +98,24 @@ ok( 'header title uses the chosen tag', false !== strpos( $html['PFH_Element_Sho
 
 ok( 'notice renders its button', false !== strpos( $html['PFH_Element_Notice'], 'pfh-notice__btn' ) );
 ok( 'notice band carries the copy', false !== strpos( $html['PFH_Element_Notice'], 'Inspiratie nodig?' ) );
+
+/*
+ * The button used to read the band's own --pfh-nt-radius, so setting the card
+ * to 14 took the button with it and there was no way to separate them. It has
+ * its own now; left empty it still follows the band, so nothing already built
+ * moves.
+ */
+ok( 'notice button forces no radius until it is given one', false === strpos( $html['PFH_Element_Notice'], '--pfh-nt-btn-radius:' ) );
+
+$n = new PFH_Element_Notice( [ 'id' => 'ntbtn' ] );
+$n->name     = 'x';
+$n->settings = [ 'btnRadius' => 19 ];
+ob_start();
+$n->render();
+$nb = ob_get_clean();
+
+ok( 'a button radius of its own reaches the band', false !== strpos( $nb, '--pfh-nt-btn-radius:19px' ) );
+ok( 'and the band keeps its own corners', false !== strpos( $nb, '--pfh-nt-radius:14px' ) );
 
 ok( 'counter renders four items', 4 === substr_count( $html['PFH_Element_Counter'], 'pfh-counter__item' ) );
 ok( 'counter falls back to the typed score offline', false !== strpos( $html['PFH_Element_Counter'], '9.7/10' ) );

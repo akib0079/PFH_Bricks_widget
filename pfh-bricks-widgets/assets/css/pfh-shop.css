@@ -336,7 +336,9 @@
 	min-width: 183px;
 	min-height: 38px;
 	padding: 8px 16px;
-	border-radius: var(--pfh-nt-radius);
+	/* Its own setting when there is one, otherwise the band's — which is what
+	   this was before the button had a radius of its own. */
+	border-radius: var(--pfh-nt-btn-radius, var(--pfh-nt-radius));
 	background: var(--pfh-nt-btn-bg);
 	color: var(--pfh-nt-btn-ink);
 	font-size: 14px;
