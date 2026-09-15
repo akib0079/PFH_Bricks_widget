@@ -14,6 +14,7 @@
 	--pfh-hl-pb: 56px;
 	--pfh-hl-bg: #d9e6dc;
 	--pfh-hl-radius: 20px;
+	--pfh-hl-img-radius: 0px;
 	--pfh-hl-px: var(--pfh-hl-px-set, 52px);
 	--pfh-hl-py: var(--pfh-hl-py-set, 48px);
 	--pfh-hl-media-w: 50%;
@@ -295,6 +296,7 @@
 .pfh-hl__img {
 	width: 100%;
 	height: 100%;
+	border-radius: var(--pfh-hl-img-radius, 0);
 	object-fit: cover;
 	object-position: center bottom;
 	display: block;

@@ -158,12 +158,12 @@ class PFH_Widgets_Plugin {
 		 */
 		/*
 		 * The highlight's product picker is cached for an hour so the builder
-		 * does not re-query a few hundred products on every load. A new
+		 * does not re-read the catalogue on every load. A new
 		 * product should still show up in it immediately.
 		 */
 		foreach ( [ 'save_post_product', 'deleted_post', 'woocommerce_update_product' ] as $hook ) {
 			add_action( $hook, static function () {
-				delete_transient( 'pfh_highlight_products' );
+				delete_transient( 'pfh_highlight_products' ); // PFH_Element_Highlight::OPTIONS_KEY
 			} );
 		}
 

@@ -23,6 +23,18 @@ class PFH_Element_Highlight extends \Bricks\Element {
 
 	use PFH_Design_Revision;
 
+	/** Where the product picker's list is cached. */
+	const OPTIONS_KEY = 'pfh_highlight_products';
+
+	/*
+	 * How many products the picker lists. The search box in the panel only
+	 * searches what was sent to it, so this is the real reach of "pick it by
+	 * name" — at roughly 30 bytes a product it costs about 30KB, which is
+	 * worth paying to have the whole catalogue findable. Past this, the
+	 * Product ID field below the picker is the way in.
+	 */
+	const PICKER_LIMIT = 1000;
+
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-highlight';
 	public $icon         = 'ti-package';
@@ -362,6 +374,18 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			'max'     => 60,
 			'inline'  => true,
 			'default' => 20,
+		];
+
+		$this->controls['imageRadius'] = [
+			'tab'         => 'content',
+			'group'       => 'style',
+			'label'       => esc_html__( 'Image corner radius (px)', 'pfh-widgets' ),
+			'type'        => 'number',
+			'min'         => 0,
+			'max'         => 60,
+			'inline'      => true,
+			'default'     => 0,
+			'description' => esc_html__( 'The card already clips the image to its own corners; this rounds the image itself as well.', 'pfh-widgets' ),
 		];
 
 		$this->controls['padX'] = [
@@ -724,50 +748,98 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	/**
 	 * Every published product, for the picker.
 	 *
-	 * Built once per request and cached for the hour, because Bricks asks
-	 * each element for its controls on every builder load and a shop with a
-	 * few hundred products should not be queried each time.
+	 * Deliberately defensive, because Bricks calls set_controls() while it is
+	 * *saving* a page as well as while drawing the panel. Anything in here
+	 * that can throw or stall takes the save down with it, and the builder
+	 * reports that as nothing more than a failure to save.
+	 *
+	 * So: no work at all outside the builder panel; no cache write during a
+	 * POST; and the whole thing wrapped, so a catalogue that upsets it costs
+	 * the editor a dropdown rather than their work.
+	 *
+	 * It reads the two columns it needs directly. Asking WordPress for IDs and
+	 * then a title each was one query per product — 36 of them for a catalogue
+	 * of 32 — which on a real shop is a few thousand queries every time the
+	 * panel opens. Two columns of one table is what this actually is.
 	 *
 	 * @return array<string, string>
 	 */
 	private static function product_options() {
-		if ( ! PFH_Widgets_Helpers::has_woocommerce() || ! function_exists( 'wc_get_products' ) ) {
+		// A save, a front-end render and an AJAX call all need no list.
+		if ( ! self::picking() ) {
 			return [];
 		}
 
-		$cached = get_transient( 'pfh_highlight_products' );
+		$cached = get_transient( self::OPTIONS_KEY );
 
 		if ( is_array( $cached ) ) {
 			return $cached;
 		}
 
-		$products = wc_get_products(
-			[
-				'status'  => 'publish',
-				'limit'   => 300,
-				'orderby' => 'title',
-				'order'   => 'ASC',
-				'return'  => 'objects',
-			]
-		);
-
 		$options = [];
 
-		foreach ( $products as $product ) {
-			if ( ! is_object( $product ) ) {
-				continue;
+		try {
+			global $wpdb;
+
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT ID, post_title FROM {$wpdb->posts}
+					 WHERE post_type = 'product' AND post_status = 'publish'
+					 ORDER BY post_title ASC LIMIT %d",
+					self::PICKER_LIMIT
+				)
+			);
+
+			foreach ( (array) $rows as $row ) {
+				$title = wp_strip_all_tags( html_entity_decode( (string) $row->post_title, ENT_QUOTES, 'UTF-8' ) );
+
+				// A label that is not valid UTF-8 cannot be JSON encoded, and
+				// Bricks ships these to the builder as JSON.
+				if ( '' === $title || ! mb_check_encoding( $title, 'UTF-8' ) ) {
+					continue;
+				}
+
+				$options[ (string) $row->ID ] = $title;
 			}
-
-			$sku = $product->get_sku();
-
-			$options[ (string) $product->get_id() ] = $sku
-				? sprintf( '%s — %s', $product->get_name(), $sku )
-				: $product->get_name();
+		} catch ( \Throwable $e ) {
+			return [];
 		}
 
-		set_transient( 'pfh_highlight_products', $options, HOUR_IN_SECONDS );
+		if ( ! self::saving() ) {
+			set_transient( self::OPTIONS_KEY, $options, HOUR_IN_SECONDS );
+		}
 
 		return $options;
+	}
+
+	/**
+	 * Is the editor looking at this element's panel?
+	 *
+	 * @return bool
+	 */
+	private static function picking() {
+		if ( self::saving() ) {
+			return false;
+		}
+
+		if ( function_exists( 'bricks_is_builder' ) && bricks_is_builder() ) {
+			return true;
+		}
+
+		if ( function_exists( 'bricks_is_builder_call' ) && bricks_is_builder_call() ) {
+			return true;
+		}
+
+		return is_admin() && ! wp_doing_ajax();
+	}
+
+	/**
+	 * A POST is a save, or near enough that this control should stay out of it.
+	 *
+	 * @return bool
+	 */
+	private static function saving() {
+		return ! empty( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- shape check only.
 	}
 
 	private function product() {
@@ -924,6 +996,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 				'--pfh-hl-overlap' => PFH_Widgets_Helpers::unit( max( 0, (int) $this->get( 'overlap', 74 ) ) ),
 				'--pfh-hl-bg'      => PFH_Widgets_Helpers::color( $this->get( 'bg' ), '#d9e6dc' ),
 				'--pfh-hl-radius'  => PFH_Widgets_Helpers::unit( $this->get( 'radius', 20 ) ),
+				'--pfh-hl-img-radius' => PFH_Widgets_Helpers::unit( $this->get( 'imageRadius', 0 ) ),
 				'--pfh-hl-px-set'      => PFH_Widgets_Helpers::unit( $this->get( 'padX', 52 ) ),
 				'--pfh-hl-py-set'      => PFH_Widgets_Helpers::unit( $this->get( 'padY', 48 ) ),
 				'--pfh-hl-media-w' => $share . '%',

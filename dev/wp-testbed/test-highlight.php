@@ -118,28 +118,6 @@ ok( 'the card is marked clickable', false !== strpos( $html, 'is-clickable' ) );
 $html = highlight( [ 'product' => (string) $pid, 'clickable' => false, 'btnLabel' => 'Bekijk' ] );
 ok( 'with the card not clickable the button is the link', false === strpos( $html, 'is-clickable' ) && false !== strpos( $html, '<a class="pfh-hl__btn"' ) );
 
-echo "\n── the product is picked by name, not by hunting for an ID ──\n";
-$el = new PFH_Element_Highlight( [ 'id' => 'pick' ] );
-$el->name = 'pfh-highlight';
-$el->set_control_groups();
-$el->set_controls();
-
-$picker = $el->controls['product'];
-ok( 'the product control is a searchable list', 'select' === $picker['type'] && ! empty( $picker['searchable'] ) );
-ok( 'it can be cleared again', ! empty( $picker['clearable'] ) );
-ok( 'it is populated with real products', count( (array) $picker['options'] ) > 3, count( (array) $picker['options'] ) . ' listed' );
-
-$first = array_key_first( (array) $picker['options'] );
-ok( 'keyed by product ID', ctype_digit( (string) $first ) );
-ok( 'labelled by product name', false !== strpos( (string) $picker['options'][ $first ], get_the_title( (int) $first ) ) );
-
-$chosen = wc_get_product( (int) $first );
-$html   = highlight( [ 'product' => (string) $first ] );
-ok( 'choosing one prices the banner from it', false !== strpos( $html, esc_url( $chosen->get_permalink() ) ) );
-
-ok( 'a typed ID still works, for a dynamic field', false !== strpos( highlight( [ 'product' => '', 'productId' => (string) $first ] ), esc_url( $chosen->get_permalink() ) ) );
-ok( 'and wins over the picker', false !== strpos( highlight( [ 'product' => '999999', 'productId' => (string) $first ] ), esc_url( $chosen->get_permalink() ) ) );
-
 echo "\n── the saving names a percentage, worked out from the product ──\n";
 $sale    = wc_get_product_ids_on_sale();
 $product = wc_get_product( (int) $sale[0] );
@@ -187,8 +165,86 @@ foreach ( $fields as $f ) {
 	ok( "$f reaches the page", false !== strpos( $html, $marker ) || 'imageAlt' === $f, "typed value did not render" );
 }
 
+echo "\n── the corners can be squared off, which means 0 must survive ──\n";
+/*
+ * A radius of 0 is the whole point of the control — "reduce that" reads as
+ * "take it down to square" — and 0 is exactly the value a falsy default check
+ * swallows and replaces with 20. Both are asserted as strings too, because
+ * Bricks stores a number control's value as one.
+ */
+$html = highlight( [ 'radius' => 0, 'imageRadius' => 0 ] );
+ok( 'card radius 0 renders as 0px', false !== strpos( $html, '--pfh-hl-radius:0px' ) );
+ok( 'image radius 0 renders as 0px', false !== strpos( $html, '--pfh-hl-img-radius:0px' ) );
+
+$html = highlight( [ 'radius' => '0', 'imageRadius' => '0' ] );
+ok( 'and the same as the string Bricks actually stores', false !== strpos( $html, '--pfh-hl-radius:0px' ) && false !== strpos( $html, '--pfh-hl-img-radius:0px' ) );
+
+$html = highlight( [ 'radius' => 6, 'imageRadius' => 12 ] );
+ok( 'a reduced card radius reaches the card', false !== strpos( $html, '--pfh-hl-radius:6px' ) );
+ok( 'and the image radius is its own setting', false !== strpos( $html, '--pfh-hl-img-radius:12px' ) );
+
+$html = highlight( [] );
+ok( 'untouched, the card keeps its drawn 20px', false !== strpos( $html, '--pfh-hl-radius:20px' ) );
+ok( 'and the image stays square by default', false !== strpos( $html, '--pfh-hl-img-radius:0px' ) );
+
 echo "\n── it says something useful when it has nothing ──\n";
 $html = highlight( [ 'titleTop' => '', 'titleBottom' => '', 'text' => '' ] );
 ok( 'nothing renders on the front end', '' === trim( $html ), substr( $html, 0, 60 ) );
+
+echo "\n── the product is picked by name, not by hunting for an ID ──\n";
+/*
+ * The list is only built when the panel is actually open — a save must not
+ * pay for a product query — so this asks for it the way the builder does.
+ */
+if ( ! defined( 'WP_ADMIN' ) ) { define( 'WP_ADMIN', true ); }
+$_POST = [];
+delete_transient( PFH_Element_Highlight::OPTIONS_KEY );
+
+$el = new PFH_Element_Highlight( [ 'id' => 'pick' ] );
+$el->name = 'pfh-highlight';
+$queries_before = get_num_queries();
+$el->set_control_groups();
+$el->set_controls();
+$picker_queries = get_num_queries() - $queries_before;
+
+$picker = $el->controls['product'];
+ok( 'the product control is a searchable list', 'select' === $picker['type'] && ! empty( $picker['searchable'] ) );
+ok( 'it can be cleared again', ! empty( $picker['clearable'] ) );
+ok( 'it is populated with real products', count( (array) $picker['options'] ) > 3, count( (array) $picker['options'] ) . ' listed' );
+
+$options = (array) $picker['options'];
+$first   = $options ? array_key_first( $options ) : 0;
+
+if ( ! $first ) {
+	ok( 'there is a product to test the picker with', false );
+	echo "\n$pass passed, $fail failed\n";
+	exit;
+}
+ok( 'keyed by product ID', ctype_digit( (string) $first ) );
+ok( 'labelled by product name', false !== strpos( (string) $options[ $first ], get_the_title( (int) $first ) ) );
+
+$chosen = wc_get_product( (int) $first );
+$html   = highlight( [ 'product' => (string) $first ] );
+ok( 'choosing one prices the banner from it', false !== strpos( $html, esc_url( $chosen->get_permalink() ) ) );
+
+ok( 'a typed ID still works, for a dynamic field', false !== strpos( highlight( [ 'product' => '', 'productId' => (string) $first ] ), esc_url( $chosen->get_permalink() ) ) );
+ok( 'and wins over the picker', false !== strpos( highlight( [ 'product' => '999999', 'productId' => (string) $first ] ), esc_url( $chosen->get_permalink() ) ) );
+
+/*
+ * Reading IDs and then a title each was one query per product. It is a cheap
+ * mistake to make again and an invisible one on a catalogue this size, so the
+ * cost is asserted rather than assumed. The list itself is two columns of one
+ * table — one query however many products there are — and the rest of the
+ * handful is the transient being read and written around it. What matters is
+ * that the number does not move when the catalogue grows.
+ */
+ok(
+	'the list costs a fixed handful of queries, not one per product',
+	$picker_queries <= 5,
+	"$picker_queries queries for " . count( $options ) . ' products'
+);
+
+$cached = get_transient( PFH_Element_Highlight::OPTIONS_KEY );
+ok( 'and the next panel load costs none', is_array( $cached ) && count( $cached ) === count( $options ) );
 
 echo "\n$pass passed, $fail failed\n";

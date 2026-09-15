@@ -5,7 +5,7 @@ Custom [Bricks Builder](https://bricksbuilder.io/) elements for the
 
 Two halves:
 
-* **Thirteen Bricks elements**, all fully dynamic and editable from the Bricks
+* **Twenty-one Bricks elements**, all fully dynamic and editable from the Bricks
   panel — no hard-coded content, no template edits.
 * **Four store services** under a **Products For Home** admin menu, replacing
   Complianz, Premmerce Permalink Manager, WebwinkelKeur and PDF Invoices &
@@ -27,6 +27,8 @@ Two halves:
 | **PFH Highlighted Features** | Products For Home | Bento grid of photo and text tiles with per-tile spans, staggered reveal |
 | **PFH Review Slider** | Products For Home | Live WebwinkelKeur reviews in a paged card grid, with a manual fallback |
 | **PFH Call To Action** | Products For Home | Closing card that overlaps the footer via a negative margin and its own stacking context |
+| **PFH Product Highlight** | Products For Home | Banner featuring one product — every line an editable field, prices read live from the product, overlaps the footer |
+| **PFH Recently Viewed** | Products For Home | The product slider, showing only what this visitor has already looked at; renders nothing when that is nothing |
 | **PFH Rating Badge** | Products For Home | Inline "Excellent 9,7 | 270 reviews on WebwinkelKeur", live from the API |
 | **PFH Shop Header** | Products For Home | Breadcrumbs, collection title, short intro and banner — every field dynamic-data ready for ACF |
 | **PFH Shop Archive** | Products For Home | Category pills, product count, filter button, product grid and pagination, all filtering over AJAX with the state in the URL |
@@ -987,6 +989,121 @@ attributes the card would settle a few hundred pixels wide on load.
 
 `min-height` backs up the ratio, and content can still push the card taller —
 so a longer heading in another language grows the card instead of spilling.
+
+---
+
+## PFH Product Highlight
+
+One product, given a banner: an italic eyebrow, a two-weight headline, a short
+pitch, ticked selling points, the price, and a button — beside a photograph
+that runs to the card's edge. Like the Call To Action it is built to sit
+directly above the footer and hang over it.
+
+### Everything is a field, and the product fills in the numbers
+
+Every piece of copy is its own control with the design's own words as the
+default, so the banner reads correctly the moment it is dropped in and each
+line can be swapped for an ACF field without touching the others.
+
+The **prices are not typed**. Pick a product and the banner takes its current
+price, its sale price, its permalink and its image from WooCommerce — so a
+promotion that ends changes the banner on its own. *Price source* switches to
+typed figures for a banner that is not about a real product.
+
+### Picking the product
+
+*Product* is a searchable list of the catalogue by name — the first 1000
+products alphabetically, which is what the panel's search box can reach.
+Below it, *Product ID* takes an ID or a dynamic tag and wins over the list,
+which is the way in for a shop larger than that and the way to drive the
+banner from a field.
+
+The list is built **only while the panel is open**. A save re-runs every
+element's control list, and a catalogue query there is work the save does not
+need and cannot afford to have fail — a query that stalls or throws during a
+save is reported by the builder as nothing more than a page that will not save.
+It reads two columns of one table in a single query, cached for an hour and
+cleared whenever a product is saved or deleted.
+
+### The saving line
+
+*Saving text* takes two placeholders: `%s` for the amount saved and `%pct%` for
+the percentage, worked out from the product. With nothing on sale the
+percentage clause is removed rather than left reading 0%, so the line never
+contradicts the price above it.
+
+### The overlap
+
+Same idea as the Call To Action, with one correction worth knowing: the pull
+has to cover **the section's own bottom padding as well as the overlap**, or
+most of the margin is spent closing that gap — 74px of overlap gave 18px of
+visible hang before this was right.
+
+```css
+margin-bottom: calc((var(--pfh-hl-overlap) + var(--pfh-hl-pb)) * -1);
+```
+
+The number in the panel is therefore what the card really hangs over. Below
+782px the card is stacked and full height, and the overlap is dropped — there
+it only crowds both sections.
+
+### Corners
+
+*Corner radius* rounds the card (20 as drawn, down to 0 for square) and
+*Image corner radius* rounds the photograph within it. They are separate
+because the card already clips the photo to its own corners: the second is for
+rounding the image itself against a card that is square, or squaring the image
+inside a rounded card.
+
+### Figma values
+
+| Thing | Figma | Control |
+| --- | --- | --- |
+| Card | 1240 wide, min 468 tall, radius 20 | Max width / Minimum height / Corner radius |
+| Inner padding | 52 sides, 48 top and bottom | Inner padding |
+| Eyebrow | Playfair Display italic 22 | Eyebrow size |
+| Headline | 32 / 110%, light over medium | Title size |
+| Body and points | Outfit 14 / 150% | Text size |
+| Price | 24, medium | Price size |
+| Media | half the card, flush to the bottom edge | Media width / Media side |
+
+The supplied photograph carries its own background, which is not quite the
+card's fill — so *Blend the image edge* fades the inner edge over a short
+distance and hides the seam. A cut-out on transparency needs none of it, so it
+is a setting rather than something baked in.
+
+---
+
+## PFH Recently Viewed
+
+The product slider, showing only what this visitor has already looked at. It
+**extends** the slider rather than copying it, so the card, the drag behaviour
+and every style control stay identical by construction — the two cannot drift
+apart the way a duplicated element would. Only the source is pinned, and it is
+not offered as a choice: it is what the element is.
+
+### It loads after the page, and that matters
+
+The history lives in WooCommerce's own per-visitor cookie. A page cache that
+stored this rendered would serve **one shopper's browsing history to the next**,
+so by default the element ships an empty hidden placeholder and fetches the
+visitor's own slider afterwards. The page itself stays cacheable and each
+visitor's history stays their own.
+
+*Load after the page* turns that off, for a site with no page caching at all.
+Leave it on.
+
+### Nothing viewed, nothing shown
+
+With no history the request returns nothing and the placeholder simply stays
+hidden — no heading, no empty rail, no layout shift. The response is checked
+for a real card before it is used, so an editor placeholder or another
+plugin's notice cannot end up in front of a shopper who has simply not browsed
+yet. A failed request costs nothing and says nothing: this section is a
+convenience, not part of the page's job.
+
+WooCommerce remembers the last 15 products a visitor opened, which is the
+ceiling on *How many to show*.
 
 ---
 
