@@ -2,17 +2,27 @@
 /**
  * Bricks element: Products For Home product highlight.
  *
- * The wide banner that puts one product forward — an eyebrow, a two-line
- * title, a short pitch, a few ticked selling points, and the price.
+ * The wide banner that puts one offer forward — an eyebrow, a two-line title,
+ * a short pitch, ticked selling points, the price, an optional button — beside
+ * a photograph that runs to the card's edge. Built to sit directly above the
+ * footer and hang over it.
  *
- * Every piece of copy is its own control and every one accepts dynamic data,
- * so an ACF field can be dropped into any of them later. Until that happens
- * the defaults carry the launch copy, which is why this reads as a finished
- * banner out of the box rather than an empty frame.
+ * It is static on purpose. Every word, price and link is typed into the panel
+ * and printed as typed: no product lookup, no WooCommerce, no dynamic data, no
+ * queries. There is nothing here that can fail during a save, or come out
+ * differently on the page than it did in the builder.
  *
- * The prices are the exception: they come from a real WooCommerce product the
- * editor picks, so the banner cannot drift out of step with the shop. There
- * is a manual mode for the case where the offer is not a single product.
+ * Two rules keep it that way.
+ *
+ *   The defaults live in DEFAULTS, which the panel and the render both read,
+ *   so what the page shows never depends on Bricks having built the control
+ *   list first.
+ *
+ *   Nothing it stores contains a 4-byte character. The previous version's
+ *   eyebrow icon defaulted to the gift emoji, and where the postmeta table is
+ *   utf8 rather than utf8mb4 WordPress refuses to write any value holding one —
+ *   the whole page, every element on it, not just this one. So the gift is a
+ *   switch, and the emoji is printed as an HTML entity that is never saved.
  *
  * @package PFH_Widgets
  */
@@ -21,19 +31,72 @@ defined( 'ABSPATH' ) || exit;
 
 class PFH_Element_Highlight extends \Bricks\Element {
 
-	use PFH_Design_Revision;
-
-	/** Where the product picker's list is cached. */
-	const OPTIONS_KEY = 'pfh_highlight_products';
-
 	/*
-	 * How many products the picker lists. The search box in the panel only
-	 * searches what was sent to it, so this is the real reach of "pick it by
-	 * name" — at roughly 30 bytes a product it costs about 30KB, which is
-	 * worth paying to have the whole catalogue findable. Past this, the
-	 * Product ID field below the picker is the way in.
+	 * Every default, in one place. Text defaults must stay within the Basic
+	 * Multilingual Plane — see the note above; dev/audit.php refuses a shipped
+	 * file that breaks this.
 	 */
-	const PICKER_LIMIT = 1000;
+	const DEFAULTS = [
+		// Copy.
+		'eyebrow'     => 'Meest gekozen',
+		'showGift'    => true,
+		'titleTop'    => 'Proefpakket',
+		'titleBottom' => '3 smaken naar keuze',
+		'titleTag'    => 'h2',
+		'text'        => 'Ontdek de wereld van Gia Giamas. Kies zelf drie smaken uit het volledige assortiment en bespaar direct €5,00 t.o.v. losse aankoop.',
+
+		// Selling points.
+		'points'      => [
+			[ 'text' => 'Kies zelf 3 smaken uit het assortiment' ],
+			[ 'text' => 'Ideaal cadeau — inclusief receptenkaart' ],
+			[ 'text' => 'Gratis verzending bij bestelling' ],
+		],
+		'pointColor'  => '#3f4c3e',
+		'tickColor'   => '#7d9569',
+
+		// Price.
+		'price'       => '€ 41,97',
+		'priceWas'    => '€ 46,97',
+		'saving'      => 'Bespaar €5,00 — 11% korting',
+
+		// Image.
+		'imageAlt'    => '',
+		'imageWidth'  => 50,
+		'imageBlend'  => true,
+		'imageFade'   => 14,
+		'imageSide'   => 'right',
+
+		// Button and link.
+		'btnLabel'    => '',
+		'url'         => '',
+		'newTab'      => false,
+		'clickable'   => true,
+		'btnRadius'   => '',
+		'btnBg'       => '',
+		'btnColor'    => '',
+
+		// Style.
+		'bg'          => '#d9e6dc',
+		'radius'      => 20,
+		'imageRadius' => 0,
+		'padX'        => 52,
+		'padY'        => 48,
+		'eyebrowSize' => 22,
+		'titleSize'   => 32,
+		'textSize'    => 14,
+		'priceSize'   => 24,
+		'ink'         => '#22301c',
+
+		// Layout.
+		'maxWidth'    => 1240,
+		'minHeight'   => 468,
+		'padTop'      => 0,
+		'overlap'     => 74,
+		'padBottom'   => 56,
+	];
+
+	/** U+1F381, printed as an entity so the character itself is never stored. */
+	const GIFT = '&#x1F381;';
 
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-highlight';
@@ -53,22 +116,21 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	}
 
 	public function set_control_groups() {
-		$this->control_groups['product'] = [ 'title' => esc_html__( 'Product', 'pfh-widgets' ), 'tab' => 'content' ];
-		$this->control_groups['copy']    = [ 'title' => esc_html__( 'Copy', 'pfh-widgets' ), 'tab' => 'content' ];
-		$this->control_groups['points']  = [ 'title' => esc_html__( 'Selling points', 'pfh-widgets' ), 'tab' => 'content' ];
-		$this->control_groups['price']   = [ 'title' => esc_html__( 'Price', 'pfh-widgets' ), 'tab' => 'content' ];
-		$this->control_groups['media']   = [ 'title' => esc_html__( 'Image', 'pfh-widgets' ), 'tab' => 'content' ];
-		$this->control_groups['button']  = [ 'title' => esc_html__( 'Button', 'pfh-widgets' ), 'tab' => 'content' ];
-		$this->control_groups['style']   = [ 'title' => esc_html__( 'Style', 'pfh-widgets' ), 'tab' => 'content' ];
-		$this->control_groups['layout']  = [ 'title' => esc_html__( 'Layout', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['copy']   = [ 'title' => esc_html__( 'Copy', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['points'] = [ 'title' => esc_html__( 'Selling points', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['price']  = [ 'title' => esc_html__( 'Price', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['media']  = [ 'title' => esc_html__( 'Image', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['button'] = [ 'title' => esc_html__( 'Button and link', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['style']  = [ 'title' => esc_html__( 'Style', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['layout'] = [ 'title' => esc_html__( 'Layout', 'pfh-widgets' ), 'tab' => 'content' ];
 	}
 
 	public function set_controls() {
-		$this->product_controls();
 		$this->copy_controls();
 		$this->point_controls();
 		$this->price_controls();
 		$this->media_controls();
+		$this->button_controls();
 		$this->style_controls();
 		$this->layout_controls();
 	}
@@ -77,89 +139,124 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * Controls
 	 * ------------------------------------------------------------------ */
 
-	private function product_controls() {
-		/*
-		 * A searchable list of real products, not an ID to go and look up.
-		 * Typing an ID means leaving the builder, finding the product, and
-		 * copying a number out of the address bar — for something the editor
-		 * already knows by name.
-		 */
-		$this->controls['product'] = [
-			'tab'         => 'content',
-			'group'       => 'product',
-			'label'       => esc_html__( 'Product', 'pfh-widgets' ),
-			'type'        => 'select',
-			'searchable'  => true,
-			'clearable'   => true,
-			'options'     => self::product_options(),
-			'placeholder' => esc_html__( 'Search for a product…', 'pfh-widgets' ),
-			'description' => esc_html__( 'The product this banner prices. Leave empty to type the prices in yourself below.', 'pfh-widgets' ),
+	/**
+	 * A plain text field: typed, stored and printed as-is.
+	 *
+	 * @param string $group  Control group.
+	 * @param string $label  Panel label.
+	 * @param string $key    Setting key, for its default.
+	 * @param array  $extra  Anything else the control needs.
+	 * @return array
+	 */
+	private function field( $group, $label, $key, array $extra = [] ) {
+		return array_merge(
+			[
+				'tab'            => 'content',
+				'group'          => $group,
+				'label'          => $label,
+				'type'           => 'text',
+				'default'        => self::DEFAULTS[ $key ],
+				// Static by design: no dynamic-data picker on any field.
+				'hasDynamicData' => false,
+			],
+			$extra
+		);
+	}
+
+	/**
+	 * A number field with a range.
+	 *
+	 * @param string $group Control group.
+	 * @param string $label Panel label.
+	 * @param string $key   Setting key, for its default.
+	 * @param int    $min   Lowest value.
+	 * @param int    $max   Highest value.
+	 * @param array  $extra Anything else the control needs.
+	 * @return array
+	 */
+	private function number_field( $group, $label, $key, $min, $max, array $extra = [] ) {
+		$control = [
+			'tab'    => 'content',
+			'group'  => $group,
+			'label'  => $label,
+			'type'   => 'number',
+			'min'    => $min,
+			'max'    => $max,
+			'inline' => true,
 		];
 
-		$this->controls['productId'] = [
-			'tab'         => 'content',
-			'group'       => 'product',
-			'label'       => esc_html__( 'Or a product ID', 'pfh-widgets' ),
-			'type'        => 'text',
-			'inline'      => true,
-			'placeholder' => esc_html__( 'e.g. 1482', 'pfh-widgets' ),
-			'description' => esc_html__( 'Only needed to connect a dynamic field, or for a product the list above does not reach. It wins over the choice above.', 'pfh-widgets' ),
+		// An empty default means "leave it to the stylesheet", so declare none.
+		if ( '' !== self::DEFAULTS[ $key ] ) {
+			$control['default'] = self::DEFAULTS[ $key ];
+		}
+
+		return array_merge( $control, $extra );
+	}
+
+	/**
+	 * A colour field.
+	 *
+	 * @param string $group Control group.
+	 * @param string $label Panel label.
+	 * @param string $key   Setting key, for its default.
+	 * @return array
+	 */
+	private function colour_field( $group, $label, $key ) {
+		$control = [
+			'tab'    => 'content',
+			'group'  => $group,
+			'label'  => $label,
+			'type'   => 'color',
+			'inline' => true,
 		];
 
-		$this->controls['link'] = [
-			'tab'         => 'content',
-			'group'       => 'product',
-			'label'       => esc_html__( 'Where the banner goes', 'pfh-widgets' ),
-			'type'        => 'link',
-			'description' => esc_html__( 'Leave empty to link to the product above.', 'pfh-widgets' ),
-		];
+		if ( '' !== self::DEFAULTS[ $key ] ) {
+			$control['default'] = [ 'hex' => self::DEFAULTS[ $key ] ];
+		}
 
-		$this->controls['clickable'] = [
-			'tab'         => 'content',
-			'group'       => 'product',
-			'label'       => esc_html__( 'The whole banner is clickable', 'pfh-widgets' ),
-			'type'        => 'checkbox',
-			'default'     => true,
-			'description' => esc_html__( 'Off leaves only the button, if one is shown.', 'pfh-widgets' ),
-		];
+		return $control;
+	}
+
+	/**
+	 * A switch.
+	 *
+	 * @param string $group Control group.
+	 * @param string $label Panel label.
+	 * @param string $key   Setting key, for its default.
+	 * @param array  $extra Anything else the control needs.
+	 * @return array
+	 */
+	private function switch_field( $group, $label, $key, array $extra = [] ) {
+		return array_merge(
+			[
+				'tab'     => 'content',
+				'group'   => $group,
+				'label'   => $label,
+				'type'    => 'checkbox',
+				'default' => (bool) self::DEFAULTS[ $key ],
+			],
+			$extra
+		);
 	}
 
 	private function copy_controls() {
-		$this->controls['eyebrow'] = [
-			'tab'         => 'content',
-			'group'       => 'copy',
-			'label'       => esc_html__( 'Eyebrow', 'pfh-widgets' ),
-			'type'        => 'text',
-			'default'     => 'Meest gekozen',
-			'description' => esc_html__( 'Dynamic data is supported here and in every field below. Leave empty to hide it.', 'pfh-widgets' ),
-		];
+		$this->controls['eyebrow'] = $this->field(
+			'copy',
+			esc_html__( 'Eyebrow', 'pfh-widgets' ),
+			'eyebrow',
+			[ 'description' => esc_html__( 'Leave any field empty to hide that part.', 'pfh-widgets' ) ]
+		);
 
-		$this->controls['eyebrowIcon'] = [
-			'tab'         => 'content',
-			'group'       => 'copy',
-			'label'       => esc_html__( 'Eyebrow icon', 'pfh-widgets' ),
-			'type'        => 'text',
-			'inline'      => true,
-			'default'     => '🎁',
-			'description' => esc_html__( 'An emoji, or empty for none.', 'pfh-widgets' ),
-		];
+		$this->controls['showGift'] = $this->switch_field( 'copy', esc_html__( 'Gift icon before the eyebrow', 'pfh-widgets' ), 'showGift' );
 
-		$this->controls['titleTop'] = [
-			'tab'     => 'content',
-			'group'   => 'copy',
-			'label'   => esc_html__( 'Title, first line', 'pfh-widgets' ),
-			'type'    => 'text',
-			'default' => 'Proefpakket',
-		];
+		$this->controls['titleTop'] = $this->field( 'copy', esc_html__( 'Title, first line', 'pfh-widgets' ), 'titleTop' );
 
-		$this->controls['titleBottom'] = [
-			'tab'         => 'content',
-			'group'       => 'copy',
-			'label'       => esc_html__( 'Title, second line', 'pfh-widgets' ),
-			'type'        => 'text',
-			'default'     => '3 smaken naar keuze',
-			'description' => esc_html__( 'Set in a heavier weight than the first, as drawn.', 'pfh-widgets' ),
-		];
+		$this->controls['titleBottom'] = $this->field(
+			'copy',
+			esc_html__( 'Title, second line', 'pfh-widgets' ),
+			'titleBottom',
+			[ 'description' => esc_html__( 'Set in a heavier weight than the first, as drawn.', 'pfh-widgets' ) ]
+		);
 
 		$this->controls['titleTag'] = [
 			'tab'     => 'content',
@@ -172,53 +269,10 @@ class PFH_Element_Highlight extends \Bricks\Element {
 				'h3' => 'H3',
 				'p'  => esc_html__( 'Not a heading', 'pfh-widgets' ),
 			],
-			'default' => 'h2',
+			'default' => self::DEFAULTS['titleTag'],
 		];
 
-		$this->controls['text'] = [
-			'tab'     => 'content',
-			'group'   => 'copy',
-			'label'   => esc_html__( 'Description', 'pfh-widgets' ),
-			'type'    => 'textarea',
-			'default' => 'Ontdek de wereld van Gia Giamas. Kies zelf drie smaken uit het volledige assortiment en bespaar direct €5,00 t.o.v. losse aankoop.',
-		];
-
-		$this->controls['btnLabel'] = [
-			'tab'         => 'content',
-			'group'       => 'copy',
-			'label'       => esc_html__( 'Button', 'pfh-widgets' ),
-			'type'        => 'text',
-			'inline'      => true,
-			'default'     => '',
-			'description' => esc_html__( 'Empty for none — the banner itself is the link.', 'pfh-widgets' ),
-		];
-
-		$this->controls['btnRadius'] = [
-			'tab'         => 'content',
-			'group'       => 'button',
-			'label'       => esc_html__( 'Corner radius (px)', 'pfh-widgets' ),
-			'type'        => 'number',
-			'min'         => 0,
-			'max'         => 40,
-			'inline'      => true,
-			'description' => esc_html__( 'Empty leaves it at the 5px it is drawn with. Half the button\'s height or more gives a pill.', 'pfh-widgets' ),
-		];
-
-		$this->controls['btnBg'] = [
-			'tab'    => 'content',
-			'group'  => 'button',
-			'label'  => esc_html__( 'Background', 'pfh-widgets' ),
-			'type'   => 'color',
-			'inline' => true,
-		];
-
-		$this->controls['btnColor'] = [
-			'tab'    => 'content',
-			'group'  => 'button',
-			'label'  => esc_html__( 'Text colour', 'pfh-widgets' ),
-			'type'   => 'color',
-			'inline' => true,
-		];
+		$this->controls['text'] = $this->field( 'copy', esc_html__( 'Description', 'pfh-widgets' ), 'text', [ 'type' => 'textarea' ] );
 	}
 
 	private function point_controls() {
@@ -228,147 +282,70 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			'label'         => esc_html__( 'Selling points', 'pfh-widgets' ),
 			'type'          => 'repeater',
 			'titleProperty' => 'text',
-			'default'       => [
-				[ 'text' => 'Kies zelf 3 smaken uit het assortiment' ],
-				[ 'text' => 'Ideaal cadeau — inclusief receptenkaart' ],
-				[ 'text' => 'Gratis verzending bij bestelling' ],
-			],
+			'default'       => self::DEFAULTS['points'],
 			'fields'        => [
 				'text' => [
-					'label' => esc_html__( 'Text', 'pfh-widgets' ),
-					'type'  => 'text',
+					'label'          => esc_html__( 'Text', 'pfh-widgets' ),
+					'type'           => 'text',
+					'hasDynamicData' => false,
 				],
 			],
 		];
 
-		$this->controls['pointColor'] = [
-			'tab'     => 'content',
-			'group'   => 'points',
-			'label'   => esc_html__( 'Text colour', 'pfh-widgets' ),
-			'type'    => 'color',
-			'default' => [ 'hex' => '#3f4c3e' ],
-		];
-
-		$this->controls['tickColor'] = [
-			'tab'     => 'content',
-			'group'   => 'points',
-			'label'   => esc_html__( 'Tick colour', 'pfh-widgets' ),
-			'type'    => 'color',
-			'default' => [ 'hex' => '#7d9569' ],
-		];
+		$this->controls['pointColor'] = $this->colour_field( 'points', esc_html__( 'Text colour', 'pfh-widgets' ), 'pointColor' );
+		$this->controls['tickColor']  = $this->colour_field( 'points', esc_html__( 'Tick colour', 'pfh-widgets' ), 'tickColor' );
 	}
 
 	private function price_controls() {
-		$this->controls['priceSource'] = [
-			'tab'     => 'content',
-			'group'   => 'price',
-			'label'   => esc_html__( 'Prices come from', 'pfh-widgets' ),
-			'type'    => 'select',
-			'inline'  => true,
-			'options' => [
-				'product' => esc_html__( 'The product above', 'pfh-widgets' ),
-				'manual'  => esc_html__( 'The fields below', 'pfh-widgets' ),
-			],
-			'default' => 'product',
-		];
+		$this->controls['price'] = $this->field( 'price', esc_html__( 'Price', 'pfh-widgets' ), 'price', [ 'inline' => true ] );
 
-		$this->controls['priceManual'] = [
-			'tab'         => 'content',
-			'group'       => 'price',
-			'label'       => esc_html__( 'Price', 'pfh-widgets' ),
-			'type'        => 'text',
-			'inline'      => true,
-			'default'     => '€ 41,97',
-			'description' => esc_html__( 'Also used when no product is picked, and in the builder.', 'pfh-widgets' ),
-		];
+		$this->controls['priceWas'] = $this->field(
+			'price',
+			esc_html__( 'Price before the discount', 'pfh-widgets' ),
+			'priceWas',
+			[
+				'inline'      => true,
+				'description' => esc_html__( 'Shown struck through. Empty for no discount.', 'pfh-widgets' ),
+			]
+		);
 
-		$this->controls['oldManual'] = [
-			'tab'     => 'content',
-			'group'   => 'price',
-			'label'   => esc_html__( 'Price before the discount', 'pfh-widgets' ),
-			'type'    => 'text',
-			'inline'  => true,
-			'default' => '€ 46,97',
-		];
-
-		$this->controls['saveText'] = [
-			'tab'         => 'content',
-			'group'       => 'price',
-			'label'       => esc_html__( 'Saving line', 'pfh-widgets' ),
-			'type'        => 'text',
-			'default'     => 'Bespaar %s — %pct%% korting',
-			'description' => esc_html__( '%s becomes the amount saved and %pct% the percentage, both worked out from the product. When there is no discount the clause naming it is dropped rather than left reading "0%".', 'pfh-widgets' ),
-		];
-
-		$this->controls['savePercentFallback'] = [
-			'tab'      => 'content',
-			'group'    => 'price',
-			'label'    => esc_html__( 'Saving percentage, when there is no product', 'pfh-widgets' ),
-			'type'     => 'number',
-			'min'      => 0,
-			'max'      => 99,
-			'inline'   => true,
-			'default'  => 11,
-		];
-
-		$this->controls['saveFallback'] = [
-			'tab'         => 'content',
-			'group'       => 'price',
-			'label'       => esc_html__( 'Saving, when there is no product', 'pfh-widgets' ),
-			'type'        => 'text',
-			'inline'      => true,
-			'default'     => '€5,00',
-		];
+		$this->controls['saving'] = $this->field( 'price', esc_html__( 'Saving line', 'pfh-widgets' ), 'saving' );
 	}
 
 	private function media_controls() {
 		$this->controls['image'] = [
-			'tab'         => 'content',
-			'group'       => 'media',
-			'label'       => esc_html__( 'Image', 'pfh-widgets' ),
-			'type'        => 'image',
-			'description' => esc_html__( 'The supplied banner image is used until one is chosen. Connect an ACF image field here later.', 'pfh-widgets' ),
+			'tab'            => 'content',
+			'group'          => 'media',
+			'label'          => esc_html__( 'Image', 'pfh-widgets' ),
+			'type'           => 'image',
+			'hasDynamicData' => false,
+			'description'    => esc_html__( 'The supplied banner photograph is used until one is chosen here.', 'pfh-widgets' ),
 		];
 
-		$this->controls['imageAlt'] = [
-			'tab'     => 'content',
-			'group'   => 'media',
-			'label'   => esc_html__( 'Image description', 'pfh-widgets' ),
-			'type'    => 'text',
-			'default' => '',
-		];
+		$this->controls['imageAlt'] = $this->field(
+			'media',
+			esc_html__( 'Image description', 'pfh-widgets' ),
+			'imageAlt',
+			[ 'description' => esc_html__( 'Empty uses the description saved with the image in the media library.', 'pfh-widgets' ) ]
+		);
 
-		$this->controls['imageWidth'] = [
-			'tab'     => 'content',
-			'group'   => 'media',
-			'label'   => esc_html__( 'Image share of the banner (%)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 20,
-			'max'     => 70,
-			'inline'  => true,
-			'default' => 50,
-		];
+		$this->controls['imageWidth'] = $this->number_field( 'media', esc_html__( 'Image share of the banner (%)', 'pfh-widgets' ), 'imageWidth', 20, 70 );
 
-		$this->controls['imageBlend'] = [
-			'tab'         => 'content',
-			'group'       => 'media',
-			'label'       => esc_html__( 'Fade the image into the card', 'pfh-widgets' ),
-			'type'        => 'checkbox',
-			'default'     => true,
-			'description' => esc_html__( 'The supplied photograph has its own background baked in, which leaves a seam against the card. Turn this off for a cut-out on a transparent background.', 'pfh-widgets' ),
-		];
+		$this->controls['imageBlend'] = $this->switch_field(
+			'media',
+			esc_html__( 'Fade the image into the card', 'pfh-widgets' ),
+			'imageBlend',
+			[ 'description' => esc_html__( 'The supplied photograph has its own background baked in, which leaves a seam against the card. Turn this off for a cut-out on a transparent background.', 'pfh-widgets' ) ]
+		);
 
-		$this->controls['imageFade'] = [
-			'tab'      => 'content',
-			'group'    => 'media',
-			'label'    => esc_html__( 'Fade distance (%)', 'pfh-widgets' ),
-			'type'     => 'number',
-			'min'      => 2,
-			'max'      => 45,
-			'inline'   => true,
-			'default'  => 14,
-			'required' => [ 'imageBlend', '=', true ],
-		];
+		$this->controls['imageFade'] = $this->number_field(
+			'media',
+			esc_html__( 'Fade distance (%)', 'pfh-widgets' ),
+			'imageFade',
+			2,
+			45,
+			[ 'required' => [ 'imageBlend', '=', true ] ]
+		);
 
 		$this->controls['imageSide'] = [
 			'tab'     => 'content',
@@ -380,223 +357,130 @@ class PFH_Element_Highlight extends \Bricks\Element {
 				'right' => esc_html__( 'Right', 'pfh-widgets' ),
 				'left'  => esc_html__( 'Left', 'pfh-widgets' ),
 			],
-			'default' => 'right',
+			'default' => self::DEFAULTS['imageSide'],
 		];
+	}
+
+	private function button_controls() {
+		$this->controls['btnLabel'] = $this->field(
+			'button',
+			esc_html__( 'Button label', 'pfh-widgets' ),
+			'btnLabel',
+			[
+				'inline'      => true,
+				'description' => esc_html__( 'Empty for no button.', 'pfh-widgets' ),
+			]
+		);
+
+		$this->controls['url'] = $this->field(
+			'button',
+			esc_html__( 'Link', 'pfh-widgets' ),
+			'url',
+			[
+				'placeholder' => 'https://',
+				'description' => esc_html__( 'Where the banner and its button go. Empty for no link.', 'pfh-widgets' ),
+			]
+		);
+
+		$this->controls['newTab'] = $this->switch_field( 'button', esc_html__( 'Open in a new tab', 'pfh-widgets' ), 'newTab' );
+
+		$this->controls['clickable'] = $this->switch_field(
+			'button',
+			esc_html__( 'The whole banner is clickable', 'pfh-widgets' ),
+			'clickable',
+			[ 'description' => esc_html__( 'Off leaves only the button as the link.', 'pfh-widgets' ) ]
+		);
+
+		$this->controls['btnRadius'] = $this->number_field(
+			'button',
+			esc_html__( 'Corner radius (px)', 'pfh-widgets' ),
+			'btnRadius',
+			0,
+			40,
+			[ 'description' => esc_html__( 'Empty leaves it at the 5px it is drawn with. Half the button\'s height or more gives a pill.', 'pfh-widgets' ) ]
+		);
+
+		$this->controls['btnBg']    = $this->colour_field( 'button', esc_html__( 'Background', 'pfh-widgets' ), 'btnBg' );
+		$this->controls['btnColor'] = $this->colour_field( 'button', esc_html__( 'Text colour', 'pfh-widgets' ), 'btnColor' );
 	}
 
 	private function style_controls() {
-		$this->controls['bg'] = [
-			'tab'     => 'content',
-			'group'   => 'style',
-			'label'   => esc_html__( 'Background', 'pfh-widgets' ),
-			'type'    => 'color',
-			'default' => [ 'hex' => '#d9e6dc' ],
-		];
+		$this->controls['bg']     = $this->colour_field( 'style', esc_html__( 'Background', 'pfh-widgets' ), 'bg' );
+		$this->controls['radius'] = $this->number_field( 'style', esc_html__( 'Corner radius (px)', 'pfh-widgets' ), 'radius', 0, 60 );
 
-		$this->controls['radius'] = [
-			'tab'     => 'content',
-			'group'   => 'style',
-			'label'   => esc_html__( 'Corner radius (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 0,
-			'max'     => 60,
-			'inline'  => true,
-			'default' => 20,
-		];
+		$this->controls['imageRadius'] = $this->number_field(
+			'style',
+			esc_html__( 'Image corner radius (px)', 'pfh-widgets' ),
+			'imageRadius',
+			0,
+			60,
+			[ 'description' => esc_html__( 'The card already clips the image to its own corners; this rounds the image itself as well.', 'pfh-widgets' ) ]
+		);
 
-		$this->controls['imageRadius'] = [
-			'tab'         => 'content',
-			'group'       => 'style',
-			'label'       => esc_html__( 'Image corner radius (px)', 'pfh-widgets' ),
-			'type'        => 'number',
-			'min'         => 0,
-			'max'         => 60,
-			'inline'      => true,
-			'default'     => 0,
-			'description' => esc_html__( 'The card already clips the image to its own corners; this rounds the image itself as well.', 'pfh-widgets' ),
-		];
-
-		$this->controls['padX'] = [
-			'tab'     => 'content',
-			'group'   => 'style',
-			'label'   => esc_html__( 'Inner padding, sides (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 0,
-			'max'     => 120,
-			'inline'  => true,
-			'default' => 52,
-		];
-
-		$this->controls['padY'] = [
-			'tab'     => 'content',
-			'group'   => 'style',
-			'label'   => esc_html__( 'Inner padding, top and bottom (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 0,
-			'max'     => 120,
-			'inline'  => true,
-			'default' => 48,
-		];
-
-		$this->controls['eyebrowSize'] = [
-			'tab'     => 'content',
-			'group'   => 'style',
-			'label'   => esc_html__( 'Eyebrow size (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 12,
-			'max'     => 40,
-			'inline'  => true,
-			'default' => 22,
-		];
-
-		$this->controls['titleSize'] = [
-			'tab'     => 'content',
-			'group'   => 'style',
-			'label'   => esc_html__( 'Title size (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 18,
-			'max'     => 64,
-			'inline'  => true,
-			'default' => 32,
-		];
-
-		$this->controls['textSize'] = [
-			'tab'     => 'content',
-			'group'   => 'style',
-			'label'   => esc_html__( 'Description size (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 10,
-			'max'     => 24,
-			'inline'  => true,
-			'default' => 14,
-		];
-
-		$this->controls['priceSize'] = [
-			'tab'     => 'content',
-			'group'   => 'style',
-			'label'   => esc_html__( 'Price size (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 14,
-			'max'     => 48,
-			'inline'  => true,
-			'default' => 24,
-		];
-
-		$this->controls['ink'] = [
-			'tab'     => 'content',
-			'group'   => 'style',
-			'label'   => esc_html__( 'Text colour', 'pfh-widgets' ),
-			'type'    => 'color',
-			'default' => [ 'hex' => '#22301c' ],
-		];
+		$this->controls['padX']        = $this->number_field( 'style', esc_html__( 'Inner padding, sides (px)', 'pfh-widgets' ), 'padX', 0, 120 );
+		$this->controls['padY']        = $this->number_field( 'style', esc_html__( 'Inner padding, top and bottom (px)', 'pfh-widgets' ), 'padY', 0, 120 );
+		$this->controls['eyebrowSize'] = $this->number_field( 'style', esc_html__( 'Eyebrow size (px)', 'pfh-widgets' ), 'eyebrowSize', 12, 40 );
+		$this->controls['titleSize']   = $this->number_field( 'style', esc_html__( 'Title size (px)', 'pfh-widgets' ), 'titleSize', 18, 64 );
+		$this->controls['textSize']    = $this->number_field( 'style', esc_html__( 'Description size (px)', 'pfh-widgets' ), 'textSize', 10, 24 );
+		$this->controls['priceSize']   = $this->number_field( 'style', esc_html__( 'Price size (px)', 'pfh-widgets' ), 'priceSize', 14, 48 );
+		$this->controls['ink']         = $this->colour_field( 'style', esc_html__( 'Text colour', 'pfh-widgets' ), 'ink' );
 	}
 
 	private function layout_controls() {
-		$this->controls['maxWidth'] = [
-			'tab'     => 'content',
-			'group'   => 'layout',
-			'label'   => esc_html__( 'Container width (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 400,
-			'max'     => 1600,
-			'inline'  => true,
-			'default' => 1240,
-		];
+		$this->controls['maxWidth']  = $this->number_field( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 'maxWidth', 400, 1600 );
+		$this->controls['minHeight'] = $this->number_field( 'layout', esc_html__( 'Minimum height (px)', 'pfh-widgets' ), 'minHeight', 200, 800 );
+		$this->controls['padTop']    = $this->number_field( 'layout', esc_html__( 'Space above (px)', 'pfh-widgets' ), 'padTop', 0, 200 );
 
-		$this->controls['minHeight'] = [
-			'tab'     => 'content',
-			'group'   => 'layout',
-			'label'   => esc_html__( 'Minimum height (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 200,
-			'max'     => 800,
-			'inline'  => true,
-			'default' => 468,
-		];
+		$this->controls['overlap'] = $this->number_field(
+			'layout',
+			esc_html__( 'Overlap the section below (px)', 'pfh-widgets' ),
+			'overlap',
+			0,
+			300,
+			[ 'description' => esc_html__( 'The banner sits over the top of whatever follows it — the footer, in the design. Set to 0 for no overlap.', 'pfh-widgets' ) ]
+		);
 
-		$this->controls['padTop'] = [
-			'tab'     => 'content',
-			'group'   => 'layout',
-			'label'   => esc_html__( 'Space above (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 0,
-			'max'     => 200,
-			'inline'  => true,
-			'default' => 0,
-		];
-
-		$this->controls['overlap'] = [
-			'tab'         => 'content',
-			'group'       => 'layout',
-			'label'       => esc_html__( 'Overlap the section below (px)', 'pfh-widgets' ),
-			'type'        => 'number',
-			'min'         => 0,
-			'max'         => 300,
-			'inline'      => true,
-			'default'     => 74,
-			'description' => esc_html__( 'The banner sits over the top of whatever follows it — the footer, in the design. Set to 0 for no overlap.', 'pfh-widgets' ),
-		];
-
-		$this->controls['padBottom'] = [
-			'tab'     => 'content',
-			'group'   => 'layout',
-			'label'   => esc_html__( 'Space below (px)', 'pfh-widgets' ),
-			'type'    => 'number',
-			'min'     => 0,
-			'max'     => 200,
-			'inline'  => true,
-			'default' => 56,
-		];
+		$this->controls['padBottom'] = $this->number_field( 'layout', esc_html__( 'Space below (px)', 'pfh-widgets' ), 'padBottom', 0, 200 );
 	}
 
 	/* ---------------------------------------------------------------------
 	 * Render
 	 * ------------------------------------------------------------------ */
 
+	/**
+	 * Always a banner. Clearing a field hides that part of it; nothing clears
+	 * the banner itself, so a block that was added is a block that shows.
+	 */
 	public function render() {
-		$title_top    = $this->copy( 'titleTop' );
-		$title_bottom = $this->copy( 'titleBottom' );
-
-		// Nothing to say and nothing to show is not a banner.
-		if ( '' === $title_top && '' === $title_bottom && '' === $this->copy( 'text' ) ) {
-			if ( PFH_Widgets_Helpers::is_builder_context() ) {
-				echo '<div class="pfh-hl pfh-hl--empty"><p>' . esc_html__( 'Give the highlight a title, or pick a product.', 'pfh-widgets' ) . '</p></div>';
-			}
-
-			return;
-		}
-
 		$classes = [
 			'pfh-hl',
 			'pfh-scope',
-			'pfh-hl--media-' . (string) $this->get( 'imageSide', 'right' ),
+			'pfh-hl--media-' . $this->choice( 'imageSide', [ 'right', 'left' ] ),
 		];
 
-		if ( (int) $this->get( 'overlap', 74 ) > 0 ) {
+		if ( $this->number( 'overlap' ) > 0 ) {
 			$classes[] = 'pfh-hl--overlaps';
 		}
 
-		if ( $this->is_on( 'imageBlend' ) ) {
+		if ( $this->flag( 'imageBlend' ) ) {
 			$classes[] = 'pfh-hl--blend';
 		}
 
 		$this->set_attribute( '_root', 'class', $classes );
 		$this->set_attribute( '_root', 'style', $this->build_vars() );
 
-		echo '<section ' . $this->render_attributes( '_root' ) . '>';
+		$link  = $this->link();
+		$whole = $this->flag( 'clickable' ) && '' !== $link['href'];
+
+		echo '<section ' . $this->render_attributes( '_root' ) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bricks escapes its own attributes.
 		echo '<div class="pfh-hl__inner">';
-
-		$link  = $this->destination();
-		$whole = $this->is_on( 'clickable' ) && '' !== $link['href'];
-
 		printf( '<div class="pfh-hl__card%s">', $whole ? ' is-clickable' : '' );
-
 		echo '<div class="pfh-hl__body">';
 
 		$this->render_eyebrow();
-		$this->render_title( $title_top, $title_bottom, $link, $whole );
+		$this->render_title( $link, $whole );
 
-		$text = $this->copy( 'text' );
+		$text = $this->text( 'text' );
 
 		if ( '' !== $text ) {
 			echo '<p class="pfh-hl__text">' . esc_html( $text ) . '</p>';
@@ -616,35 +500,32 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	}
 
 	private function render_eyebrow() {
-		$eyebrow = $this->copy( 'eyebrow' );
+		$eyebrow = $this->text( 'eyebrow' );
 
 		if ( '' === $eyebrow ) {
 			return;
 		}
 
-		$icon = trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'eyebrowIcon', '' ) ) );
-
 		printf(
 			'<p class="pfh-hl__eyebrow">%s<span>%s</span></p>',
-			'' !== $icon ? '<span class="pfh-hl__eyebrow-icon" aria-hidden="true">' . esc_html( $icon ) . '</span>' : '',
+			$this->flag( 'showGift' ) ? '<span class="pfh-hl__eyebrow-icon" aria-hidden="true">' . self::GIFT . '</span>' : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- literal markup.
 			esc_html( $eyebrow )
 		);
 	}
 
 	/**
-	 * @param string $top    First line.
-	 * @param string $bottom Second line.
-	 * @param array  $link   Destination.
-	 * @param bool   $whole  Whether the card itself is the link.
+	 * @param array $link  Destination.
+	 * @param bool  $whole Whether the card itself is the link.
 	 */
-	private function render_title( $top, $bottom, array $link, $whole ) {
+	private function render_title( array $link, $whole ) {
+		$top    = $this->text( 'titleTop' );
+		$bottom = $this->text( 'titleBottom' );
+
 		if ( '' === $top && '' === $bottom ) {
 			return;
 		}
 
-		$tag = (string) $this->get( 'titleTag', 'h2' );
-		$tag = in_array( $tag, [ 'h2', 'h3', 'p' ], true ) ? $tag : 'h2';
-
+		$tag   = $this->choice( 'titleTag', [ 'h2', 'h3', 'p' ] );
 		$inner = '';
 
 		if ( '' !== $top ) {
@@ -658,29 +539,21 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		/*
 		 * When the whole card is clickable the link lives on the title and is
 		 * stretched over the card with a pseudo-element. That keeps one real
-		 * link in the document — a card wrapped in an <a> swallows the text
-		 * into the link's own name, which is no use to anyone reading by
-		 * keyboard or screen reader.
+		 * link in the document — a card wrapped in an <a> folds every word
+		 * into the link's name, which is no use to a keyboard or screen reader.
 		 */
 		if ( $whole ) {
-			$inner = sprintf(
-				'<a class="pfh-hl__link" %s>%s</a>',
-				PFH_Widgets_Helpers::link_attrs( $link ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in link_attrs().
-				$inner
-			);
+			$inner = '<a class="pfh-hl__link"' . PFH_Widgets_Helpers::link_attrs( $link ) . '>' . $inner . '</a>';
 		}
 
 		printf( '<%1$s class="pfh-hl__title">%2$s</%1$s>', $tag, $inner ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- tag whitelisted, inner escaped above.
 	}
 
 	private function render_points() {
-		$points = $this->get( 'points', [] );
-		$points = is_array( $points ) ? $points : [];
-
 		$rows = [];
 
-		foreach ( $points as $row ) {
-			$text = isset( $row['text'] ) ? trim( PFH_Widgets_Helpers::dd( (string) $row['text'] ) ) : '';
+		foreach ( $this->rows( 'points' ) as $row ) {
+			$text = isset( $row['text'] ) && is_scalar( $row['text'] ) ? trim( (string) $row['text'] ) : '';
 
 			if ( '' !== $text ) {
 				$rows[] = $text;
@@ -705,24 +578,32 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	}
 
 	private function render_price() {
-		$price = $this->prices();
+		$now    = $this->text( 'price' );
+		$was    = $this->text( 'priceWas' );
+		$saving = $this->text( 'saving' );
 
-		if ( '' === $price['now'] ) {
+		if ( '' === $now && '' === $was && '' === $saving ) {
 			return;
 		}
 
 		echo '<div class="pfh-hl__price">';
-		echo '<p class="pfh-hl__price-row">';
-		echo '<span class="pfh-hl__price-now">' . wp_kses_post( $price['now'] ) . '</span>';
 
-		if ( '' !== $price['was'] ) {
-			echo '<span class="pfh-hl__price-was">' . wp_kses_post( $price['was'] ) . '</span>';
+		if ( '' !== $now || '' !== $was ) {
+			echo '<p class="pfh-hl__price-row">';
+
+			if ( '' !== $now ) {
+				echo '<span class="pfh-hl__price-now">' . esc_html( $now ) . '</span>';
+			}
+
+			if ( '' !== $was ) {
+				echo '<span class="pfh-hl__price-was">' . esc_html( $was ) . '</span>';
+			}
+
+			echo '</p>';
 		}
 
-		echo '</p>';
-
-		if ( '' !== $price['save'] ) {
-			echo '<p class="pfh-hl__save">' . esc_html( $price['save'] ) . '</p>';
+		if ( '' !== $saving ) {
+			echo '<p class="pfh-hl__save">' . esc_html( $saving ) . '</p>';
 		}
 
 		echo '</div>';
@@ -733,331 +614,195 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * @param bool  $whole Whether the card itself is already the link.
 	 */
 	private function render_button( array $link, $whole ) {
-		$label = trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'btnLabel', '' ) ) );
+		$label = $this->text( 'btnLabel' );
 
 		if ( '' === $label ) {
 			return;
 		}
 
 		// A second link inside a stretched one would be unreachable.
-		$tag = ( '' !== $link['href'] && ! $whole ) ? 'a' : 'span';
+		if ( '' !== $link['href'] && ! $whole ) {
+			echo '<a class="pfh-hl__btn"' . PFH_Widgets_Helpers::link_attrs( $link ) . '>' . esc_html( $label ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in link_attrs().
 
-		printf(
-			'<%1$s class="pfh-hl__btn"%2$s>%3$s</%1$s>',
-			$tag, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- literal.
-			'a' === $tag ? PFH_Widgets_Helpers::link_attrs( $link ) : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in link_attrs().
-			esc_html( $label )
-		);
-	}
-
-	private function render_media() {
-		$url = $this->image_url();
-
-		if ( '' === $url ) {
 			return;
 		}
 
+		echo '<span class="pfh-hl__btn">' . esc_html( $label ) . '</span>';
+	}
+
+	private function render_media() {
+		$image = $this->image();
+
 		printf(
 			'<div class="pfh-hl__media"><img class="pfh-hl__img" src="%s" alt="%s" loading="lazy" decoding="async" /></div>',
-			esc_url( $url ),
-			esc_attr( PFH_Widgets_Helpers::dd( (string) $this->get( 'imageAlt', '' ) ) )
+			esc_url( $image['url'] ),
+			esc_attr( $image['alt'] )
 		);
 	}
 
 	/* ---------------------------------------------------------------------
-	 * Data
+	 * Reading settings
+	 *
+	 * Absent means never touched, and takes the default. Present but empty
+	 * means cleared on purpose, and a text field stays cleared — an eyebrow the
+	 * editor deleted must not come back. Numbers are the exception: an empty
+	 * number box means "the design value", not "zero".
 	 * ------------------------------------------------------------------ */
 
 	/**
-	 * The chosen product, if there is one and WooCommerce is here.
-	 *
-	 * @return \WC_Product|null
+	 * @param string $key Setting.
+	 * @return string
 	 */
-	/**
-	 * Every published product, for the picker.
-	 *
-	 * Deliberately defensive, because Bricks calls set_controls() while it is
-	 * *saving* a page as well as while drawing the panel. Anything in here
-	 * that can throw or stall takes the save down with it, and the builder
-	 * reports that as nothing more than a failure to save.
-	 *
-	 * So: no work at all outside the builder panel; no cache write during a
-	 * POST; and the whole thing wrapped, so a catalogue that upsets it costs
-	 * the editor a dropdown rather than their work.
-	 *
-	 * It reads the two columns it needs directly. Asking WordPress for IDs and
-	 * then a title each was one query per product — 36 of them for a catalogue
-	 * of 32 — which on a real shop is a few thousand queries every time the
-	 * panel opens. Two columns of one table is what this actually is.
-	 *
-	 * @return array<string, string>
-	 */
-	private static function product_options() {
-		// A save, a front-end render and an AJAX call all need no list.
-		if ( ! self::picking() ) {
-			return [];
+	private function text( $key ) {
+		if ( array_key_exists( $key, (array) $this->settings ) ) {
+			$value = $this->settings[ $key ];
+
+			return is_scalar( $value ) ? trim( (string) $value ) : '';
 		}
 
-		$cached = get_transient( self::OPTIONS_KEY );
-
-		if ( is_array( $cached ) ) {
-			return $cached;
-		}
-
-		$options = [];
-
-		try {
-			global $wpdb;
-
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT ID, post_title FROM {$wpdb->posts}
-					 WHERE post_type = 'product' AND post_status = 'publish'
-					 ORDER BY post_title ASC LIMIT %d",
-					self::PICKER_LIMIT
-				)
-			);
-
-			foreach ( (array) $rows as $row ) {
-				$title = wp_strip_all_tags( html_entity_decode( (string) $row->post_title, ENT_QUOTES, 'UTF-8' ) );
-
-				// A label that is not valid UTF-8 cannot be JSON encoded, and
-				// Bricks ships these to the builder as JSON.
-				if ( '' === $title || ! mb_check_encoding( $title, 'UTF-8' ) ) {
-					continue;
-				}
-
-				$options[ (string) $row->ID ] = $title;
-			}
-		} catch ( \Throwable $e ) {
-			return [];
-		}
-
-		if ( ! self::saving() ) {
-			set_transient( self::OPTIONS_KEY, $options, HOUR_IN_SECONDS );
-		}
-
-		return $options;
+		return (string) self::DEFAULTS[ $key ];
 	}
 
 	/**
-	 * Is the editor looking at this element's panel?
-	 *
+	 * @param string $key Setting.
+	 * @return int|float|string Number, or '' when the default is "none".
+	 */
+	private function number( $key ) {
+		$value = isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : '';
+
+		if ( is_numeric( $value ) ) {
+			return $value + 0;
+		}
+
+		return self::DEFAULTS[ $key ];
+	}
+
+	/**
+	 * @param string $key Setting.
 	 * @return bool
 	 */
-	private static function picking() {
-		if ( self::saving() ) {
-			return false;
+	private function flag( $key ) {
+		if ( array_key_exists( $key, (array) $this->settings ) ) {
+			return ! empty( $this->settings[ $key ] );
 		}
 
-		if ( function_exists( 'bricks_is_builder' ) && bricks_is_builder() ) {
-			return true;
-		}
-
-		if ( function_exists( 'bricks_is_builder_call' ) && bricks_is_builder_call() ) {
-			return true;
-		}
-
-		return is_admin() && ! wp_doing_ajax();
+		return (bool) self::DEFAULTS[ $key ];
 	}
 
 	/**
-	 * A POST is a save, or near enough that this control should stay out of it.
-	 *
-	 * @return bool
+	 * @param string   $key     Setting.
+	 * @param string[] $allowed Accepted values; anything else falls back.
+	 * @return string
 	 */
-	private static function saving() {
-		return ! empty( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- shape check only.
-	}
+	private function choice( $key, array $allowed ) {
+		$value = isset( $this->settings[ $key ] ) && is_string( $this->settings[ $key ] ) ? $this->settings[ $key ] : '';
 
-	private function product() {
-		if ( ! PFH_Widgets_Helpers::has_woocommerce() || ! function_exists( 'wc_get_product' ) ) {
-			return null;
-		}
-
-		// A typed ID wins, so a dynamic field can drive this.
-		$typed = trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'productId', '' ) ) );
-		$id    = (int) ( '' !== $typed ? $typed : PFH_Widgets_Helpers::dd( (string) $this->get( 'product', '' ) ) );
-
-		if ( $id <= 0 ) {
-			return null;
-		}
-
-		$product = wc_get_product( $id );
-
-		return ( $product && is_object( $product ) ) ? $product : null;
+		return in_array( $value, $allowed, true ) ? $value : self::DEFAULTS[ $key ];
 	}
 
 	/**
-	 * What the banner shows for money.
-	 *
-	 * @return array{now:string, was:string, save:string}
+	 * @param string $key Setting.
+	 * @return string CSS colour, or '' to leave it to the stylesheet.
 	 */
-	private function prices() {
-		$manual = [
-			'now'  => trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'priceManual', '' ) ) ),
-			'was'  => trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'oldManual', '' ) ) ),
-			'save' => $this->save_line(
-				trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'saveFallback', '' ) ) ),
-				(float) $this->get( 'savePercentFallback', 0 )
-			),
-		];
+	private function colour( $key ) {
+		$value = isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : null;
 
-		if ( 'product' !== (string) $this->get( 'priceSource', 'product' ) ) {
-			return $manual;
+		return PFH_Widgets_Helpers::color( $value, self::DEFAULTS[ $key ] );
+	}
+
+	/**
+	 * @param string $key Repeater setting.
+	 * @return array
+	 */
+	private function rows( $key ) {
+		if ( array_key_exists( $key, (array) $this->settings ) ) {
+			return is_array( $this->settings[ $key ] ) ? $this->settings[ $key ] : [];
 		}
 
-		$product = $this->product();
+		return self::DEFAULTS[ $key ];
+	}
 
-		if ( ! $product || ! function_exists( 'wc_price' ) ) {
-			return $manual;
-		}
-
-		$now = wc_get_price_to_display( $product );
-		$was = wc_get_price_to_display( $product, [ 'price' => $product->get_regular_price() ] );
-
-		if ( '' === $now || null === $now ) {
-			return $manual;
-		}
-
-		$saving  = (float) $was - (float) $now;
-		$percent = (float) $was > 0 ? ( $saving / (float) $was ) * 100 : 0.0;
+	/**
+	 * The typed link, with its target.
+	 *
+	 * @return array{href: string, target: string, rel: string}
+	 */
+	private function link() {
+		$href = esc_url_raw( $this->text( 'url' ) );
+		$new  = '' !== $href && $this->flag( 'newTab' );
 
 		return [
-			'now'  => wc_price( $now ),
-			// Only worth showing when the product is actually reduced.
-			'was'  => $saving > 0 ? wc_price( $was ) : '',
-			'save' => $saving > 0
-				? $this->save_line( wp_strip_all_tags( wc_price( $saving ) ), $percent )
-				: '',
+			'href'   => $href,
+			'target' => $new ? '_blank' : '',
+			'rel'    => $new ? 'noopener' : '',
 		];
 	}
 
 	/**
-	 * @param string $amount Already formatted.
-	 * @return string
-	 */
-	/**
-	 * @param string $amount  Already formatted, e.g. "€5,00".
-	 * @param float  $percent Discount as a percentage, 0 when unknown.
-	 * @return string
-	 */
-	private function save_line( $amount, $percent = 0.0 ) {
-		$template = trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'saveText', '' ) ) );
-
-		if ( '' === $template || '' === $amount ) {
-			return '';
-		}
-
-		/*
-		 * str_replace rather than sprintf: the line carries a per-cent sign
-		 * of its own — "Bespaar €5,00 — 11% korting" — and sprintf reads that
-		 * as a conversion and mangles the rest of the sentence.
-		 */
-		$line = str_replace( '%s', $amount, $template );
-
-		if ( false !== strpos( $line, '%pct%' ) ) {
-			$line = $percent > 0
-				? str_replace( '%pct%', (string) (int) round( $percent ), $line )
-				// No discount to name, so the clause naming it goes too.
-				: trim( preg_replace( '/\s*[—–-]?\s*[^—–-]*%pct%[^—–-]*/u', '', $line ) );
-		}
-
-		return trim( $line );
-	}
-
-	/**
-	 * Where the banner points: the typed link, else the chosen product.
+	 * The chosen photograph, or the supplied one.
 	 *
-	 * @return array{href:string, target:string, rel:string, aria:string}
-	 */
-	private function destination() {
-		$link = PFH_Widgets_Helpers::link( $this->get( 'link' ) );
-
-		if ( '' !== $link['href'] ) {
-			return $link;
-		}
-
-		$product = $this->product();
-
-		if ( $product ) {
-			$link['href'] = (string) $product->get_permalink();
-		}
-
-		return $link;
-	}
-
-	/**
-	 * The chosen image, else the supplied one.
+	 * A media-library pick resolves by its ID, so a regenerated or moved file
+	 * still shows. Dynamic-data image values are ignored: this block is static.
 	 *
-	 * @return string
+	 * @return array{url: string, alt: string}
 	 */
-	private function image_url() {
-		$chosen = PFH_Widgets_Helpers::image_url( $this->get( 'image' ), 'large' );
+	private function image() {
+		$image = isset( $this->settings['image'] ) && is_array( $this->settings['image'] ) ? $this->settings['image'] : [];
+		$id    = ! empty( $image['id'] ) ? absint( $image['id'] ) : 0;
+		$url   = '';
 
-		if ( $chosen ) {
-			return $chosen;
+		if ( $id ) {
+			$size = ! empty( $image['size'] ) && is_string( $image['size'] ) ? $image['size'] : 'large';
+			$url  = (string) wp_get_attachment_image_url( $id, $size );
 		}
 
-		return PFH_Widgets_Assets::img( 'pfh-highlight.jpg' );
-	}
+		if ( '' === $url && ! empty( $image['url'] ) && is_string( $image['url'] ) && empty( $image['useDynamicData'] ) ) {
+			$url = $image['url'];
+		}
 
-	/**
-	 * A copy field, run through dynamic data and trimmed.
-	 *
-	 * @param string $key Control name.
-	 * @return string
-	 */
-	private function copy( $key ) {
-		return trim( PFH_Widgets_Helpers::dd( (string) $this->get( $key, '' ) ) );
+		if ( '' === $url ) {
+			$id  = 0;
+			$url = PFH_Widgets_Assets::img( 'pfh-highlight.jpg' );
+		}
+
+		$alt = $this->text( 'imageAlt' );
+
+		if ( '' === $alt && $id ) {
+			$alt = trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) );
+		}
+
+		return [
+			'url' => $url,
+			'alt' => $alt,
+		];
 	}
 
 	private function build_vars() {
-		$share = max( 20, min( 70, (int) $this->get( 'imageWidth', 50 ) ) );
-
 		return PFH_Widgets_Helpers::css_vars(
 			[
-				'--pfh-hl-max'     => PFH_Widgets_Helpers::unit( $this->get( 'maxWidth', 1240 ) ),
-				'--pfh-hl-min-h'   => PFH_Widgets_Helpers::unit( $this->get( 'minHeight', 468 ) ),
-				'--pfh-hl-pt'      => PFH_Widgets_Helpers::unit( $this->get( 'padTop', 0 ) ),
-				'--pfh-hl-pb'      => PFH_Widgets_Helpers::unit( $this->get( 'padBottom', 56 ) ),
-				'--pfh-hl-overlap' => PFH_Widgets_Helpers::unit( max( 0, (int) $this->get( 'overlap', 74 ) ) ),
-				'--pfh-hl-bg'      => PFH_Widgets_Helpers::color( $this->get( 'bg' ), '#d9e6dc' ),
-				'--pfh-hl-radius'  => PFH_Widgets_Helpers::unit( $this->get( 'radius', 20 ) ),
-				'--pfh-hl-img-radius' => PFH_Widgets_Helpers::unit( $this->get( 'imageRadius', 0 ) ),
-				'--pfh-hl-btn-radius' => PFH_Widgets_Helpers::unit( $this->get( 'btnRadius', '' ) ),
-				'--pfh-hl-btn-bg'  => PFH_Widgets_Helpers::color( $this->get( 'btnBg' ) ),
-				'--pfh-hl-btn-ink' => PFH_Widgets_Helpers::color( $this->get( 'btnColor' ) ),
-				'--pfh-hl-px-set'      => PFH_Widgets_Helpers::unit( $this->get( 'padX', 52 ) ),
-				'--pfh-hl-py-set'      => PFH_Widgets_Helpers::unit( $this->get( 'padY', 48 ) ),
-				'--pfh-hl-media-w' => $share . '%',
-				'--pfh-hl-fade'    => max( 2, min( 45, (int) $this->get( 'imageFade', 14 ) ) ) . '%',
-				'--pfh-hl-ink'     => PFH_Widgets_Helpers::color( $this->get( 'ink' ), '#22301c' ),
-				'--pfh-hl-eyebrow-set' => PFH_Widgets_Helpers::unit( $this->get( 'eyebrowSize', 22 ) ),
-				'--pfh-hl-title-set'   => PFH_Widgets_Helpers::unit( $this->get( 'titleSize', 32 ) ),
-				'--pfh-hl-text'    => PFH_Widgets_Helpers::unit( $this->get( 'textSize', 14 ) ),
-				'--pfh-hl-price'   => PFH_Widgets_Helpers::unit( $this->get( 'priceSize', 24 ) ),
-				'--pfh-hl-point'   => PFH_Widgets_Helpers::color( $this->get( 'pointColor' ), '#3f4c3e' ),
-				'--pfh-hl-tick'    => PFH_Widgets_Helpers::color( $this->get( 'tickColor' ), '#7d9569' ),
+				'--pfh-hl-max'         => PFH_Widgets_Helpers::unit( $this->number( 'maxWidth' ) ),
+				'--pfh-hl-min-h'       => PFH_Widgets_Helpers::unit( $this->number( 'minHeight' ) ),
+				'--pfh-hl-pt'          => PFH_Widgets_Helpers::unit( $this->number( 'padTop' ) ),
+				'--pfh-hl-pb'          => PFH_Widgets_Helpers::unit( $this->number( 'padBottom' ) ),
+				'--pfh-hl-overlap'     => PFH_Widgets_Helpers::unit( max( 0, (int) $this->number( 'overlap' ) ) ),
+				'--pfh-hl-bg'          => $this->colour( 'bg' ),
+				'--pfh-hl-radius'      => PFH_Widgets_Helpers::unit( $this->number( 'radius' ) ),
+				'--pfh-hl-img-radius'  => PFH_Widgets_Helpers::unit( $this->number( 'imageRadius' ) ),
+				'--pfh-hl-btn-radius'  => PFH_Widgets_Helpers::unit( $this->number( 'btnRadius' ) ),
+				'--pfh-hl-btn-bg'      => $this->colour( 'btnBg' ),
+				'--pfh-hl-btn-ink'     => $this->colour( 'btnColor' ),
+				'--pfh-hl-px-set'      => PFH_Widgets_Helpers::unit( $this->number( 'padX' ) ),
+				'--pfh-hl-py-set'      => PFH_Widgets_Helpers::unit( $this->number( 'padY' ) ),
+				'--pfh-hl-media-w'     => max( 20, min( 70, (int) $this->number( 'imageWidth' ) ) ) . '%',
+				'--pfh-hl-fade'        => max( 2, min( 45, (int) $this->number( 'imageFade' ) ) ) . '%',
+				'--pfh-hl-ink'         => $this->colour( 'ink' ),
+				'--pfh-hl-eyebrow-set' => PFH_Widgets_Helpers::unit( $this->number( 'eyebrowSize' ) ),
+				'--pfh-hl-title-set'   => PFH_Widgets_Helpers::unit( $this->number( 'titleSize' ) ),
+				'--pfh-hl-text'        => PFH_Widgets_Helpers::unit( $this->number( 'textSize' ) ),
+				'--pfh-hl-price'       => PFH_Widgets_Helpers::unit( $this->number( 'priceSize' ) ),
+				'--pfh-hl-point'       => $this->colour( 'pointColor' ),
+				'--pfh-hl-tick'        => $this->colour( 'tickColor' ),
 			]
 		);
-	}
-
-	private function get( $key, $default = null ) {
-		return $this->setting( $key, $default );
-	}
-
-	private function is_on( $key, $default = true ) {
-		if ( ! array_key_exists( $key, (array) $this->settings ) ) {
-			$this->ensure_controls();
-
-			if ( isset( $this->controls[ $key ] ) && array_key_exists( 'default', $this->controls[ $key ] ) ) {
-				return ! empty( $this->controls[ $key ]['default'] );
-			}
-
-			return $default;
-		}
-
-		return ! empty( $this->settings[ $key ] );
 	}
 }

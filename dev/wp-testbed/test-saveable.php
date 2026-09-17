@@ -60,51 +60,28 @@ foreach ( $elements as $name => $spec ) {
 
 echo "\ntotal queries to build every element's controls during a save: " . ( get_num_queries() - $queries_before ) . "\n";
 
-echo "\n── the highlight's product picker specifically ──\n";
+echo "\n── the highlight, rebuilt static ──\n";
+/*
+ * The product picker that used to live here queried the catalogue from
+ * set_controls(), which Bricks also runs while saving. The rebuilt block has
+ * no picker and no lookups, so the line to hold is simply: none, ever.
+ */
 require_once WP_PLUGIN_DIR . '/pfh-bricks-widgets/elements/class-pfh-element-highlight.php';
 
+$before = get_num_queries();
 $el = new PFH_Element_Highlight( [ 'id' => 'hl' ] );
 $el->name = 'pfh-highlight';
 $el->set_control_groups();
 $el->set_controls();
-
-ok( 'it asks for no options while saving', empty( $el->controls['product']['options'] ) );
-
-$before = get_num_queries();
-$el2 = new PFH_Element_Highlight( [ 'id' => 'hl2' ] );
-$el2->name = 'pfh-highlight';
-$el2->set_control_groups();
-$el2->set_controls();
-ok( 'and runs no query for them', get_num_queries() === $before );
-
-// A saved choice must still work when the list is not built.
-$sale = wc_get_product_ids_on_sale();
-$el2->settings = [ 'product' => (string) $sale[0], 'priceSource' => 'product' ];
-ob_start(); $el2->render(); $html = ob_get_clean();
-ok( 'a saved product still prices the banner with no list present', false !== strpos( $html, esc_url( wc_get_product( (int) $sale[0] )->get_permalink() ) ) );
-
-echo "\n── and the list is built when the panel is actually open ──\n";
-unset( $_POST['action'] );
-$_POST = [];
-delete_transient( PFH_Element_Highlight::OPTIONS_KEY );
-
-// picking() asks is_admin(); stand that up the way an admin request does.
-if ( ! defined( 'WP_ADMIN' ) ) { define( 'WP_ADMIN', true ); }
-
-$el3 = new PFH_Element_Highlight( [ 'id' => 'hl3' ] );
-$el3->name = 'pfh-highlight';
-$el3->set_control_groups();
-$el3->set_controls();
-
-$opts = (array) ( $el3->controls['product']['options'] ?? [] );
-ok( 'the picker is populated', count( $opts ) > 3, count( $opts ) . ' products' );
-ok( 'and it JSON encodes', false !== wp_json_encode( $opts ) );
-ok( 'every label is valid UTF-8', count( array_filter( $opts, function ( $l ) { return mb_check_encoding( (string) $l, 'UTF-8' ); } ) ) === count( $opts ) );
+ok( 'building its controls during a save runs no query', get_num_queries() === $before, ( get_num_queries() - $before ) . ' queries' );
+ok( 'it has no product picker left to build', ! isset( $el->controls['product'] ) && ! isset( $el->controls['productId'] ) );
+ok( 'its controls encode for the builder', false !== wp_json_encode( $el->controls ) );
 
 echo "\n── the corner radius is adjustable ──\n";
 foreach ( [ 'radius' => 20, 'imageRadius' => 0 ] as $control => $default ) {
-	ok( "$control is a control", isset( $el3->controls[ $control ] ) && 'number' === $el3->controls[ $control ]['type'] );
-	ok( "  and defaults to $default", $default === $el3->controls[ $control ]['default'] );
+	ok( "$control is a control", isset( $el->controls[ $control ] ) && 'number' === $el->controls[ $control ]['type'] );
+	ok( "  and defaults to $default", $default === $el->controls[ $control ]['default'] );
 }
+ok( 'and the button has one of its own', isset( $el->controls['btnRadius'] ) && 'number' === $el->controls['btnRadius']['type'] );
 
 echo "\n$pass passed, $fail failed\n";

@@ -301,6 +301,29 @@ foreach ( $weight as $path => $size ) {
 
 echo 'files that could emit a stray byte: ' . ( $emitters ? implode( ', ', $emitters ) : 'none' ) . "\n";
 
+/*
+ * A 4-byte character (an emoji, say) in a shipped file can end up in a Bricks
+ * element's saved settings. Where postmeta is utf8 rather than utf8mb4,
+ * WordPress refuses to write any value holding one — and Bricks keeps a whole
+ * page in one value, so the page stops saving entirely. The product
+ * highlight's gift-icon default did exactly that. Write them as entities.
+ */
+$four_byte = [];
+
+foreach ( $weight as $path => $size ) {
+	if ( ! preg_match( '/\.(php|js|css)$/', $path ) ) {
+		continue;
+	}
+
+	$src = (string) file_get_contents( $dir . ltrim( $path, '/' ) );
+
+	if ( preg_match( '/[\x{10000}-\x{10FFFF}]/u', $src, $m ) ) {
+		$four_byte[] = $path . ' (U+' . strtoupper( dechex( mb_ord( $m[0], 'UTF-8' ) ) ) . ')';
+	}
+}
+
+echo 'files holding a 4-byte character: ' . ( $four_byte ? implode( ', ', $four_byte ) : 'none' ) . "\n";
+
 $estimate = (int) ( $packaged * 0.28 );
 $over     = $estimate > $budget;
 
@@ -324,4 +347,4 @@ if ( $over ) {
 	}
 }
 
-exit( ( $problems || $dead || $unread || $style || $over || $emitters ) ? 1 : 0 );
+exit( ( $problems || $dead || $unread || $style || $over || $emitters || $four_byte ) ? 1 : 0 );

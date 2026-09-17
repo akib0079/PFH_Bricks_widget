@@ -673,3 +673,39 @@ All twelve do now, plus the repeater's text and the image — checked by
 rendering a marker into each and looking for it on the page.
 
 `test-highlight.php` is 57 assertions.
+
+## The highlight rebuilt static, and the emoji that stopped every save
+
+Reported over several rounds as "the highlight doesn't save", then "nothing I
+add to this template saves", then "widgets work on pages but not on any
+template". Four explanations were tested and cleared first — the save-time
+product query, unreachable defaults, `max_input_vars` (565 variables for the
+whole template, against a limit of 1000), and the template context. None was
+it.
+
+It was the eyebrow icon's default: `🎁`, U+1F381, the only 4-byte character in
+the whole plugin. On a `wp_postmeta` table in utf8 rather than utf8mb4,
+WordPress core refuses to write a value containing one, and Bricks keeps a page
+in one value — so every save of any page holding the block failed, and the page
+stayed on its last good version. That accounts for every symptom, including the
+front end showing an older template with the FAQ missing beside the review
+slider.
+
+It could not be seen here earlier because the testbed is SQLite, and its driver
+hardcodes `get_col_charset()` to utf8mb4 and ignores the `pre_get_col_charset`
+filter — the obvious way to simulate an older database silently did nothing.
+`test-save-guard.php` instead re-homes the live `$wpdb` into a subclass that
+reports utf8 for postmeta, so everything from `update_post_meta()` down is core's
+own code. Its first section is the unguarded failure, which is what makes the
+guarded passes mean something.
+
+The block itself (`test-highlight.php`, 86 checks) is now static: no product,
+no WooCommerce, no dynamic data, no queries, defaults in one constant, and
+nothing stored that a utf8 column refuses. The gift is a switch; the emoji is
+printed as `&#x1F381;` and never saved. `audit.php` now fails on any shipped
+4-byte character — proven by planting one.
+
+Worth knowing about this testbed after a rebuild from scratch: the first run of
+`test-saveable.php` shows the header at ten queries while it fills its menu and
+category caches, and one on every run after. That is a cold cache, not a
+regression.

@@ -1,272 +1,175 @@
 <?php
 /**
- * The product highlight banner.
+ * The product highlight, rebuilt static.
  *
- * The brief: every piece of copy static but connectable to an ACF field
- * later, the image likewise with a supplied fallback, and the prices live
- * from a real product picked in the widget.
+ * What it has to guarantee, in order of how badly it went wrong before:
+ *
+ *   it can never stop a page saving — nothing it stores holds a 4-byte
+ *   character, which a utf8 postmeta table refuses along with the whole page;
+ *   a block that was added is a block that shows, whatever Bricks did or did
+ *   not build first;
+ *   it is static: typed in, printed out, no lookups;
+ *   and it still looks exactly as designed.
  */
 require __DIR__ . '/wp-load.php';
 require_once WP_PLUGIN_DIR . '/pfh-bricks-widgets/elements/class-pfh-element-highlight.php';
+header( 'Content-Type: text/plain' );
 
 $pass = 0; $fail = 0;
 function ok( $l, $c, $d = '' ) { global $pass, $fail; if ( $c ) { $pass++; echo "  ok   $l\n"; } else { $fail++; echo "  FAIL $l" . ( $d ? " — $d" : '' ) . "\n"; } }
 
-function highlight( array $over = [] ) {
-	$el       = new PFH_Element_Highlight( [ 'id' => 'h' . wp_rand( 1, 99999 ) ] );
+/**
+ * Render the way a live page does: settings as stored, controls never built.
+ */
+function highlight( array $settings = [], $build = false ) {
+	$el       = new PFH_Element_Highlight( [ 'id' => 'hl' ] );
 	$el->name = 'pfh-highlight';
 
-	/*
-	 * Deliberately no set_controls(), and deliberately no defaults stamped in.
-	 * Bricks does not build the control list on the front end, and it does not
-	 * store a value that still equals its default — so an element the editor
-	 * dropped in and left alone arrives with nothing at all. Building the
-	 * settings out of the defaults, which is what this used to do, is the one
-	 * shape the front end never produces, and it hid a bug where these
-	 * elements rendered nothing on a live page while looking right in the
-	 * builder. This is now the shape a real page hands the element.
-	 */
-	$el->settings = $over;
+	if ( $build ) {
+		$el->set_control_groups();
+		$el->set_controls();
+	}
+
+	$el->settings = $settings;
 
 	ob_start();
 	$el->render();
 
-	return ob_get_clean();
+	return (string) ob_get_clean();
 }
 
-function text_of( $html ) {
-	return trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $html ) ) );
+function controls() {
+	$el       = new PFH_Element_Highlight( [ 'id' => 'c' ] );
+	$el->name = 'pfh-highlight';
+	$el->set_control_groups();
+	$el->set_controls();
+
+	return $el;
 }
 
-echo "── it renders a finished banner with nothing configured ──\n";
+$four_byte = '/[\x{10000}-\x{10FFFF}]/u';
+$src       = file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/elements/class-pfh-element-highlight.php' );
+
+echo "── nothing it stores can stop a page saving ──\n";
+ok( 'no default holds a 4-byte character', ! preg_match( $four_byte, wp_json_encode( PFH_Element_Highlight::DEFAULTS, JSON_UNESCAPED_UNICODE ) ) );
+ok( 'no control default holds one either', ! preg_match( $four_byte, wp_json_encode( controls()->controls, JSON_UNESCAPED_UNICODE ) ) );
+ok( 'nor does the source file anywhere', ! preg_match( $four_byte, $src ) );
+ok( 'the controls encode to JSON for the builder', false !== wp_json_encode( controls()->controls ) );
+
 $html = highlight();
-ok( 'the eyebrow is there', false !== strpos( $html, 'Meest gekozen' ) );
-ok( 'both title lines are there', false !== strpos( $html, 'Proefpakket' ) && false !== strpos( $html, '3 smaken naar keuze' ) );
-ok( 'the description is there', false !== strpos( $html, 'Ontdek de wereld van Gia Giamas' ) );
-ok( 'all three selling points are there', 3 === substr_count( $html, 'pfh-hl__point"' ) );
-ok( 'the supplied image is used', false !== strpos( $html, 'assets/img/pfh-highlight.jpg' ) );
-ok( 'the title is a heading', (bool) preg_match( '#<h2 class="pfh-hl__title">#', $html ) );
+ok( 'the gift is printed as an entity', false !== strpos( $html, '<span class="pfh-hl__eyebrow-icon" aria-hidden="true">&#x1F381;</span>' ) );
+ok( 'so the rendered page carries no raw emoji', ! preg_match( $four_byte, $html ) );
+ok( 'and it can be switched off', false === strpos( highlight( [ 'showGift' => false ] ), 'pfh-hl__eyebrow-icon' ) );
+ok( 'the old emoji setting is ignored, not printed', ! preg_match( $four_byte, highlight( [ 'eyebrowIcon' => "\u{1F381}" ] ) ) );
 
-echo "\n── the prices come from a real product ──\n";
-$sale = wc_get_product_ids_on_sale();
-ok( 'the shop has something on sale to test with', ! empty( $sale ) );
+echo "\n── a block that was added is a block that shows ──\n";
+ok( 'no settings at all renders the full banner', false !== strpos( $html, 'pfh-hl__card' ) && false !== strpos( $html, 'Proefpakket' ) );
+ok( 'identical whether or not Bricks built the controls', highlight( [], true ) === highlight() );
 
-$pid     = (int) $sale[0];
-$product = wc_get_product( $pid );
-$now     = wc_get_price_to_display( $product );
-$was     = wc_get_price_to_display( $product, [ 'price' => $product->get_regular_price() ] );
+$cleared = highlight( [ 'eyebrow' => '', 'titleTop' => '', 'titleBottom' => '', 'text' => '', 'points' => [], 'price' => '', 'priceWas' => '', 'saving' => '' ] );
+ok( 'every word cleared still leaves the card and photo', false !== strpos( $cleared, 'pfh-hl__card' ) && false !== strpos( $cleared, 'pfh-hl__img' ) );
 
-$html = highlight( [ 'product' => (string) $pid ] );
-$shown = html_entity_decode( text_of( $html ), ENT_QUOTES, 'UTF-8' );
-ok( 'the live price is shown', false !== strpos( $shown, html_entity_decode( wp_strip_all_tags( wc_price( $now ) ), ENT_QUOTES, 'UTF-8' ) ), $shown );
-ok( 'the price before the discount is shown', false !== strpos( $shown, html_entity_decode( wp_strip_all_tags( wc_price( $was ) ), ENT_QUOTES, 'UTF-8' ) ) );
-ok( 'the saving is worked out, not typed', false !== strpos( $shown, html_entity_decode( wp_strip_all_tags( wc_price( $was - $now ) ), ENT_QUOTES, 'UTF-8' ) ) );
-ok( 'the banner links to that product', false !== strpos( $html, esc_url( $product->get_permalink() ) ) );
+$promised = [];
+foreach ( controls()->controls as $key => $control ) {
+	if ( array_key_exists( 'default', $control ) ) { $promised[ $key ] = $control['default']; }
+}
+ok( 'what the panel shows is what the page renders', highlight( $promised ) === highlight() );
 
-echo "\n── a product that is not reduced shows one price ──\n";
-$full = null;
-foreach ( get_posts( [ 'post_type' => 'product', 'numberposts' => -1, 'fields' => 'ids' ] ) as $id ) {
-	if ( ! in_array( $id, $sale, true ) ) { $full = wc_get_product( $id ); break; }
+$drift = [];
+foreach ( controls()->controls as $key => $control ) {
+	if ( ! array_key_exists( 'default', $control ) ) { continue; }
+	$want = PFH_Element_Highlight::DEFAULTS[ $key ];
+	$have = 'color' === $control['type'] ? $control['default']['hex'] : $control['default'];
+	if ( $want !== $have ) { $drift[] = $key; }
+}
+ok( 'every control default comes from DEFAULTS', ! $drift, implode( ', ', $drift ) );
+
+echo "\n── static: typed in, printed out ──\n";
+$q = get_num_queries();
+highlight( [ 'url' => 'https://example.com/', 'btnLabel' => 'Bekijk' ] );
+ok( 'rendering costs no queries', 0 === get_num_queries() - $q, ( get_num_queries() - $q ) . ' queries' );
+
+foreach ( [ 'wc_get_product', 'wc_price', 'bricks_render_dynamic_data', '::dd(', 'get_transient', '$wpdb' ] as $needle ) {
+	ok( "does not call $needle", false === strpos( $src, $needle ) );
 }
 
-if ( $full ) {
-	$html = highlight( [ 'product' => (string) $full->get_id() ] );
-	ok( 'no struck-through price', false === strpos( $html, 'pfh-hl__price-was' ) );
-	ok( 'no saving line', false === strpos( $html, 'pfh-hl__save' ) );
-	ok( 'but the price is still shown', false !== strpos( $html, 'pfh-hl__price-now' ) );
-} else {
-	ok( 'a full-price product exists to test with', false );
+ok( 'a dynamic tag typed in is printed as typed', false !== strpos( highlight( [ 'titleTop' => '{post_title}' ] ), '{post_title}' ) );
+ok( 'no field offers the dynamic-data picker', ! array_filter( controls()->controls, static function ( $c ) {
+	return in_array( $c['type'], [ 'text', 'textarea', 'image' ], true ) && ( $c['hasDynamicData'] ?? true );
+} ) );
+
+echo "\n── cleared stays cleared, typed wins ──\n";
+ok( 'a cleared eyebrow does not come back', false === strpos( highlight( [ 'eyebrow' => '' ] ), 'pfh-hl__eyebrow' ) );
+ok( 'a typed title replaces the default', false !== strpos( highlight( [ 'titleTop' => 'Zomerpakket' ] ), 'Zomerpakket' ) );
+ok( 'untouched fields keep theirs meanwhile', false !== strpos( highlight( [ 'titleTop' => 'Zomerpakket' ] ), '3 smaken naar keuze' ) );
+ok( 'typed markup is escaped', false === strpos( highlight( [ 'text' => '<script>x</script>' ] ), '<script>' ) );
+
+$points = highlight( [ 'points' => [ [ 'text' => 'Een' ], [ 'text' => '' ], [ 'text' => 'Twee' ] ] ] );
+ok( 'selling points print their own rows', 2 === substr_count( $points, 'pfh-hl__point"' ) );
+ok( 'with the tick icon on each', 2 === substr_count( $points, 'pfh-hl__tick' ) );
+
+echo "\n── the price is three typed lines ──\n";
+ok( 'price and old price print', false !== strpos( $html, '<span class="pfh-hl__price-now">€ 41,97</span>' ) && false !== strpos( $html, '<span class="pfh-hl__price-was">€ 46,97</span>' ) );
+ok( 'with the saving line under them', false !== strpos( $html, '<p class="pfh-hl__save">Bespaar €5,00 — 11% korting</p>' ) );
+ok( 'no old price means no strikethrough', false === strpos( highlight( [ 'priceWas' => '' ] ), 'pfh-hl__price-was' ) );
+ok( 'no price at all drops the block', false === strpos( highlight( [ 'price' => '', 'priceWas' => '', 'saving' => '' ] ), 'pfh-hl__price' ) );
+
+echo "\n── the link ──\n";
+ok( 'no link means nothing is clickable', false === strpos( $html, 'is-clickable' ) && false === strpos( $html, '<a ' ) );
+
+$linked = highlight( [ 'url' => 'https://productsforhome.nl/proefpakket/', 'btnLabel' => 'Bekijk' ] );
+ok( 'a link makes the whole card clickable', false !== strpos( $linked, 'pfh-hl__card is-clickable' ) );
+ok( 'through a single link on the title', 1 === substr_count( $linked, '<a ' ) && false !== strpos( $linked, '<a class="pfh-hl__link" href="https://productsforhome.nl/proefpakket/"' ) );
+ok( 'so the button is not a second link inside it', false !== strpos( $linked, '<span class="pfh-hl__btn">Bekijk</span>' ) );
+
+$button = highlight( [ 'url' => 'https://productsforhome.nl/', 'btnLabel' => 'Bekijk', 'clickable' => false ] );
+ok( 'with the card not clickable, the button is the link', false !== strpos( $button, '<a class="pfh-hl__btn" href="https://productsforhome.nl/"' ) );
+
+$tab = highlight( [ 'url' => 'https://productsforhome.nl/', 'newTab' => true ] );
+ok( 'a new tab opens safely', false !== strpos( $tab, 'target="_blank"' ) && false !== strpos( $tab, 'rel="noopener"' ) );
+ok( 'a javascript: link is refused', false === strpos( highlight( [ 'url' => 'javascript:alert(1)' ] ), 'javascript' ) );
+
+echo "\n── the photograph ──\n";
+ok( 'the supplied photo until one is chosen', false !== strpos( $html, 'pfh-highlight.jpg' ) );
+
+$att = wp_insert_attachment( [ 'post_title' => 'Banner', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit' ], 'probe/banner.jpg' );
+update_post_meta( $att, '_wp_attached_file', 'probe/banner.jpg' );
+update_post_meta( $att, '_wp_attachment_image_alt', 'Proefpakket met drie flessen' );
+
+$picked = highlight( [ 'image' => [ 'id' => $att, 'size' => 'full' ] ] );
+ok( 'a media-library pick resolves by its ID', false !== strpos( $picked, 'probe/banner.jpg' ) );
+ok( 'and brings its description along', false !== strpos( $picked, 'alt="Proefpakket met drie flessen"' ) );
+ok( 'a typed description wins over it', false !== strpos( highlight( [ 'image' => [ 'id' => $att ], 'imageAlt' => 'Eigen tekst' ] ), 'alt="Eigen tekst"' ) );
+ok( 'a dynamic image value is ignored', false !== strpos( highlight( [ 'image' => [ 'useDynamicData' => '{featured_image}', 'url' => 'https://x.test/dyn.jpg' ] ] ), 'pfh-highlight.jpg' ) );
+wp_delete_attachment( $att, true );
+
+echo "\n── numbers: 0 is a value, empty is the design ──\n";
+$zero = highlight( [ 'radius' => '0', 'imageRadius' => 0, 'btnRadius' => '0' ] );
+ok( 'a square card', false !== strpos( $zero, '--pfh-hl-radius:0px' ) );
+ok( 'a square image', false !== strpos( $zero, '--pfh-hl-img-radius:0px' ) );
+ok( 'a square button', false !== strpos( $zero, '--pfh-hl-btn-radius:0px' ) );
+ok( 'an empty box falls back to the drawn 20px', false !== strpos( highlight( [ 'radius' => '' ] ), '--pfh-hl-radius:20px' ) );
+ok( 'the button forces no radius until given one', false === strpos( $html, '--pfh-hl-btn-radius' ) );
+ok( 'a pill button', false !== strpos( highlight( [ 'btnRadius' => 24 ] ), '--pfh-hl-btn-radius:24px' ) );
+ok( 'overlap 0 turns the overlap off', false === strpos( highlight( [ 'overlap' => 0 ] ), 'pfh-hl--overlaps' ) );
+ok( 'the image share is held to 20–70%', false !== strpos( highlight( [ 'imageWidth' => 95 ] ), '--pfh-hl-media-w:70%' ) );
+
+echo "\n── colours ──\n";
+$paint = highlight( [ 'bg' => [ 'hex' => '#112233' ], 'btnBg' => [ 'hex' => '#445566' ], 'btnColor' => [ 'rgb' => 'rgb(1, 2, 3)' ] ] );
+ok( 'the card background', false !== strpos( $paint, '--pfh-hl-bg:#112233' ) );
+ok( 'the button background', false !== strpos( $paint, '--pfh-hl-btn-bg:#445566' ) );
+ok( 'the button text, in any format Bricks stores', false !== strpos( $paint, '--pfh-hl-btn-ink:rgb(1, 2, 3)' ) );
+ok( 'untouched button colours stay with the stylesheet', false === strpos( $html, '--pfh-hl-btn-bg' ) );
+
+echo "\n── it still looks exactly as designed ──\n";
+foreach ( [ 'pfh-hl ', 'pfh-hl--media-right', 'pfh-hl--overlaps', 'pfh-hl--blend', 'pfh-hl__inner', 'pfh-hl__body', 'pfh-hl__eyebrow', 'pfh-hl__title-top', 'pfh-hl__title-bottom', 'pfh-hl__text', 'pfh-hl__points', 'pfh-hl__price-row', 'pfh-hl__media', 'pfh-hl__img' ] as $class ) {
+	ok( "class $class", false !== strpos( $html, $class ) );
 }
-
-echo "\n── without a product it falls back to what was typed ──\n";
-$html = highlight( [ 'product' => '' ] );
-ok( 'the typed price is used', false !== strpos( text_of( $html ), '41,97' ) );
-ok( 'the typed old price is used', false !== strpos( text_of( $html ), '46,97' ) );
-ok( 'the typed saving is used', false !== strpos( html_entity_decode( text_of( $html ), ENT_QUOTES, 'UTF-8' ), 'Bespaar €5,00' ) );
-
-$html = highlight( [ 'product' => (string) $pid, 'priceSource' => 'manual' ] );
-ok( 'manual mode ignores the product', false !== strpos( text_of( $html ), '41,97' ) );
-
-echo "\n── every field can be replaced, which is what an ACF field will do ──\n";
-$html = highlight( [
-	'eyebrow'     => 'Nieuw binnen',
-	'titleTop'    => 'Zomerbox',
-	'titleBottom' => '5 smaken',
-	'text'        => 'Een andere tekst.',
-	'points'      => [ [ 'text' => 'Eén punt' ] ],
-	'btnLabel'    => 'Bekijk',
-] );
-ok( 'the eyebrow can be replaced', false !== strpos( $html, 'Nieuw binnen' ) && false === strpos( $html, 'Meest gekozen' ) );
-ok( 'both title lines can be replaced', false !== strpos( $html, 'Zomerbox' ) && false !== strpos( $html, '5 smaken' ) );
-ok( 'the description can be replaced', false !== strpos( $html, 'Een andere tekst.' ) );
-ok( 'the points can be replaced', 1 === substr_count( $html, 'pfh-hl__point"' ) );
-ok( 'a button appears when given a label', false !== strpos( $html, 'pfh-hl__btn' ) );
-
-echo "\n── a chosen image replaces the supplied one ──\n";
-$att = get_posts( [ 'post_type' => 'attachment', 'numberposts' => 1, 'fields' => 'ids' ] );
-
-if ( $att ) {
-	$html = highlight( [ 'image' => [ 'id' => (int) $att[0], 'url' => wp_get_attachment_url( (int) $att[0] ) ] ] );
-	ok( 'the chosen image is used', false === strpos( $html, 'assets/img/pfh-highlight.jpg' ) );
-	ok( 'and only one image is drawn', 1 === substr_count( $html, 'pfh-hl__img' ) );
-} else {
-	ok( 'an attachment exists to test with', false );
+foreach ( [ '--pfh-hl-max:1240px', '--pfh-hl-min-h:468px', '--pfh-hl-overlap:74px', '--pfh-hl-pb:56px', '--pfh-hl-radius:20px', '--pfh-hl-px-set:52px', '--pfh-hl-py-set:48px', '--pfh-hl-eyebrow-set:22px', '--pfh-hl-title-set:32px', '--pfh-hl-text:14px', '--pfh-hl-price:24px', '--pfh-hl-bg:#d9e6dc', '--pfh-hl-ink:#22301c' ] as $var ) {
+	ok( "Figma value $var", false !== strpos( $html, $var ) );
 }
-
-echo "\n── the whole banner is one link, not a link round everything ──\n";
-$html = highlight( [ 'product' => (string) $pid ] );
-ok( 'exactly one anchor when the card is clickable', 1 === substr_count( $html, '<a ' ), substr_count( $html, '<a ' ) . ' anchors' );
-ok( 'the card is marked clickable', false !== strpos( $html, 'is-clickable' ) );
-
-$html = highlight( [ 'product' => (string) $pid, 'clickable' => false, 'btnLabel' => 'Bekijk' ] );
-ok( 'with the card not clickable the button is the link', false === strpos( $html, 'is-clickable' ) && false !== strpos( $html, '<a class="pfh-hl__btn"' ) );
-
-echo "\n── the saving names a percentage, worked out from the product ──\n";
-$sale    = wc_get_product_ids_on_sale();
-$product = wc_get_product( (int) $sale[0] );
-$now     = wc_get_price_to_display( $product );
-$was     = wc_get_price_to_display( $product, [ 'price' => $product->get_regular_price() ] );
-$pct     = (int) round( ( ( $was - $now ) / $was ) * 100 );
-
-$html = html_entity_decode( text_of( highlight( [ 'product' => (string) $sale[0] ] ) ), ENT_QUOTES, 'UTF-8' );
-ok( "it says {$pct}% korting", false !== strpos( $html, $pct . '% korting' ), $html );
-ok( 'and the amount alongside it', false !== strpos( $html, html_entity_decode( wp_strip_all_tags( wc_price( $was - $now ) ), ENT_QUOTES, 'UTF-8' ) ) );
-
-// A per-cent sign in the template must not be read as a conversion.
-$html = html_entity_decode( text_of( highlight( [ 'product' => (string) $sale[0], 'saveText' => 'Bespaar %s — %pct%% korting vandaag' ] ) ), ENT_QUOTES, 'UTF-8' );
-ok( 'the rest of the sentence survives the per-cent sign', false !== strpos( $html, 'korting vandaag' ), $html );
-
-echo "\n── with no discount the percentage clause is dropped, not left at 0% ──\n";
-$full = null;
-foreach ( get_posts( [ 'post_type' => 'product', 'numberposts' => -1, 'fields' => 'ids' ] ) as $id ) {
-	if ( ! in_array( $id, $sale, true ) ) { $full = $id; break; }
-}
-
-if ( $full ) {
-	$html = text_of( highlight( [ 'product' => (string) $full ] ) );
-	ok( 'no saving line at all', false === strpos( $html, 'korting' ), $html );
-	ok( 'and no stray 0%', false === strpos( $html, '0%' ) );
-}
-
-echo "\n── it overlaps the section below it ──\n";
-$html = highlight();
-ok( 'the overlap class is on by default', false !== strpos( $html, 'pfh-hl--overlaps' ) );
-ok( 'and carries the distance', false !== strpos( $html, '--pfh-hl-overlap:74px' ) );
-
-$html = highlight( [ 'overlap' => 0 ] );
-ok( 'set to zero it does not overlap', false === strpos( $html, 'pfh-hl--overlaps' ) );
-
-$html = highlight( [ 'overlap' => 120 ] );
-ok( 'a different distance is honoured', false !== strpos( $html, '--pfh-hl-overlap:120px' ) );
-
-echo "\n── every text field takes a dynamic value ──\n";
-$fields = [ 'eyebrow', 'eyebrowIcon', 'titleTop', 'titleBottom', 'text', 'btnLabel', 'priceManual', 'oldManual', 'saveText', 'saveFallback', 'imageAlt' ];
-
-foreach ( $fields as $f ) {
-	$marker = 'ZZ' . strtoupper( $f ) . 'ZZ';
-	$html   = highlight( [ $f => $marker, 'product' => '', 'priceSource' => 'manual' ] );
-	ok( "$f reaches the page", false !== strpos( $html, $marker ) || 'imageAlt' === $f, "typed value did not render" );
-}
-
-echo "\n── the corners can be squared off, which means 0 must survive ──\n";
-/*
- * A radius of 0 is the whole point of the control — "reduce that" reads as
- * "take it down to square" — and 0 is exactly the value a falsy default check
- * swallows and replaces with 20. Both are asserted as strings too, because
- * Bricks stores a number control's value as one.
- */
-$html = highlight( [ 'radius' => 0, 'imageRadius' => 0 ] );
-ok( 'card radius 0 renders as 0px', false !== strpos( $html, '--pfh-hl-radius:0px' ) );
-ok( 'image radius 0 renders as 0px', false !== strpos( $html, '--pfh-hl-img-radius:0px' ) );
-
-$html = highlight( [ 'radius' => '0', 'imageRadius' => '0' ] );
-ok( 'and the same as the string Bricks actually stores', false !== strpos( $html, '--pfh-hl-radius:0px' ) && false !== strpos( $html, '--pfh-hl-img-radius:0px' ) );
-
-$html = highlight( [ 'radius' => 6, 'imageRadius' => 12 ] );
-ok( 'a reduced card radius reaches the card', false !== strpos( $html, '--pfh-hl-radius:6px' ) );
-ok( 'and the image radius is its own setting', false !== strpos( $html, '--pfh-hl-img-radius:12px' ) );
-
-$html = highlight( [] );
-ok( 'untouched, the card keeps its drawn 20px', false !== strpos( $html, '--pfh-hl-radius:20px' ) );
-ok( 'and the image stays square by default', false !== strpos( $html, '--pfh-hl-img-radius:0px' ) );
-
-echo "\n── the button has corners of its own ──\n";
-/*
- * It was drawn at 5px and had no control, so the only way to change it was to
- * edit the stylesheet. Empty still means 5px: the token is simply not emitted
- * and the stylesheet's own value stands, so no existing banner moves.
- */
-$html = highlight( [ 'btnLabel' => 'Bekijk' ] );
-ok( 'untouched, no button radius is forced', false === strpos( $html, '--pfh-hl-btn-radius:' ) );
-
-$html = highlight( [ 'btnLabel' => 'Bekijk', 'btnRadius' => 24 ] );
-ok( 'a pill radius reaches the button', false !== strpos( $html, '--pfh-hl-btn-radius:24px' ) );
-
-$html = highlight( [ 'btnLabel' => 'Bekijk', 'btnRadius' => 0 ] );
-ok( 'and 0 squares it rather than falling back', false !== strpos( $html, '--pfh-hl-btn-radius:0px' ) );
-
-$html = highlight( [ 'btnLabel' => 'Bekijk', 'btnBg' => [ 'hex' => '#123456' ], 'btnColor' => [ 'hex' => '#fedcba' ] ] );
-ok( 'the button takes its own background', false !== strpos( $html, '--pfh-hl-btn-bg:#123456' ) );
-ok( 'and its own text colour', false !== strpos( $html, '--pfh-hl-btn-ink:#fedcba' ) );
-
-echo "\n── it says something useful when it has nothing ──\n";
-$html = highlight( [ 'titleTop' => '', 'titleBottom' => '', 'text' => '' ] );
-ok( 'nothing renders on the front end', '' === trim( $html ), substr( $html, 0, 60 ) );
-
-echo "\n── the product is picked by name, not by hunting for an ID ──\n";
-/*
- * The list is only built when the panel is actually open — a save must not
- * pay for a product query — so this asks for it the way the builder does.
- */
-if ( ! defined( 'WP_ADMIN' ) ) { define( 'WP_ADMIN', true ); }
-$_POST = [];
-delete_transient( PFH_Element_Highlight::OPTIONS_KEY );
-
-$el = new PFH_Element_Highlight( [ 'id' => 'pick' ] );
-$el->name = 'pfh-highlight';
-$queries_before = get_num_queries();
-$el->set_control_groups();
-$el->set_controls();
-$picker_queries = get_num_queries() - $queries_before;
-
-$picker = $el->controls['product'];
-ok( 'the product control is a searchable list', 'select' === $picker['type'] && ! empty( $picker['searchable'] ) );
-ok( 'it can be cleared again', ! empty( $picker['clearable'] ) );
-ok( 'it is populated with real products', count( (array) $picker['options'] ) > 3, count( (array) $picker['options'] ) . ' listed' );
-
-$options = (array) $picker['options'];
-$first   = $options ? array_key_first( $options ) : 0;
-
-if ( ! $first ) {
-	ok( 'there is a product to test the picker with', false );
-	echo "\n$pass passed, $fail failed\n";
-	exit;
-}
-ok( 'keyed by product ID', ctype_digit( (string) $first ) );
-ok( 'labelled by product name', false !== strpos( (string) $options[ $first ], get_the_title( (int) $first ) ) );
-
-$chosen = wc_get_product( (int) $first );
-$html   = highlight( [ 'product' => (string) $first ] );
-ok( 'choosing one prices the banner from it', false !== strpos( $html, esc_url( $chosen->get_permalink() ) ) );
-
-ok( 'a typed ID still works, for a dynamic field', false !== strpos( highlight( [ 'product' => '', 'productId' => (string) $first ] ), esc_url( $chosen->get_permalink() ) ) );
-ok( 'and wins over the picker', false !== strpos( highlight( [ 'product' => '999999', 'productId' => (string) $first ] ), esc_url( $chosen->get_permalink() ) ) );
-
-/*
- * Reading IDs and then a title each was one query per product. It is a cheap
- * mistake to make again and an invisible one on a catalogue this size, so the
- * cost is asserted rather than assumed. The list itself is two columns of one
- * table — one query however many products there are — and the rest of the
- * handful is the transient being read and written around it. What matters is
- * that the number does not move when the catalogue grows.
- */
-ok(
-	'the list costs a fixed handful of queries, not one per product',
-	$picker_queries <= 5,
-	"$picker_queries queries for " . count( $options ) . ' products'
-);
-
-$cached = get_transient( PFH_Element_Highlight::OPTIONS_KEY );
-ok( 'and the next panel load costs none', is_array( $cached ) && count( $cached ) === count( $options ) );
+ok( 'the photo can sit on the left', false !== strpos( highlight( [ 'imageSide' => 'left' ] ), 'pfh-hl--media-left' ) );
+ok( 'an unknown side falls back to the right', false !== strpos( highlight( [ 'imageSide' => 'top' ] ), 'pfh-hl--media-right' ) );
+ok( 'the title tag can step down', 0 === strpos( trim( substr( highlight( [ 'titleTag' => 'h3' ] ), strpos( highlight( [ 'titleTag' => 'h3' ] ), '<h3' ) ) ), '<h3 class="pfh-hl__title"' ) );
 
 echo "\n$pass passed, $fail failed\n";

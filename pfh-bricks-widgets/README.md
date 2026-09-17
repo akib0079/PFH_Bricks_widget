@@ -27,7 +27,7 @@ Two halves:
 | **PFH Highlighted Features** | Products For Home | Bento grid of photo and text tiles with per-tile spans, staggered reveal |
 | **PFH Review Slider** | Products For Home | Live WebwinkelKeur reviews in a paged card grid, with a manual fallback |
 | **PFH Call To Action** | Products For Home | Closing card that overlaps the footer via a negative margin and its own stacking context |
-| **PFH Product Highlight** | Products For Home | Banner featuring one product — every line an editable field, prices read live from the product, overlaps the footer |
+| **PFH Product Highlight** | Products For Home | Static banner for one offer — every word, price and link typed in the panel, overlaps the footer |
 | **PFH Recently Viewed** | Products For Home | The product slider, showing only what this visitor has already looked at; renders nothing when that is nothing |
 | **PFH Rating Badge** | Products For Home | Inline "Excellent 9,7 | 270 reviews on WebwinkelKeur", live from the API |
 | **PFH Shop Header** | Products For Home | Breadcrumbs, collection title, short intro and banner — every field dynamic-data ready for ACF |
@@ -994,43 +994,68 @@ so a longer heading in another language grows the card instead of spilling.
 
 ## PFH Product Highlight
 
-One product, given a banner: an italic eyebrow, a two-weight headline, a short
-pitch, ticked selling points, the price, and a button — beside a photograph
-that runs to the card's edge. Like the Call To Action it is built to sit
-directly above the footer and hang over it.
+One offer, given a banner: an italic eyebrow with a gift icon, a two-weight
+headline, a short pitch, ticked selling points, the price, an optional button
+— beside a photograph that runs to the card's edge. Like the Call To Action it
+sits directly above the footer and hangs over it.
 
-### Everything is a field, and the product fills in the numbers
+### Static, on purpose
 
-Every piece of copy is its own control with the design's own words as the
-default, so the banner reads correctly the moment it is dropped in and each
-line can be swapped for an ACF field without touching the others.
+Every word, price and link is typed into the panel and printed as typed. There
+is no product lookup, no WooCommerce, no dynamic data and no database query —
+the text fields do not even offer the dynamic-data picker. A tag like
+`{post_title}` typed into a field is printed literally.
 
-The **prices are not typed**. Pick a product and the banner takes its current
-price, its sale price, its permalink and its image from WooCommerce — so a
-promotion that ends changes the banner on its own. *Price source* switches to
-typed figures for a banner that is not about a real product.
+It used to read its prices from a product picked in a searchable list. That is
+gone: the block now has nothing in it that can fail during a save, or render
+differently on the page than in the builder.
 
-### Picking the product
+| Group | Fields |
+| --- | --- |
+| Copy | Eyebrow, gift icon on/off, title first and second line, title tag, description |
+| Selling points | Rows of text, text colour, tick colour |
+| Price | Price, price before the discount (struck through), saving line |
+| Image | Photograph (the supplied one until chosen), description, share of the banner, fade, side |
+| Button and link | Label, link, new tab, whole banner clickable, corner radius, background, text colour |
+| Style | Background, corner radius, image corner radius, padding, type sizes, text colour |
+| Layout | Container width, minimum height, space above and below, overlap |
 
-*Product* is a searchable list of the catalogue by name — the first 1000
-products alphabetically, which is what the panel's search box can reach.
-Below it, *Product ID* takes an ID or a dynamic tag and wins over the list,
-which is the way in for a shop larger than that and the way to drive the
-banner from a field.
+Leaving a field empty hides that part — and only that part. The card and its
+photograph always render, so a block that was added is a block that shows.
+The defaults live in one `DEFAULTS` constant that the panel and the render both
+read, so what the page shows never depends on Bricks having built the controls.
 
-The list is built **only while the panel is open**. A save re-runs every
-element's control list, and a catalogue query there is work the save does not
-need and cannot afford to have fail — a query that stalls or throws during a
-save is reported by the builder as nothing more than a page that will not save.
-It reads two columns of one table in a single query, cached for an hour and
-cleared whenever a product is saved or deleted.
+### Why it would not save: the gift emoji
 
-### The saving line
+The previous version's eyebrow icon was a text field defaulting to the gift
+emoji, U+1F381. That is a 4-byte character, and where a site's `wp_postmeta`
+table is **utf8** rather than utf8mb4 — the default before 2015, and still
+common on sites moved between hosts — WordPress refuses to write any value
+containing one. `wpdb::process_fields()` strips what the column cannot hold,
+sees the value changed, and writes nothing.
 
-*Saving text* takes two placeholders: `%s` for the amount saved and `%pct%` for
-the percentage, worked out from the product. With nothing on sale the
-percentage clause is removed rather than left reading 0%, so the line never
-contradicts the price above it.
+Bricks keeps a whole page in one post-meta value, so it was not only the banner
+that failed: **every later save of any page holding it failed**, while the
+builder went on showing the edits. The page stayed on its last save from before
+the banner arrived — which is exactly "nothing I add to this template saves",
+and exactly an older version of the template on the front end.
+`dev/wp-testbed/test-save-guard.php` reproduces it on WordPress core's own save
+code.
+
+Two fixes, each enough on its own:
+
+* **The block stores no 4-byte characters.** The gift is a switch, and the
+  emoji is printed as the entity `&#x1F381;`, which is never saved.
+  `dev/audit.php` fails the build if any shipped file holds one.
+* **`PFH_Widgets_Save_Guard`** writes 4-byte characters in Bricks element data
+  as HTML entities when — and only when — the postmeta column is utf8, the way
+  WordPress already does for post titles and content. An entity renders as the
+  same character, so an emoji typed into any Bricks field on such a site no
+  longer takes the page down. On utf8mb4 it does nothing.
+
+*Products For Home → Diagnose* reports the column's charset in words, and the
+save log records the database's own refusal message when a write is turned
+down — a refused write ends HTTP 200, so it is otherwise invisible.
 
 ### The overlap
 
@@ -1055,8 +1080,8 @@ because the card already clips the photo to its own corners: the second is for
 rounding the image itself against a card that is square, or squaring the image
 inside a rounded card.
 
-The **Button** group carries the button's own corner radius, background and
-text colour. Radius left empty keeps the 5px it is drawn with; half the
+The **Button and link** group carries the button's own corner radius,
+background and text colour. Radius left empty keeps the 5px it is drawn with; half the
 button's height or more gives a pill. The notice band's button has the same
 setting — it used to share the band's corner radius, so setting the band to 14
 took the button with it and there was no way to separate them. Left empty it
@@ -1072,10 +1097,10 @@ still follows the band, so nothing already built moves.
 | Headline | 32 / 110%, light over medium | Title size |
 | Body and points | Outfit 14 / 150% | Text size |
 | Price | 24, medium | Price size |
-| Media | half the card, flush to the bottom edge | Media width / Media side |
+| Media | half the card, flush to the bottom edge | Image share of the banner / Image side |
 
 The supplied photograph carries its own background, which is not quite the
-card's fill — so *Blend the image edge* fades the inner edge over a short
+card's fill — so *Fade the image into the card* fades the inner edge over a short
 distance and hides the seam. A cut-out on transparency needs none of it, so it
 is a setting rather than something baked in.
 

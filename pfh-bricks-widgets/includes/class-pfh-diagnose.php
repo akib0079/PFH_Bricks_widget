@@ -100,12 +100,49 @@ class PFH_Widgets_Diagnose {
 				$entry['status'] = 'HTTP ' . $code;
 			}
 
+			/*
+			 * A refused write is not a PHP error and not an HTTP error — the
+			 * request ends 200 and the builder may even say it saved. The only
+			 * trace is the message wpdb leaves behind.
+			 */
+			global $wpdb;
+
+			if ( $wpdb && ! empty( $wpdb->last_error ) ) {
+				$entry['status'] .= ' | DATABASE REFUSED THE WRITE: ' . $wpdb->last_error;
+			}
+
 			if ( is_array( $fatal ) && in_array( (int) $fatal['type'], [ E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR ], true ) ) {
 				$entry['fatal'] = $fatal['message'] . ' @ ' . $fatal['file'] . ':' . $fatal['line'];
 			}
 
 			self::record( $entry, true );
 		}, 1 );
+	}
+
+	/**
+	 * Whether this database can store every character Bricks might save.
+	 *
+	 * @return array Lines.
+	 */
+	private static function charset() {
+		global $wpdb;
+
+		$charset = ( $wpdb && method_exists( $wpdb, 'get_col_charset' ) ) ? $wpdb->get_col_charset( $wpdb->postmeta, 'meta_value' ) : '';
+		$charset = is_string( $charset ) ? $charset : 'unknown';
+		$lines   = [ 'postmeta charset: ' . $charset ];
+
+		if ( in_array( strtolower( $charset ), [ 'utf8', 'utf8mb3' ], true ) ) {
+			$lines[] = '  This column cannot store emoji. Before 1.32.0, one emoji anywhere on a';
+			$lines[] = '  Bricks page stopped the whole page saving — the gift icon in the product';
+			$lines[] = '  highlight did exactly that. The save guard now writes such characters as';
+			$lines[] = '  HTML entities, which look the same on the page, so saves go through.';
+			$lines[] = '  Converting the tables to utf8mb4 would remove the limit for good; your';
+			$lines[] = '  host can do it, but take a backup first.';
+		}
+
+		$lines[] = '';
+
+		return $lines;
 	}
 
 	/**
@@ -171,6 +208,8 @@ class PFH_Widgets_Diagnose {
 			. ' | WP ' . get_bloginfo( 'version' )
 			. ' | Woo ' . ( defined( 'WC_VERSION' ) ? WC_VERSION : '-' )
 			. ' | PHP ' . PHP_VERSION;
+		$out = array_merge( $out, self::charset() );
+
 		$out[] = 'max_input_vars ' . ini_get( 'max_input_vars' )
 			. ' | post_max_size ' . ini_get( 'post_max_size' )
 			. ' | memory_limit ' . ini_get( 'memory_limit' )
