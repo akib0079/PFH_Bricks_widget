@@ -74,7 +74,8 @@ class PFH_Widgets_Quickadd {
 			}
 		}
 
-		$added = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $attributes );
+		$attributes = self::variation_attributes( $variation_id, $attributes );
+		$added      = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $attributes );
 
 		if ( ! $added ) {
 			$notices = function_exists( 'wc_get_notices' ) ? wc_get_notices( 'error' ) : [];
@@ -110,6 +111,43 @@ class PFH_Widgets_Quickadd {
 				'total' => WC()->cart->get_cart_total(),
 			]
 		);
+	}
+
+	/**
+	 * The attributes to add a variation to the cart with.
+	 *
+	 * Taken from the variation rather than from what was posted. WooCommerce
+	 * compares the posted value against the chosen variation's own with ===,
+	 * so a stale chooser, a difference in case, or a character that came back
+	 * slightly altered all fail with "Invalid value posted for X" — which is
+	 * what a shopper saw instead of a basket. The variation is the authority
+	 * on what it is; only an attribute it leaves as "any" needs the posted
+	 * answer, and that one is checked against the allowed list by WooCommerce.
+	 *
+	 * @param int   $variation_id Chosen variation, or 0.
+	 * @param array $posted       What the browser sent.
+	 * @return array
+	 */
+	public static function variation_attributes( $variation_id, array $posted ) {
+		if ( ! $variation_id || ! function_exists( 'wc_get_product' ) ) {
+			return $posted;
+		}
+
+		$variation = wc_get_product( $variation_id );
+
+		if ( ! $variation || ! $variation->is_type( 'variation' ) ) {
+			return $posted;
+		}
+
+		$resolved = [];
+
+		foreach ( (array) $variation->get_variation_attributes() as $key => $value ) {
+			$resolved[ $key ] = '' !== $value
+				? $value
+				: ( isset( $posted[ $key ] ) ? $posted[ $key ] : '' );
+		}
+
+		return $resolved;
 	}
 
 	/**

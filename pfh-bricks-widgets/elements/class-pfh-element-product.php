@@ -269,6 +269,7 @@ class PFH_Element_Product extends \Bricks\Element {
 			'variants',
 			esc_html__( 'Groups using the soft selected colour', 'pfh-widgets' ),
 			[
+				'default'     => 'smaak',
 				'placeholder' => 'smaak',
 				'description' => esc_html__( 'Attribute names, separated by commas. Those listed use the soft colour below when chosen; every other group uses the solid one.', 'pfh-widgets' ),
 			]
@@ -312,6 +313,15 @@ class PFH_Element_Product extends \Bricks\Element {
 		);
 
 		$this->controls['soldOutLabel'] = $this->text_field( 'cart', esc_html__( 'Label when unavailable', 'pfh-widgets' ), [ 'default' => 'Niet beschikbaar' ] );
+
+		$this->controls['addedLabel'] = $this->text_field(
+			'cart',
+			esc_html__( 'Label once it is in the basket', 'pfh-widgets' ),
+			[
+				'default'     => 'Toegevoegd',
+				'description' => esc_html__( 'Shown for a moment after adding, then the button goes back to its own label.', 'pfh-widgets' ),
+			]
+		);
 	}
 
 	private function usp_controls() {
@@ -516,19 +526,42 @@ class PFH_Element_Product extends \Bricks\Element {
 		echo '</div>';
 
 		if ( $thumbs ) {
-			echo '<ul class="pfh-pdp__thumbs">';
+			/*
+			 * One row that scrolls, however many images there are. Wrapping
+			 * them pushed the buying column down the page on a product with
+			 * five photographs, and a second half-empty row of thumbnails
+			 * reads as a mistake rather than a gallery.
+			 */
+			echo '<div class="pfh-pdp__thumbs" data-pfh-thumbs>';
+
+			printf(
+				'<button type="button" class="pfh-pdp__thumbs-nav pfh-pdp__thumbs-nav--prev" data-pfh-thumbs-step="-1" aria-label="%s" hidden>%s</button>',
+				esc_attr__( 'Scroll thumbnails back', 'pfh-widgets' ),
+				PFH_Widgets_Icons::get( 'nav-left' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+			);
+
+			echo '<ul class="pfh-pdp__thumbs-track" data-pfh-thumbs-track>';
 
 			foreach ( $images as $i => $image ) {
 				printf(
-					'<li><button type="button" class="pfh-pdp__thumb%s" data-pfh-shot-go="%d"><img src="%s" alt="%s" loading="lazy" /></button></li>',
+					'<li class="pfh-pdp__thumbs-item"><button type="button" class="pfh-pdp__thumb%s" data-pfh-shot-go="%d" aria-label="%s"><img src="%s" alt="%s" loading="lazy" /></button></li>',
 					0 === $i ? ' is-active' : '',
 					(int) $i,
+					esc_attr( sprintf( /* translators: image number */ __( 'Show image %d', 'pfh-widgets' ), (int) $i + 1 ) ),
 					esc_url( $image['thumb'] ),
 					esc_attr( $image['alt'] )
 				);
 			}
 
 			echo '</ul>';
+
+			printf(
+				'<button type="button" class="pfh-pdp__thumbs-nav pfh-pdp__thumbs-nav--next" data-pfh-thumbs-step="1" aria-label="%s" hidden>%s</button>',
+				esc_attr__( 'Scroll thumbnails on', 'pfh-widgets' ),
+				PFH_Widgets_Icons::get( 'nav-right' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+			);
+
+			echo '</div>';
 		}
 
 		echo '</div>';
@@ -611,16 +644,25 @@ class PFH_Element_Product extends \Bricks\Element {
 			return;
 		}
 
-		$summary = PFH_Widgets_Reviews::summary();
-		$rating  = isset( $summary['rating'] ) ? (float) $summary['rating'] : 0.0;
-		$count   = isset( $summary['count'] ) ? (int) $summary['count'] : 0;
-		$scale   = isset( $summary['scale'] ) ? (float) $summary['scale'] : 10;
-
-		if ( $rating <= 0 ) {
+		/*
+		 * The same figures the rating badge and the footer show: the live
+		 * WebwinkelKeur summary when there is one, and the shop's own settings
+		 * when there is not. Asking summary() directly meant this row was the
+		 * only thing on the site that vanished when the API had nothing —
+		 * which is exactly how it turned up on the live page.
+		 */
+		if ( ! class_exists( 'PFH_Widgets_Badge' ) ) {
 			return;
 		}
 
-		$stars = PFH_Widgets_Reviews::stars( $rating, $scale, 5 );
+		$data   = PFH_Widgets_Badge::data();
+		$score  = (string) $data['rating'];
+		$count  = (int) $data['count'];
+		$stars  = (float) $data['stars'];
+
+		if ( '' === $score || 0.0 === (float) str_replace( ',', '.', $score ) ) {
+			return;
+		}
 
 		echo '<div class="pfh-pdp__rating">';
 		echo '<span class="pfh-pdp__stars" aria-hidden="true">';
@@ -635,7 +677,7 @@ class PFH_Element_Product extends \Bricks\Element {
 
 		echo '</span>';
 
-		printf( '<span class="pfh-pdp__score">%s</span>', esc_html( number_format_i18n( $rating, 1 ) ) );
+		printf( '<span class="pfh-pdp__score">%s</span>', esc_html( $score ) );
 
 		if ( $count > 0 ) {
 			echo '<span class="pfh-pdp__rule" aria-hidden="true"></span>';
@@ -747,7 +789,7 @@ class PFH_Element_Product extends \Bricks\Element {
 			'<form class="pfh-pdp__form" method="post" enctype="multipart/form-data" action="%s" data-pfh-form data-product="%d"%s>',
 			esc_url( $product->get_permalink() ),
 			(int) $product->get_id(),
-			( $this->switched_on( 'ajaxCart' ) ? ' data-pfh-ajax' : '' )
+			( $this->switched_on( 'ajaxCart' ) ? ' data-pfh-ajax data-pfh-added-label="' . esc_attr( $this->setting( 'addedLabel', 'Toegevoegd' ) ) . '"' : '' )
 				. ( $variations ? ' data-variations="' . esc_attr( wp_json_encode( $variations ) ) . '"' : '' )
 		);
 
@@ -952,7 +994,7 @@ class PFH_Element_Product extends \Bricks\Element {
 		}
 
 		printf(
-			'<button type="submit" class="pfh-pdp__cart"%s data-pfh-buy>%s</button>',
+			'<button type="submit" class="pfh-pdp__cart"%s data-pfh-buy><span class="pfh-pdp__cart-label">%s</span><span class="pfh-pdp__cart-spin" aria-hidden="true"></span></button>',
 			$available ? '' : ' disabled',
 			esc_html( $label )
 		);

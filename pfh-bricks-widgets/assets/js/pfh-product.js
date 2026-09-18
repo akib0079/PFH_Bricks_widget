@@ -21,6 +21,114 @@
 	 * Gallery
 	 * --------------------------------------------------------------- */
 
+	/**
+	 * The thumbnail strip: one row that scrolls, with arrows only while there
+	 * is somewhere to scroll to.
+	 */
+	function strip( root ) {
+		var host = root.querySelector( '[data-pfh-thumbs]' );
+		var track = host && host.querySelector( '[data-pfh-thumbs-track]' );
+
+		if ( ! track ) {
+			return null;
+		}
+
+		var navs = Array.prototype.slice.call( host.querySelectorAll( '[data-pfh-thumbs-step]' ) );
+
+		function paint() {
+			var room = track.scrollWidth - track.clientWidth;
+			var scrollable = room > 2;
+
+			navs.forEach( function ( nav ) {
+				nav.hidden = ! scrollable;
+
+				if ( ! scrollable ) {
+					return;
+				}
+
+				nav.disabled = parseInt( nav.getAttribute( 'data-pfh-thumbs-step' ), 10 ) < 0
+					? track.scrollLeft <= 1
+					: track.scrollLeft >= room - 1;
+			} );
+		}
+
+		navs.forEach( function ( nav ) {
+			nav.addEventListener( 'click', function () {
+				var step = parseInt( nav.getAttribute( 'data-pfh-thumbs-step' ), 10 ) || 1;
+
+				track.scrollBy( { left: step * Math.round( track.clientWidth * 0.8 ), behavior: 'smooth' } );
+			} );
+		} );
+
+		track.addEventListener( 'scroll', paint, { passive: true } );
+		window.addEventListener( 'resize', paint );
+
+		/*
+		 * Drag with a mouse, because a strip that only moves by its arrows
+		 * feels stuck. Touch is left alone: the browser's own scrolling has
+		 * momentum, and taking it over would only make it worse.
+		 */
+		var dragging = false;
+		var from = 0;
+		var origin = 0;
+		var travelled = 0;
+
+		track.addEventListener( 'pointerdown', function ( event ) {
+			if ( 'mouse' !== event.pointerType || 0 !== event.button ) {
+				return;
+			}
+
+			dragging = true;
+			travelled = 0;
+			from = event.clientX;
+			origin = track.scrollLeft;
+			track.classList.add( 'is-dragging' );
+		} );
+
+		track.addEventListener( 'pointermove', function ( event ) {
+			if ( ! dragging ) {
+				return;
+			}
+
+			var moved = event.clientX - from;
+
+			travelled = Math.max( travelled, Math.abs( moved ) );
+			track.scrollLeft = origin - moved;
+		} );
+
+		[ 'pointerup', 'pointercancel', 'pointerleave' ].forEach( function ( name ) {
+			track.addEventListener( name, function () {
+				if ( ! dragging ) {
+					return;
+				}
+
+				dragging = false;
+				track.classList.remove( 'is-dragging' );
+				paint();
+			} );
+		} );
+
+		// A drag that ends on a thumbnail must not also open it.
+		track.addEventListener( 'click', function ( event ) {
+			if ( travelled > 4 ) {
+				event.preventDefault();
+				event.stopPropagation();
+				travelled = 0;
+			}
+		}, true );
+
+		paint();
+
+		return {
+			paint: paint,
+			reveal: function ( thumb ) {
+				if ( thumb && thumb.scrollIntoView ) {
+					thumb.scrollIntoView( { block: 'nearest', inline: 'nearest' } );
+				}
+			}
+		};
+	}
+
 	function gallery( root ) {
 		var shots = Array.prototype.slice.call( root.querySelectorAll( '[data-pfh-shot]' ) );
 		var thumbs = Array.prototype.slice.call( root.querySelectorAll( '[data-pfh-shot-go]' ) );
@@ -29,6 +137,7 @@
 			return null;
 		}
 
+		var rail = strip( root );
 		var at = 0;
 
 		function show( index ) {
@@ -41,6 +150,32 @@
 			thumbs.forEach( function ( thumb, i ) {
 				thumb.classList.toggle( 'is-active', i === at );
 			} );
+
+			if ( rail && thumbs[ at ] ) {
+				rail.reveal( thumbs[ at ] );
+			}
+		}
+
+		/*
+		 * Swiping the photograph itself is what a shopper on a phone reaches
+		 * for first, and there is nothing else on the frame to compete with it.
+		 */
+		var frame = root.querySelector( '.pfh-pdp__frame' );
+
+		if ( frame && shots.length > 1 ) {
+			var touched = 0;
+
+			frame.addEventListener( 'touchstart', function ( event ) {
+				touched = event.changedTouches[ 0 ].clientX;
+			}, { passive: true } );
+
+			frame.addEventListener( 'touchend', function ( event ) {
+				var moved = event.changedTouches[ 0 ].clientX - touched;
+
+				if ( Math.abs( moved ) > 40 ) {
+					show( at + ( moved < 0 ? 1 : -1 ) );
+				}
+			}, { passive: true } );
 		}
 
 		thumbs.forEach( function ( thumb ) {
@@ -88,6 +223,10 @@
 			shots[ 0 ].parentNode.appendChild( image );
 			shots.push( image );
 			show( shots.length - 1 );
+
+			if ( rail ) {
+				rail.paint();
+			}
 		}
 
 		return { show: show, showUrl: showUrl };
@@ -380,7 +519,11 @@
 				}
 			} );
 
+			var label = buy.querySelector( '.pfh-pdp__cart-label' ) || buy;
+			var said = label.textContent;
+
 			buy.classList.add( 'is-busy' );
+			buy.disabled = true;
 
 			if ( notice ) {
 				notice.setAttribute( 'hidden', '' );
@@ -400,6 +543,20 @@
 						// The drawer and the header count both listen for this.
 						document.dispatchEvent( new CustomEvent( 'pfh:added', { detail: payload.data || {} } ) );
 
+						/*
+						 * A moment of "Toegevoegd" before it goes back: the
+						 * drawer opening is the real confirmation, but the
+						 * button the shopper is still looking at should say
+						 * something happened.
+						 */
+						label.textContent = form.getAttribute( 'data-pfh-added-label' ) || said;
+						buy.classList.add( 'is-done' );
+
+						window.setTimeout( function () {
+							label.textContent = said;
+							buy.classList.remove( 'is-done' );
+						}, 1800 );
+
 						return;
 					}
 
@@ -418,6 +575,7 @@
 				} )
 				.then( function () {
 					buy.classList.remove( 'is-busy' );
+					buy.disabled = false;
 				} );
 		} );
 	}

@@ -64,7 +64,7 @@ add_filter( 'pfh_webwinkelkeur_pre_summary', function () {
 	return [ 'rating' => 9.7, 'count' => 396, 'scale' => 10 ];
 } );
 
-$html = pdp( $variable->ID, [ 'tintedAttrs' => 'smaak' ] );
+$html = pdp( $variable->ID );
 
 echo "── breadcrumbs ──\n";
 ok( 'the trail is there', false !== strpos( $html, 'pfh-pdp__crumbs' ) );
@@ -114,6 +114,19 @@ echo "\n── the shop's rating, not this product's ──\n";
 ok( 'the row is drawn', false !== strpos( $html, 'pfh-pdp__rating' ) );
 ok( 'with the score', false !== strpos( $html, '<span class="pfh-pdp__score">9,7</span>' ) || false !== strpos( $html, '<span class="pfh-pdp__score">9.7</span>' ) );
 ok( 'and how many reviews', false !== strpos( $html, '396 Reviews' ) );
+
+/*
+ * The row reads the shop's figures, not the API alone: on the live site the
+ * footer showed 9,7 from the shop's own settings while this row — which asked
+ * the API directly — showed nothing at all.
+ */
+remove_all_filters( 'pfh_webwinkelkeur_pre_summary' );
+delete_transient( 'pfh_wwk_summary' );
+$offline = pdp( $variable->ID );
+ok( 'with no live rating it still shows the shop\'s own', false !== strpos( $offline, 'pfh-pdp__rating' ) );
+add_filter( 'pfh_webwinkelkeur_pre_summary', function () {
+	return [ 'rating' => 9.7, 'count' => 396, 'scale' => 10 ];
+} );
 ok( 'the WebwinkelKeur mark beside it', false !== strpos( $html, 'pfh-webwinkelkeur.png' ) );
 ok( 'and a link through to them', false !== strpos( $html, 'Lees reviews' ) );
 ok( 'the wording is a setting', false !== strpos( pdp( $variable->ID, [ 'reviewsCountText' => '%s beoordelingen' ] ), '396 beoordelingen' ) );
@@ -175,6 +188,74 @@ ok( 'and says so on the button', false !== strpos( $sold, 'Niet beschikbaar' ) )
 $gone->set_stock_status( 'instock' );
 $gone->save();
 
+echo "\n── adding to the cart, whatever the chooser sent ──\n";
+/*
+ * WooCommerce compares the posted attribute against the chosen variation's own
+ * with ===, and throws "Invalid value posted for X" on any difference. That is
+ * what a shopper hit on the live site instead of getting a basket, so the
+ * endpoint takes the attributes from the variation itself.
+ */
+$children = wc_get_product( $variable->ID )->get_children();
+$first    = (int) $children[0];
+$other    = (int) $children[1];
+$mine     = wc_get_product( $first )->get_variation_attributes();
+$theirs   = wc_get_product( $other )->get_variation_attributes();
+
+function basket( $product_id, $variation_id, array $posted ) {
+	if ( ! WC()->cart ) { wc_load_cart(); }
+
+	WC()->cart->empty_cart();
+	wc_clear_notices();
+
+	$attributes = PFH_Widgets_Quickadd::variation_attributes( $variation_id, $posted );
+	$added      = WC()->cart->add_to_cart( $product_id, 1, $variation_id, $attributes );
+	$why        = '';
+
+	foreach ( (array) wc_get_notices( 'error' ) as $notice ) {
+		$why = wp_strip_all_tags( is_array( $notice ) ? $notice['notice'] : $notice );
+		break;
+	}
+
+	wc_clear_notices();
+	WC()->cart->empty_cart();
+
+	return [ (bool) $added, $why ];
+}
+
+[ $ok ] = basket( $variable->ID, $first, $mine );
+ok( 'the ordinary case still works', $ok );
+
+[ $ok, $why ] = basket( $variable->ID, $first, $theirs );
+ok( 'a chooser left on the previous variant still adds', $ok, $why );
+
+[ $ok, $why ] = basket( $variable->ID, $first, array_map( 'strtoupper', $mine ) );
+ok( 'a value in the wrong case still adds', $ok, $why );
+
+[ $ok, $why ] = basket( $variable->ID, $first, [] );
+ok( 'nothing posted at all still adds', $ok, $why );
+
+$resolved = PFH_Widgets_Quickadd::variation_attributes( $first, $theirs );
+ok( 'because the variation is what is asked', $resolved == $mine, wp_json_encode( $resolved ) );
+ok( 'and with no variation the posted values are left alone', [ 'x' => 'y' ] === PFH_Widgets_Quickadd::variation_attributes( 0, [ 'x' => 'y' ] ) );
+
+echo "\n── the button says what it is doing ──\n";
+ok( 'it carries a label of its own', false !== strpos( $html, 'pfh-pdp__cart-label' ) );
+ok( 'and something to spin while it waits', false !== strpos( $html, 'pfh-pdp__cart-spin' ) );
+ok( 'with the wording for afterwards', false !== strpos( $html, 'data-pfh-added-label="Toegevoegd"' ) );
+ok( 'which is a setting', false !== strpos( pdp( $variable->ID, [ 'addedLabel' => 'In je mandje' ] ), 'data-pfh-added-label="In je mandje"' ) );
+
+echo "\n── the thumbnails are one row that scrolls ──\n";
+ok( 'they sit on a track', false !== strpos( $html, 'data-pfh-thumbs-track' ) );
+ok( 'with an arrow either side', 2 === substr_count( $html, 'data-pfh-thumbs-step' ) );
+// Both arrows ship hidden; the script shows them only once the row overflows.
+preg_match_all( '/<button[^>]*pfh-pdp__thumbs-nav[^>]*>/', $html, $navs );
+$shipped_hidden = array_filter( $navs[0], static function ( $tag ) {
+	return false !== strpos( $tag, ' hidden' );
+} );
+ok( 'both start hidden, until the row overflows', 2 === count( $navs[0] ) && 2 === count( $shipped_hidden ) );
+ok( 'every thumbnail is an item on it', 3 === substr_count( $html, 'pfh-pdp__thumbs-item' ) );
+ok( 'and each says which image it opens', false !== strpos( $html, 'aria-label="Show image 1"' ) );
+
 echo "\n── the promises ──\n";
 ok( 'all three are drawn', 3 === substr_count( $html, 'pfh-pdp__usp-item' ) );
 ok( 'each with its icon', 3 === substr_count( $html, 'pfh-pdp__usp-icon' ) );
@@ -187,7 +268,7 @@ $paint = pdp( $variable->ID, [ 'lineColor' => [ 'hex' => '#DDDDDD' ], 'accent' =
 ok( 'which is a setting', false !== strpos( $paint, '--pfh-pdp-line:#DDDDDD' ) );
 ok( 'as is the button and chosen variant', false !== strpos( $paint, '--pfh-pdp-accent:#123456' ) );
 ok( 'the soft selection is its own colour', false !== strpos( $html, '--pfh-pdp-soft:' ) );
-ok( 'and the group named for it is marked', false !== strpos( $html, 'pfh-pdp__attr--soft' ) );
+ok( 'and the flavour group is marked for it out of the box', false !== strpos( $html, 'pfh-pdp__attr--soft' ) );
 
 echo "\n── it behaves like the rest of the plugin ──\n";
 ok( 'rendering does not depend on Bricks building the controls', pdp( $variable->ID, [], true ) === pdp( $variable->ID ) );

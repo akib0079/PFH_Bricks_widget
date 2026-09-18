@@ -146,13 +146,33 @@
 .pfh-pdp__nav--next { right: 0; transform: translate(50%, -50%); }
 .pfh-pdp__nav svg { width: 8px; height: 12px; }
 
-.pfh-pdp__thumbs {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+/*
+ * One row that scrolls, however many photographs there are. Wrapping them
+ * pushed the buying column down the page, and a second half-empty row of
+ * thumbnails reads as a mistake rather than a gallery.
+ */
+.pfh-pdp__thumbs { position: relative; margin-top: 10px; }
+
+.pfh-pdp__thumbs-track {
+	display: flex;
 	gap: 10px;
-	margin: 10px 0 0;
+	margin: 0;
 	padding: 0;
 	list-style: none;
+	overflow-x: auto;
+	scroll-snap-type: x proximity;
+	scroll-behavior: smooth;
+	overscroll-behavior-x: contain;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.pfh-pdp__thumbs-track::-webkit-scrollbar { display: none; }
+
+/* Three across, as drawn, whatever the container is. */
+.pfh-pdp__thumbs-item {
+	flex: 0 0 calc((100% - 20px) / 3);
+	scroll-snap-align: start;
 }
 
 .pfh-pdp__thumb {
@@ -166,11 +186,48 @@
 	border-radius: var(--pfh-pdp-radius);
 	background: var(--pfh-pdp-stage);
 	cursor: pointer;
-	transition: border-color .2s ease;
+	transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
 }
 
-.pfh-pdp__thumb.is-active { border-color: var(--pfh-pdp-accent); }
-.pfh-pdp__thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.pfh-pdp__thumb:hover { border-color: var(--pfh-pdp-accent); }
+
+.pfh-pdp__thumb.is-active {
+	border-color: var(--pfh-pdp-accent);
+	box-shadow: inset 0 0 0 1px var(--pfh-pdp-accent);
+}
+
+.pfh-pdp__thumb img { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; }
+
+/* Only drawn while the strip has somewhere to scroll to. */
+.pfh-pdp__thumbs-nav {
+	position: absolute;
+	top: 50%;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid var(--pfh-pdp-line);
+	border-radius: 50%;
+	background: #fff;
+	color: var(--pfh-pdp-tick);
+	box-shadow: 0 2px 10px rgba(20, 24, 27, .12);
+	cursor: pointer;
+	transition: border-color .2s ease, opacity .2s ease;
+}
+
+.pfh-pdp__thumbs-nav:hover { border-color: var(--pfh-pdp-accent); }
+.pfh-pdp__thumbs-nav[hidden] { display: none; }
+.pfh-pdp__thumbs-nav[disabled] { opacity: .35; cursor: default; }
+.pfh-pdp__thumbs-nav svg { width: 7px; height: 10px; }
+.pfh-pdp__thumbs-nav--prev { left: 6px; transform: translateY(-50%); }
+.pfh-pdp__thumbs-nav--next { right: 6px; transform: translateY(-50%); }
+
+/* While a drag is in progress the strip must not also animate to a snap. */
+.pfh-pdp__thumbs-track.is-dragging { scroll-behavior: auto; scroll-snap-type: none; cursor: grabbing; }
+.pfh-pdp__thumbs-track.is-dragging .pfh-pdp__thumb { cursor: grabbing; }
 
 /* ---------- the buying column ---------- */
 
@@ -427,9 +484,39 @@
 	transition: filter .18s ease;
 }
 
+.pfh-pdp__cart {
+	position: relative;
+	overflow: hidden;
+}
+
+.pfh-pdp__cart-label { transition: opacity .18s ease; }
+
+/*
+ * The spinner is laid over the label rather than replacing it, so the button
+ * keeps its width and the row does not jump while the request is in flight.
+ */
+.pfh-pdp__cart-spin {
+	position: absolute;
+	inset: 0;
+	width: 18px;
+	height: 18px;
+	margin: auto;
+	border: 2px solid currentColor;
+	border-top-color: transparent;
+	border-radius: 50%;
+	opacity: 0;
+	transition: opacity .18s ease;
+}
+
+.pfh-pdp__cart.is-busy { cursor: progress; }
+.pfh-pdp__cart.is-busy .pfh-pdp__cart-label { opacity: 0; }
+.pfh-pdp__cart.is-busy .pfh-pdp__cart-spin { opacity: 1; animation: pfh-pdp-spin .7s linear infinite; }
+.pfh-pdp__cart.is-done { filter: brightness(1.04); }
+
+@keyframes pfh-pdp-spin { to { transform: rotate(360deg); } }
+
 .pfh-pdp__cart:hover { filter: brightness(.94); }
 .pfh-pdp__cart[disabled] { background: var(--pfh-pdp-line); color: var(--pfh-pdp-muted); cursor: not-allowed; filter: none; }
-.pfh-pdp__cart.is-busy { opacity: .7; cursor: progress; }
 
 .pfh-pdp__notice {
 	margin: 10px 0 0;
@@ -507,6 +594,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+	.pfh-pdp__thumbs-track { scroll-behavior: auto; }
+	.pfh-pdp__cart.is-busy .pfh-pdp__cart-spin { animation-duration: 1.6s; }
 	.pfh-pdp__shot,
 	.pfh-pdp__pill,
 	.pfh-pdp__cart { transition: none; }
