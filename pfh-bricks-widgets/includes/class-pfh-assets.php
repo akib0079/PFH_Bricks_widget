@@ -151,6 +151,23 @@ class PFH_Widgets_Assets {
 			PFH_WIDGETS_VERSION
 		);
 
+		wp_register_style(
+			'pfh-product',
+			PFH_WIDGETS_URL . 'assets/css/pfh-product.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_script(
+			'pfh-product',
+			PFH_WIDGETS_URL . 'assets/js/pfh-product.js',
+			[],
+			PFH_WIDGETS_VERSION,
+			true
+		);
+
+		wp_localize_script( 'pfh-product', 'pfhWidgets', self::endpoint() );
+
 		wp_register_script(
 			'pfh-archive',
 			PFH_WIDGETS_URL . 'assets/js/pfh-archive.js',
@@ -503,6 +520,15 @@ class PFH_Widgets_Assets {
 	public static function highlight() {
 		self::base();
 		wp_enqueue_style( 'pfh-highlight' );
+	}
+
+	/**
+	 * Enqueue everything the single product needs.
+	 */
+	public static function product() {
+		self::base();
+		wp_enqueue_style( 'pfh-product' );
+		wp_enqueue_script( 'pfh-product' );
 	}
 
 	/**

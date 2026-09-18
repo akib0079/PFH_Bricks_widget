@@ -35,6 +35,7 @@ $elements = [
 	'PFH_Element_Product_Grid'   => [ 'class-pfh-element-product-grid.php', 'pfh-pgrid.css' ],
 	'PFH_Element_Recent'         => [ 'class-pfh-element-recent.php', 'pfh-products.css' ],
 	'PFH_Element_Highlight'      => [ 'class-pfh-element-highlight.php', 'pfh-highlight.css' ],
+	'PFH_Element_Product'      => [ 'class-pfh-element-product.php', 'pfh-product.css' ],
 	'PFH_Element_Featured'       => [ 'class-pfh-element-featured.php', 'pfh-featured.css' ],
 	'PFH_Element_Featured_Olive' => [ 'class-pfh-element-featured-olive.php', 'pfh-featured.css' ],
 	'PFH_Element_Info'           => [ 'class-pfh-element-info.php', 'pfh-info.css' ],

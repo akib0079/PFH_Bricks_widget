@@ -1,0 +1,513 @@
+/**
+ * Single product: breadcrumbs, gallery, and the buying column beside it.
+ *
+ * Every border on this page is one colour — the client gave it as #EAEAEA —
+ * so it is a single token and everything reads from it.
+ */
+
+.pfh-pdp {
+	--pfh-pdp-max: 1240px;
+	--pfh-pdp-gap: var(--pfh-pdp-gap-set, 40px);
+	--pfh-pdp-pt: 24px;
+	--pfh-pdp-pb: 56px;
+	--pfh-pdp-radius: 8px;
+	--pfh-pdp-line: #eaeaea;
+	--pfh-pdp-accent: #4f6d6c;
+	--pfh-pdp-accent-ink: #fff;
+	--pfh-pdp-soft: #c9dac2;
+	--pfh-pdp-soft-ink: #2f3e2b;
+	--pfh-pdp-stage: #f2f2f2;
+	--pfh-pdp-badge: #7f9471;
+	--pfh-pdp-badge-ink: #fff;
+	--pfh-pdp-ink: #14181b;
+	--pfh-pdp-body: #3e4a3c;
+	--pfh-pdp-muted: #8a8a8a;
+	--pfh-pdp-star: #f5a623;
+	--pfh-pdp-icon: #377a7f;
+	--pfh-pdp-usp-ink: #1f3a3d;
+	--pfh-pdp-tick: #879f82;
+	--pfh-pdp-title: var(--pfh-pdp-title-set, 40px);
+	--pfh-pdp-price: var(--pfh-pdp-price-set, 28px);
+	--pfh-pdp-text: 14px;
+
+	display: block;
+	padding-block: var(--pfh-pdp-pt) var(--pfh-pdp-pb);
+	color: var(--pfh-pdp-ink);
+	font-family: var(--pfh-font);
+}
+
+.pfh-pdp__inner {
+	max-width: calc(var(--pfh-pdp-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	width: 100%;
+}
+
+/* ---------- breadcrumbs ---------- */
+
+.pfh-pdp__crumbs ol {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	margin: 0 0 24px;
+	padding: 0;
+	list-style: none;
+	font-size: 13px;
+	line-height: 20px;
+	color: var(--pfh-pdp-muted);
+}
+
+.pfh-pdp__crumbs li { display: inline-flex; align-items: center; }
+.pfh-pdp__crumbs a { color: inherit; text-decoration: none; }
+.pfh-pdp__crumbs a:hover { text-decoration: underline; }
+.pfh-pdp__crumbs [aria-current] { color: var(--pfh-pdp-ink); }
+.pfh-pdp__sep { margin-inline: 8px; opacity: .6; }
+
+/* ---------- the two columns ---------- */
+
+.pfh-pdp__main {
+	display: grid;
+	grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+	gap: var(--pfh-pdp-gap);
+	align-items: start;
+}
+
+/* ---------- gallery ---------- */
+
+.pfh-pdp__stage { position: relative; }
+
+/*
+ * The frame clips; the stage does not. The arrows sit on the frame's edge and
+ * would be cut in half by the same rule that rounds its corners.
+ */
+.pfh-pdp__frame {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 1 / 1;
+	padding: 28px;
+	border-radius: var(--pfh-pdp-radius);
+	background: var(--pfh-pdp-stage);
+	overflow: hidden;
+}
+
+.pfh-pdp__shot {
+	position: absolute;
+	inset: 28px;
+	width: auto;
+	height: auto;
+	max-width: calc(100% - 56px);
+	max-height: calc(100% - 56px);
+	margin: auto;
+	object-fit: contain;
+	opacity: 0;
+	transition: opacity .25s var(--pfh-ease, ease);
+}
+
+.pfh-pdp__shot.is-active { opacity: 1; }
+
+.pfh-pdp__badge {
+	position: absolute;
+	top: 16px;
+	left: 16px;
+	z-index: 2;
+	padding: 6px 14px;
+	border-radius: 6px;
+	background: var(--pfh-pdp-badge);
+	color: var(--pfh-pdp-badge-ink);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.4;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+}
+
+.pfh-pdp__nav {
+	position: absolute;
+	top: 50%;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	border: 1px solid var(--pfh-pdp-line);
+	border-radius: 50%;
+	background: #fff;
+	color: var(--pfh-pdp-tick);
+	cursor: pointer;
+	transition: border-color .2s ease;
+}
+
+.pfh-pdp__nav:hover { border-color: var(--pfh-pdp-accent); }
+.pfh-pdp__nav--prev { left: 0; transform: translate(-50%, -50%); }
+.pfh-pdp__nav--next { right: 0; transform: translate(50%, -50%); }
+.pfh-pdp__nav svg { width: 8px; height: 12px; }
+
+.pfh-pdp__thumbs {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 10px;
+	margin: 10px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-pdp__thumb {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	aspect-ratio: 1 / 1;
+	padding: 10px;
+	border: 1px solid var(--pfh-pdp-line);
+	border-radius: var(--pfh-pdp-radius);
+	background: var(--pfh-pdp-stage);
+	cursor: pointer;
+	transition: border-color .2s ease;
+}
+
+.pfh-pdp__thumb.is-active { border-color: var(--pfh-pdp-accent); }
+.pfh-pdp__thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+/* ---------- the buying column ---------- */
+
+.pfh-pdp__details { min-width: 0; }
+
+.pfh-pdp__eyebrow {
+	margin: 0 0 10px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	color: var(--pfh-pdp-muted);
+}
+
+.pfh-pdp__title {
+	margin: 0 0 14px;
+	font-size: var(--pfh-pdp-title);
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: -.01em;
+}
+
+.pfh-pdp__excerpt {
+	margin: 0 0 18px;
+	max-width: 46ch;
+	color: var(--pfh-pdp-body);
+	font-size: var(--pfh-pdp-text);
+	font-weight: 300;
+	line-height: 1.5;
+}
+
+.pfh-pdp__excerpt p { margin: 0 0 8px; }
+.pfh-pdp__excerpt p:last-child { margin-bottom: 0; }
+
+/* ---------- rating ---------- */
+
+.pfh-pdp__rating {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 20px;
+	font-size: 13px;
+	color: var(--pfh-pdp-muted);
+}
+
+.pfh-pdp__stars { display: inline-flex; gap: 2px; color: var(--pfh-pdp-line); }
+.pfh-pdp__star svg { width: 14px; height: 14px; display: block; }
+.pfh-pdp__star.is-on { color: var(--pfh-pdp-star); }
+.pfh-pdp__score { color: var(--pfh-pdp-ink); font-weight: 500; }
+.pfh-pdp__rule { width: 1px; height: 12px; background: var(--pfh-pdp-line); }
+.pfh-pdp__wwk { width: 14px; height: 14px; object-fit: contain; }
+
+.pfh-pdp__reviews-link {
+	color: var(--pfh-pdp-ink);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* ---------- price ---------- */
+
+.pfh-pdp__price {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 0 0 24px;
+}
+
+.pfh-pdp__price-now {
+	font-size: var(--pfh-pdp-price);
+	font-weight: 500;
+	line-height: 1.1;
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-pdp__price-was {
+	color: var(--pfh-pdp-muted);
+	font-size: var(--pfh-pdp-text);
+	text-decoration: line-through;
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-pdp__save {
+	padding: 7px 13px;
+	border: 1px solid var(--pfh-pdp-line);
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.pfh-pdp__price .amount,
+.pfh-pdp__price bdi { color: inherit; font: inherit; }
+
+/* ---------- variants ---------- */
+
+.pfh-pdp__attrs { display: grid; gap: 18px; margin: 0 0 20px; }
+
+.pfh-pdp__attr-label {
+	margin: 0 0 10px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	color: var(--pfh-pdp-muted);
+}
+
+/*
+ * The select is the real field — it posts, and it is what assistive software
+ * reads. It is placed out of sight rather than display:none so it can still
+ * take focus and announce the choice the pills make.
+ */
+.pfh-pdp__select {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	clip-path: inset(50%);
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.pfh-pdp__pills { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.pfh-pdp__pill {
+	padding: 11px 17px;
+	border: 1px solid var(--pfh-pdp-line);
+	border-radius: var(--pfh-pdp-radius);
+	background: #fff;
+	color: var(--pfh-pdp-ink);
+	font-family: inherit;
+	font-size: var(--pfh-pdp-text);
+	line-height: 1.2;
+	cursor: pointer;
+	transition: border-color .2s ease, background-color .2s ease, color .2s ease;
+}
+
+.pfh-pdp__pill:hover { border-color: var(--pfh-pdp-accent); }
+
+.pfh-pdp__pill.is-chosen {
+	border-color: var(--pfh-pdp-accent);
+	background: var(--pfh-pdp-accent);
+	color: var(--pfh-pdp-accent-ink);
+}
+
+.pfh-pdp__attr--soft .pfh-pdp__pill.is-chosen {
+	border-color: var(--pfh-pdp-soft);
+	background: var(--pfh-pdp-soft);
+	color: var(--pfh-pdp-soft-ink);
+}
+
+/* A combination that does not exist stays legible, but plainly not offered. */
+.pfh-pdp__pill[disabled] { opacity: .4; cursor: not-allowed; }
+.pfh-pdp__pill[disabled]:hover { border-color: var(--pfh-pdp-line); }
+
+/* ---------- what is in the box ---------- */
+
+.pfh-pdp__box {
+	margin: 0 0 22px;
+	padding: 20px 0;
+	border-top: 1px solid var(--pfh-pdp-line);
+	border-bottom: 1px solid var(--pfh-pdp-line);
+}
+
+.pfh-pdp__list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+
+.pfh-pdp__line {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: var(--pfh-pdp-text);
+	line-height: 1.5;
+}
+
+.pfh-pdp__tick { flex: none; width: 12px; height: 9px; color: var(--pfh-pdp-tick); }
+.pfh-pdp__line-label { min-width: 0; }
+
+/* Pushed to the far side, as drawn, and dropped under on a narrow column. */
+.pfh-pdp__line-note {
+	margin-left: auto;
+	padding-left: 16px;
+	color: var(--pfh-pdp-muted);
+	font-size: 12px;
+	line-height: 1.5;
+	text-align: right;
+}
+
+/* ---------- quantity and cart ---------- */
+
+.pfh-pdp__buy { display: flex; align-items: stretch; gap: 12px; }
+
+.pfh-pdp__qty {
+	display: inline-flex;
+	align-items: center;
+	flex: none;
+	border: 1px solid var(--pfh-pdp-line);
+	border-radius: var(--pfh-pdp-radius);
+	background: #fff;
+}
+
+.pfh-pdp__step {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 46px;
+	height: 54px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--pfh-pdp-tick);
+	cursor: pointer;
+}
+
+.pfh-pdp__step:disabled { opacity: .4; cursor: not-allowed; }
+.pfh-pdp__step svg { width: 14px; height: 14px; }
+
+.pfh-pdp__qty-input {
+	width: 44px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--pfh-pdp-ink);
+	font-family: inherit;
+	font-size: var(--pfh-pdp-text);
+	font-weight: 500;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+	-moz-appearance: textfield;
+	appearance: textfield;
+}
+
+.pfh-pdp__qty-input::-webkit-outer-spin-button,
+.pfh-pdp__qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.pfh-pdp__cart {
+	flex: 1 1 auto;
+	min-height: 56px;
+	padding: 10px 28px;
+	border: 0;
+	border-radius: var(--pfh-pdp-radius);
+	background: var(--pfh-pdp-accent);
+	color: var(--pfh-pdp-accent-ink);
+	font-family: inherit;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: filter .18s ease;
+}
+
+.pfh-pdp__cart:hover { filter: brightness(.94); }
+.pfh-pdp__cart[disabled] { background: var(--pfh-pdp-line); color: var(--pfh-pdp-muted); cursor: not-allowed; filter: none; }
+.pfh-pdp__cart.is-busy { opacity: .7; cursor: progress; }
+
+.pfh-pdp__notice {
+	margin: 10px 0 0;
+	color: var(--pfh-pdp-body);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* ---------- promises ---------- */
+
+.pfh-pdp__usp {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	margin: 28px 0 0;
+	padding: 24px 0 0;
+	border-top: 1px solid var(--pfh-pdp-line);
+	list-style: none;
+}
+
+.pfh-pdp__usp-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding-inline: 12px;
+	text-align: center;
+}
+
+.pfh-pdp__usp-item + .pfh-pdp__usp-item { border-left: 1px solid var(--pfh-pdp-line); }
+.pfh-pdp__usp-icon { width: 30px; height: 30px; color: var(--pfh-pdp-icon); }
+
+.pfh-pdp__usp-title {
+	color: var(--pfh-pdp-usp-ink);
+	font-size: var(--pfh-pdp-text);
+	font-weight: 700;
+	line-height: 1.5;
+}
+
+.pfh-pdp__usp-note { color: var(--pfh-pdp-muted); font-size: 12px; line-height: 1.5; }
+
+/* ---------- builder placeholder ---------- */
+
+.pfh-pdp--empty {
+	padding: 40px;
+	border: 1px dashed var(--pfh-pdp-line, #eaeaea);
+	border-radius: 12px;
+	color: #6b6b6b;
+	text-align: center;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 991px) {
+	.pfh-pdp { --pfh-pdp-title: 32px; --pfh-pdp-price: 24px; --pfh-pdp-gap: 28px; }
+}
+
+@media (max-width: 767px) {
+	/* One column: side by side leaves the photo too small to judge. */
+	.pfh-pdp__main { grid-template-columns: minmax(0, 1fr); }
+	.pfh-pdp { --pfh-pdp-title: 28px; }
+	.pfh-pdp__excerpt { max-width: none; }
+
+	/* The arrows would hang off the page at this width. */
+	.pfh-pdp__nav--prev { left: 10px; transform: translate(0, -50%); }
+	.pfh-pdp__nav--next { right: 10px; transform: translate(0, -50%); }
+}
+
+@media (max-width: 560px) {
+	.pfh-pdp__line { flex-wrap: wrap; }
+	.pfh-pdp__line-note { margin-left: 22px; padding-left: 0; text-align: left; }
+	.pfh-pdp__buy { flex-wrap: wrap; }
+	.pfh-pdp__cart { width: 100%; flex-basis: 100%; }
+	.pfh-pdp__usp { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+	.pfh-pdp__usp-item + .pfh-pdp__usp-item { border-left: 0; border-top: 1px solid var(--pfh-pdp-line); padding-top: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-pdp__shot,
+	.pfh-pdp__pill,
+	.pfh-pdp__cart { transition: none; }
+}

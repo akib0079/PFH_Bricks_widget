@@ -27,6 +27,7 @@ Two halves:
 | **PFH Highlighted Features** | Products For Home | Bento grid of photo and text tiles with per-tile spans, staggered reveal |
 | **PFH Review Slider** | Products For Home | Live WebwinkelKeur reviews in a paged card grid, with a manual fallback |
 | **PFH Call To Action** | Products For Home | Closing card that overlaps the footer via a negative margin and its own stacking context |
+| **PFH Product** | Products For Home | The whole top of a product page: breadcrumbs, gallery with tag, title, rating, price with the amount saved, variant pills, what is in the box, quantity, add to cart and the promises |
 | **PFH Product Highlight** | Products For Home | Static banner for one offer — every word, price and link typed in the panel, overlaps the footer |
 | **PFH Recently Viewed** | Products For Home | The product slider, showing only what this visitor has already looked at; renders nothing when that is nothing |
 | **PFH Rating Badge** | Products For Home | Inline "Excellent 9,7 | 270 reviews on WebwinkelKeur", live from the API |
@@ -989,6 +990,73 @@ attributes the card would settle a few hundred pixels wide on load.
 
 `min-height` backs up the ratio, and content can still push the card taller —
 so a longer heading in another language grows the card instead of spilling.
+
+---
+
+## PFH Product
+
+The top of the product page, in one element: the breadcrumb trail, the gallery,
+and the whole buying column beside it. Everything on it comes from the product
+being viewed — drop it into a Bricks **single product** template and it fills
+itself in.
+
+### What it draws
+
+| Part | Where it comes from |
+| --- | --- |
+| Breadcrumbs | Home, the category path, then the product. Linked all the way down |
+| Gallery | Featured image first, then the gallery images. Arrows and thumbnails appear only when there is more than one |
+| Tag | The **Tag** field on the product. Empty means no tag at all |
+| Category, title, description | The product's primary category, name and short description |
+| Rating | The shop's own WebwinkelKeur score and review count, with a link through — the shop's, not this product's |
+| Price | The price, the old price struck through, and **the amount saved** — not a percentage |
+| Variants | Pills, one group per attribute, with the choice named beside the label |
+| What is in the box | The **Highlights** field on the product. Nothing in it, and the block is left out |
+| Quantity and cart | A stepper writing single figures as 01, and add-to-cart without a reload |
+| Promises | Three fixed lines, the same on every product |
+
+Every border on the page reads one token, `--pfh-pdp-line`, which the client
+gave as `#EAEAEA`.
+
+### The two fields on the product
+
+WooCommerce has nowhere to put a corner tag or a "what is in the box" list, so
+the plugin adds both in their own **Products For Home** tab in the Product data
+box, next to the price and stock.
+
+* **Tag** — a short badge for the corner of the gallery. Empty means none.
+* **Highlights** — a line and, optionally, a note that sits to its right
+  ("1x 1000ml Griekse vruchtensap" · "33 glazen van 467ml"). Add and remove
+  rows as needed; different for every product.
+
+Both fields have a *field name* setting on the element, so an ACF field can be
+pointed at instead. The reader understands a plain list of strings and the
+usual ACF row key names as well as its own shape.
+
+### Variants resolve here, not in WooCommerce's script
+
+The pills set a real `<select>` behind each group — that is still the field
+that posts, and what a screen reader announces — and the element works out the
+variation itself from the data printed with the form. No jQuery, no dependency
+on WooCommerce's variation script, and the same code path in the builder as on
+the page.
+
+Choosing updates the price, the old price, the saving, the variation id and the
+photograph, and greys out any pill that cannot be reached: an out-of-stock
+combination is visibly not on offer rather than failing at the cart. Clicking
+the chosen pill again clears it. Past 60 variations the data is not printed and
+the chooser falls back to posting the form.
+
+The chosen pill is solid by default. Groups named in **Groups using the soft
+selected colour** get the tinted treatment instead — "smaak" in the design.
+Name them the way the panel shows them; the taxonomy name works too.
+
+### Adding to the cart
+
+Goes through the same endpoint the product cards use, so the cart drawer and
+the header count update the way they do everywhere else. Turn it off and the
+form posts normally. A failure says so and leaves the form alone, so the
+ordinary submit is still there.
 
 ---
 

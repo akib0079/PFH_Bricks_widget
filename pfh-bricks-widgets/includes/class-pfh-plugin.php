@@ -102,6 +102,10 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-highlight.php',
 				'class' => 'PFH_Element_Highlight',
 			],
+			'pfh-product'    => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-product.php',
+				'class' => 'PFH_Element_Product',
+			],
 			'pfh-cta'        => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-cta.php',
 				'class' => 'PFH_Element_Cta',
@@ -203,6 +207,7 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Settings::init();
 		PFH_Widgets_Diagnose::boot();
 		PFH_Widgets_Save_Guard::init();
+		PFH_Widgets_Product_Fields::init();
 		PFH_Widgets_Consent::init();
 		PFH_Widgets_Permalinks::init();
 		PFH_Widgets_Badge::init();
