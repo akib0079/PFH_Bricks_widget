@@ -12,22 +12,25 @@
 	--pfh-pdp-pb: 56px;
 	--pfh-pdp-radius: 8px;
 	--pfh-pdp-line: #eaeaea;
-	--pfh-pdp-accent: #4f6d6c;
+	--pfh-pdp-accent: #2b5f63;
 	--pfh-pdp-accent-ink: #fff;
-	--pfh-pdp-soft: #c9dac2;
-	--pfh-pdp-soft-ink: #2f3e2b;
+	--pfh-pdp-soft: #7caeb2;
+	--pfh-pdp-soft-ink: #fff;
 	--pfh-pdp-stage: #f2f2f2;
 	--pfh-pdp-badge: #7f9471;
 	--pfh-pdp-badge-ink: #fff;
 	--pfh-pdp-ink: #14181b;
 	--pfh-pdp-body: #3e4a3c;
-	--pfh-pdp-muted: #8a8a8a;
+	--pfh-pdp-muted: #a6a6a6;
 	--pfh-pdp-star: #f5a623;
 	--pfh-pdp-icon: #377a7f;
 	--pfh-pdp-usp-ink: #1f3a3d;
 	--pfh-pdp-tick: #879f82;
+	--pfh-pdp-price-ink: #697c66;
+	--pfh-pdp-qty-ink: #51604f;
+	--pfh-pdp-qty-line: #cedacb;
 	--pfh-pdp-title: var(--pfh-pdp-title-set, 40px);
-	--pfh-pdp-price: var(--pfh-pdp-price-set, 28px);
+	--pfh-pdp-price: var(--pfh-pdp-price-set, 26px);
 	--pfh-pdp-text: 14px;
 
 	display: block;
@@ -45,7 +48,7 @@
 
 /* ---------- breadcrumbs ---------- */
 
-.pfh-pdp__crumbs ol {
+.pfh-pdp .pfh-pdp__crumbs ol {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -233,8 +236,14 @@
 
 .pfh-pdp__details { min-width: 0; }
 
-.pfh-pdp__eyebrow {
-	margin: 0 0 10px;
+/*
+ * Every margin in this column is stated against the root class. A theme that
+ * styles its headings with something like `.brx-body h1` outranks a single
+ * class, and the first thing that showed was a gap under the category name
+ * that belonged to the theme rather than to the design.
+ */
+.pfh-pdp .pfh-pdp__eyebrow {
+	margin: 0 0 8px;
 	font-size: 12px;
 	font-weight: 500;
 	line-height: 1;
@@ -243,15 +252,15 @@
 	color: var(--pfh-pdp-muted);
 }
 
-.pfh-pdp__title {
-	margin: 0 0 14px;
+.pfh-pdp .pfh-pdp__title {
+	margin: 0 0 12px;
 	font-size: var(--pfh-pdp-title);
 	font-weight: 500;
 	line-height: 1;
 	letter-spacing: -.01em;
 }
 
-.pfh-pdp__excerpt {
+.pfh-pdp .pfh-pdp__excerpt {
 	margin: 0 0 18px;
 	max-width: 46ch;
 	color: var(--pfh-pdp-body);
@@ -260,12 +269,12 @@
 	line-height: 1.5;
 }
 
-.pfh-pdp__excerpt p { margin: 0 0 8px; }
-.pfh-pdp__excerpt p:last-child { margin-bottom: 0; }
+.pfh-pdp .pfh-pdp__excerpt p { margin: 0 0 8px; }
+.pfh-pdp .pfh-pdp__excerpt p:last-child { margin-bottom: 0; }
 
 /* ---------- rating ---------- */
 
-.pfh-pdp__rating {
+.pfh-pdp .pfh-pdp__rating {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
@@ -290,32 +299,37 @@
 
 /* ---------- price ---------- */
 
-.pfh-pdp__price {
+.pfh-pdp .pfh-pdp__price {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 12px;
+	gap: 10px;
 	margin: 0 0 24px;
 }
 
-.pfh-pdp__price-now {
+.pfh-pdp .pfh-pdp__price-now {
+	color: var(--pfh-pdp-price-ink);
 	font-size: var(--pfh-pdp-price);
-	font-weight: 500;
-	line-height: 1.1;
+	font-weight: 600;
+	line-height: 1;
 	font-variant-numeric: tabular-nums;
 }
 
-.pfh-pdp__price-was {
+.pfh-pdp .pfh-pdp__price-was {
 	color: var(--pfh-pdp-muted);
 	font-size: var(--pfh-pdp-text);
+	font-weight: 300;
+	line-height: 1;
 	text-decoration: line-through;
 	font-variant-numeric: tabular-nums;
 }
 
-.pfh-pdp__save {
-	padding: 7px 13px;
-	border: 1px solid var(--pfh-pdp-line);
-	border-radius: 6px;
+/* Outlined in the same olive as the price, not in the page's grey. */
+.pfh-pdp .pfh-pdp__save {
+	padding: 8px 10px;
+	border: 1px solid var(--pfh-pdp-price-ink);
+	border-radius: 8px;
+	color: var(--pfh-pdp-price-ink);
 	font-size: 12px;
 	font-weight: 500;
 	line-height: 1;
@@ -329,8 +343,8 @@
 
 .pfh-pdp__attrs { display: grid; gap: 18px; margin: 0 0 20px; }
 
-.pfh-pdp__attr-label {
-	margin: 0 0 10px;
+.pfh-pdp .pfh-pdp__attr-label {
+	margin: 0 0 14px;
 	font-size: 12px;
 	font-weight: 500;
 	line-height: 1;
@@ -359,7 +373,7 @@
 .pfh-pdp__pills { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .pfh-pdp__pill {
-	padding: 11px 17px;
+	padding: 10px 14px;
 	border: 1px solid var(--pfh-pdp-line);
 	border-radius: var(--pfh-pdp-radius);
 	background: #fff;
@@ -398,7 +412,7 @@
 	border-bottom: 1px solid var(--pfh-pdp-line);
 }
 
-.pfh-pdp__list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.pfh-pdp .pfh-pdp__list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
 
 .pfh-pdp__line {
 	display: flex;
@@ -425,53 +439,78 @@
 
 .pfh-pdp__buy { display: flex; align-items: stretch; gap: 12px; }
 
-.pfh-pdp__qty {
+/*
+ * Minus, figure, plus — in that order and inside one box. The width and the
+ * flex are stated against the root class because a theme's own input rules
+ * carry more weight than a single class, and when they win the field takes
+ * the whole box and pushes the plus outside the border.
+ */
+.pfh-pdp .pfh-pdp__qty {
 	display: inline-flex;
 	align-items: center;
-	flex: none;
-	border: 1px solid var(--pfh-pdp-line);
+	flex: 0 0 auto;
+	height: 44px;
+	border: 1px solid var(--pfh-pdp-qty-line);
 	border-radius: var(--pfh-pdp-radius);
 	background: #fff;
+	overflow: hidden;
 }
 
-.pfh-pdp__step {
+.pfh-pdp .pfh-pdp__step {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 46px;
-	height: 54px;
+	flex: 0 0 auto;
+	width: 44px;
+	height: 100%;
+	min-width: 0;
 	padding: 0;
+	margin: 0;
 	border: 0;
+	border-radius: 0;
 	background: none;
-	color: var(--pfh-pdp-tick);
+	color: var(--pfh-pdp-qty-ink);
 	cursor: pointer;
 }
 
-.pfh-pdp__step:disabled { opacity: .4; cursor: not-allowed; }
-.pfh-pdp__step svg { width: 14px; height: 14px; }
+.pfh-pdp .pfh-pdp__step:disabled { opacity: .4; cursor: not-allowed; }
+.pfh-pdp .pfh-pdp__step svg { width: 14px; height: 14px; }
 
-.pfh-pdp__qty-input {
-	width: 44px;
+.pfh-pdp .pfh-pdp__qty-input {
+	flex: 0 0 auto;
+	width: 56px;
+	min-width: 0;
+	height: 100%;
 	padding: 0;
+	margin: 0;
 	border: 0;
+	border-radius: 0;
 	background: none;
-	color: var(--pfh-pdp-ink);
+	box-shadow: none;
+	color: var(--pfh-pdp-qty-ink);
 	font-family: inherit;
 	font-size: var(--pfh-pdp-text);
-	font-weight: 500;
+	font-weight: 600;
+	line-height: 1;
 	text-align: center;
 	font-variant-numeric: tabular-nums;
 	-moz-appearance: textfield;
 	appearance: textfield;
 }
 
+.pfh-pdp .pfh-pdp__qty-input:focus { outline: none; box-shadow: none; }
+
 .pfh-pdp__qty-input::-webkit-outer-spin-button,
 .pfh-pdp__qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-.pfh-pdp__cart {
+.pfh-pdp .pfh-pdp__cart {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	flex: 1 1 auto;
-	min-height: 56px;
+	min-height: 44px;
 	padding: 10px 28px;
+	text-align: center;
 	border: 0;
 	border-radius: var(--pfh-pdp-radius);
 	background: var(--pfh-pdp-accent);
@@ -518,7 +557,7 @@
 .pfh-pdp__cart:hover { filter: brightness(.94); }
 .pfh-pdp__cart[disabled] { background: var(--pfh-pdp-line); color: var(--pfh-pdp-muted); cursor: not-allowed; filter: none; }
 
-.pfh-pdp__notice {
+.pfh-pdp .pfh-pdp__notice {
 	margin: 10px 0 0;
 	color: var(--pfh-pdp-body);
 	font-size: 13px;
@@ -582,9 +621,19 @@
 	/* The arrows would hang off the page at this width. */
 	.pfh-pdp__nav--prev { left: 10px; transform: translate(0, -50%); }
 	.pfh-pdp__nav--next { right: 10px; transform: translate(0, -50%); }
+
+	/*
+	 * No arrows over the thumbnails on a touch screen: the strip already
+	 * scrolls under a finger, and at this width the buttons cover the very
+	 * pictures they are there to reach.
+	 */
+	.pfh-pdp__thumbs-nav { display: none; }
 }
 
 @media (max-width: 560px) {
+	/* Comfortable targets: 44px is the smallest a finger reliably hits. */
+	.pfh-pdp .pfh-pdp__step { width: 48px; }
+	.pfh-pdp .pfh-pdp__pill { padding: 12px 16px; }
 	.pfh-pdp__line { flex-wrap: wrap; }
 	.pfh-pdp__line-note { margin-left: 22px; padding-left: 0; text-align: left; }
 	.pfh-pdp__buy { flex-wrap: wrap; }

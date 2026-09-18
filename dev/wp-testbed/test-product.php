@@ -270,6 +270,39 @@ ok( 'as is the button and chosen variant', false !== strpos( $paint, '--pfh-pdp-
 ok( 'the soft selection is its own colour', false !== strpos( $html, '--pfh-pdp-soft:' ) );
 ok( 'and the flavour group is marked for it out of the box', false !== strpos( $html, 'pfh-pdp__attr--soft' ) );
 
+echo "\n── the corrections against Figma ──\n";
+ok( 'the price and its saving read one olive', false !== strpos( $html, '--pfh-pdp-price-ink:#697c66' ) );
+ok( 'the first chosen variant is the dark teal', false !== strpos( $html, '--pfh-pdp-accent:#2b5f63' ) );
+ok( 'the ones under it the lighter one', false !== strpos( $html, '--pfh-pdp-soft:#7caeb2' ) );
+ok( 'with white on them', false !== strpos( $html, '--pfh-pdp-soft-ink:#ffffff' ) );
+ok( 'quiet labels are the drawn grey', false !== strpos( $html, '--pfh-pdp-muted:#a6a6a6' ) );
+ok( 'the quantity has its own border and figure colour', false !== strpos( $html, '--pfh-pdp-qty-line:#cedacb' ) && false !== strpos( $html, '--pfh-pdp-qty-ink:#51604f' ) );
+
+/*
+ * Positional, as asked: the first group solid and everything under it the
+ * second colour, without anyone naming the groups in the panel.
+ */
+// The data attribute is required, or the wrapper <div class="pfh-pdp__attrs">
+// matches first and every index is out by one.
+preg_match_all( '/<div class="pfh-pdp__attr([^"]*)" data-pfh-attr=/', $html, $groups );
+ok( 'the first group is not the soft one', isset( $groups[1][0] ) && false === strpos( $groups[1][0], 'soft' ) );
+ok( 'and the second one is', isset( $groups[1][1] ) && false !== strpos( $groups[1][1], 'soft' ) );
+ok( 'naming a group still decides it instead', false !== strpos( pdp( $variable->ID, [ 'tintedAttrs' => 'type' ] ), 'pfh-pdp__attr--soft" data-pfh-attr="attribute_pa_soort"' ) );
+
+echo "\n── the line above what is in the box ──\n";
+ok( 'it is drawn', false !== strpos( $html, 'data-pfh-box-label' ) );
+// Double quotes: the escape is literal in single ones.
+ok( 'repeating the last group and its choice', false !== strpos( $html, "Smaak \u{2014} Appel" ) );
+ok( 'and a typed one is used as typed', false !== strpos( pdp( $variable->ID, [ 'highlightsLabel' => 'WAT ZIT ERIN' ] ), '>WAT ZIT ERIN</p>' ) );
+ok( 'which then stops following the chooser', false === strpos( pdp( $variable->ID, [ 'highlightsLabel' => 'WAT ZIT ERIN' ] ), 'data-pfh-box-label' ) );
+
+echo "\n── the quantity reads minus, figure, plus ──\n";
+$minus = strpos( $html, 'data-pfh-qty="-1"' );
+$field = strpos( $html, 'data-pfh-qty-field' );
+$plus  = strpos( $html, 'data-pfh-qty="1"' );
+ok( 'in that order', $minus < $field && $field < $plus, "$minus, $field, $plus" );
+ok( 'all three inside one box', false !== strpos( $html, '<div class="pfh-pdp__qty">' ) && $plus < strpos( $html, '</div><button type="submit"' ) + 1 );
+
 echo "\n── it behaves like the rest of the plugin ──\n";
 ok( 'rendering does not depend on Bricks building the controls', pdp( $variable->ID, [], true ) === pdp( $variable->ID ) );
 ok( 'the controls encode for the builder', false !== wp_json_encode( controls() ) );

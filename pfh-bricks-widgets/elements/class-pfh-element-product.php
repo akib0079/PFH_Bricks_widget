@@ -267,11 +267,10 @@ class PFH_Element_Product extends \Bricks\Element {
 
 		$this->controls['tintedAttrs'] = $this->text_field(
 			'variants',
-			esc_html__( 'Groups using the soft selected colour', 'pfh-widgets' ),
+			esc_html__( 'Groups using the second colour', 'pfh-widgets' ),
 			[
-				'default'     => 'smaak',
 				'placeholder' => 'smaak',
-				'description' => esc_html__( 'Attribute names, separated by commas. Those listed use the soft colour below when chosen; every other group uses the solid one.', 'pfh-widgets' ),
+				'description' => esc_html__( 'Left empty, the first group uses the first colour and every group under it the second, as drawn. Name attributes here, separated by commas, to decide it yourself instead.', 'pfh-widgets' ),
 			]
 		);
 	}
@@ -289,8 +288,12 @@ class PFH_Element_Product extends \Bricks\Element {
 
 		$this->controls['highlightsLabel'] = $this->text_field(
 			'highlights',
-			esc_html__( 'Heading above the lines', 'pfh-widgets' ),
-			[ 'inline' => true, 'description' => esc_html__( 'Optional.', 'pfh-widgets' ) ]
+			esc_html__( 'Line above them', 'pfh-widgets' ),
+			[
+				'inline'      => true,
+				'placeholder' => 'SMAAK — PERZIK',
+				'description' => esc_html__( 'Left empty it repeats the last variant group and its choice, as drawn, and follows the chooser. Type something here to fix it instead.', 'pfh-widgets' ),
+			]
 		);
 	}
 
@@ -358,20 +361,23 @@ class PFH_Element_Product extends \Bricks\Element {
 
 	private function style_controls() {
 		$this->controls['lineColor']  = $this->colour_field( 'style', esc_html__( 'Borders', 'pfh-widgets' ), '#EAEAEA' );
-		$this->controls['accent']     = $this->colour_field( 'style', esc_html__( 'Button and chosen variant', 'pfh-widgets' ), '#4f6d6c' );
+		$this->controls['accent']     = $this->colour_field( 'style', esc_html__( 'Button and first chosen variant', 'pfh-widgets' ), '#2b5f63' );
 		$this->controls['accentInk']  = $this->colour_field( 'style', esc_html__( 'Text on those', 'pfh-widgets' ), '#ffffff' );
-		$this->controls['softBg']     = $this->colour_field( 'style', esc_html__( 'Soft chosen variant', 'pfh-widgets' ), '#c9dac2' );
-		$this->controls['softInk']    = $this->colour_field( 'style', esc_html__( 'Text on the soft one', 'pfh-widgets' ), '#2f3e2b' );
+		$this->controls['softBg']     = $this->colour_field( 'style', esc_html__( 'Chosen variant, groups after the first', 'pfh-widgets' ), '#7caeb2' );
+		$this->controls['softInk']    = $this->colour_field( 'style', esc_html__( 'Text on those', 'pfh-widgets' ), '#ffffff' );
 		$this->controls['stageBg']    = $this->colour_field( 'style', esc_html__( 'Gallery background', 'pfh-widgets' ), '#f2f2f2' );
 		$this->controls['badgeBg']    = $this->colour_field( 'style', esc_html__( 'Tag background', 'pfh-widgets' ), '#7f9471' );
 		$this->controls['badgeInk']   = $this->colour_field( 'style', esc_html__( 'Tag text', 'pfh-widgets' ), '#ffffff' );
 		$this->controls['ink']        = $this->colour_field( 'style', esc_html__( 'Headings', 'pfh-widgets' ), '#14181b' );
 		$this->controls['bodyInk']    = $this->colour_field( 'style', esc_html__( 'Body text', 'pfh-widgets' ), '#3e4a3c' );
-		$this->controls['mutedInk']   = $this->colour_field( 'style', esc_html__( 'Quiet text', 'pfh-widgets' ), '#8a8a8a' );
+		$this->controls['mutedInk']   = $this->colour_field( 'style', esc_html__( 'Quiet text', 'pfh-widgets' ), '#a6a6a6' );
 		$this->controls['starColor']  = $this->colour_field( 'style', esc_html__( 'Stars', 'pfh-widgets' ), '#f5a623' );
 		$this->controls['iconColor']  = $this->colour_field( 'style', esc_html__( 'Promise icons', 'pfh-widgets' ), '#377a7f' );
 		$this->controls['uspInk']     = $this->colour_field( 'style', esc_html__( 'Promise titles', 'pfh-widgets' ), '#1f3a3d' );
 		$this->controls['tickColor']  = $this->colour_field( 'style', esc_html__( 'Ticks', 'pfh-widgets' ), '#879f82' );
+		$this->controls['priceColor'] = $this->colour_field( 'style', esc_html__( 'Price and saving', 'pfh-widgets' ), '#697c66' );
+		$this->controls['qtyInk']     = $this->colour_field( 'style', esc_html__( 'Quantity figure', 'pfh-widgets' ), '#51604f' );
+		$this->controls['qtyLine']    = $this->colour_field( 'style', esc_html__( 'Quantity border', 'pfh-widgets' ), '#cedacb' );
 
 		$this->controls['radius']     = $this->number_field( 'style', esc_html__( 'Corner radius (px)', 'pfh-widgets' ), 8, 0, 40 );
 		$this->controls['titleSize']  = $this->number_field( 'style', esc_html__( 'Title size (px)', 'pfh-widgets' ), 40, 20, 72 );
@@ -818,6 +824,8 @@ class PFH_Element_Product extends \Bricks\Element {
 
 		echo '<div class="pfh-pdp__attrs">';
 
+		$index = 0;
+
 		foreach ( $attributes as $name => $options ) {
 			$key    = 'attribute_' . sanitize_title( $name );
 			$label  = $this->attribute_label( $name, $product );
@@ -830,7 +838,13 @@ class PFH_Element_Product extends \Bricks\Element {
 			 * the only one that was not accepted before.
 			 */
 			$aliases = array_map( 'strtolower', [ $label, sanitize_title( $name ), preg_replace( '/^pa_/', '', $name ) ] );
-			$is_soft = (bool) array_intersect( $aliases, $tinted );
+
+			/*
+			 * As drawn: the first group is the solid colour and everything
+			 * under it the second. Naming groups in the panel takes over.
+			 */
+			$is_soft = $tinted ? (bool) array_intersect( $aliases, $tinted ) : $index > 0;
+			$index++;
 
 			printf(
 				'<div class="pfh-pdp__attr%s" data-pfh-attr="%s">',
@@ -876,6 +890,40 @@ class PFH_Element_Product extends \Bricks\Element {
 		}
 
 		echo '</div>';
+	}
+
+	/**
+	 * "Smaak — Perzik": the last variant group and what is chosen in it.
+	 *
+	 * The design repeats it above what is in the box, and the chooser keeps it
+	 * in step. Rendered here as well so it is right before any script runs.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	private function variant_line( $product ) {
+		if ( ! $product->is_type( 'variable' ) || ! $this->switched_on( 'showVariants' ) ) {
+			return '';
+		}
+
+		$attributes = $product->get_variation_attributes();
+
+		if ( ! $attributes ) {
+			return '';
+		}
+
+		$names    = array_keys( $attributes );
+		$name     = end( $names );
+		$label    = $this->attribute_label( $name, $product );
+		$defaults = $product->get_default_attributes();
+		$chosen   = isset( $defaults[ sanitize_title( $name ) ] ) ? (string) $defaults[ sanitize_title( $name ) ] : '';
+
+		if ( '' === $chosen ) {
+			return $label;
+		}
+
+		// Double quotes: an escape in single quotes is the literal characters.
+		return $label . " \u{2014} " . $this->option_label( $name, $chosen );
 	}
 
 	/**
@@ -933,10 +981,12 @@ class PFH_Element_Product extends \Bricks\Element {
 
 		echo '<div class="pfh-pdp__box">';
 
-		$label = trim( (string) $this->setting( 'highlightsLabel', '' ) );
+		$typed  = trim( (string) $this->setting( 'highlightsLabel', '' ) );
+		$label  = '' !== $typed ? $typed : $this->variant_line( $product );
+		$mirror = '' === $typed ? ' data-pfh-box-label' : '';
 
-		if ( '' !== $label ) {
-			echo '<p class="pfh-pdp__attr-label">' . esc_html( $label ) . '</p>';
+		if ( '' !== $label || '' === $typed ) {
+			printf( '<p class="pfh-pdp__attr-label"%s>%s</p>', $mirror, esc_html( $label ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- literal attribute.
 		}
 
 		echo '<ul class="pfh-pdp__list">';
@@ -1251,6 +1301,9 @@ class PFH_Element_Product extends \Bricks\Element {
 				'--pfh-pdp-icon'      => PFH_Widgets_Helpers::color( $this->setting( 'iconColor' ), '#377a7f' ),
 				'--pfh-pdp-usp-ink'   => PFH_Widgets_Helpers::color( $this->setting( 'uspInk' ), '#1f3a3d' ),
 				'--pfh-pdp-tick'      => PFH_Widgets_Helpers::color( $this->setting( 'tickColor' ), '#879f82' ),
+				'--pfh-pdp-price-ink' => PFH_Widgets_Helpers::color( $this->setting( 'priceColor' ), '#697c66' ),
+				'--pfh-pdp-qty-ink'   => PFH_Widgets_Helpers::color( $this->setting( 'qtyInk' ), '#51604f' ),
+				'--pfh-pdp-qty-line'  => PFH_Widgets_Helpers::color( $this->setting( 'qtyLine' ), '#cedacb' ),
 			]
 		);
 	}
