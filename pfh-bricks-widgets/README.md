@@ -1013,19 +1013,23 @@ itself in.
 | Price | The price, the old price struck through, and **the amount saved** — not a percentage |
 | Variants | Pills, one group per attribute, with the choice named beside the label |
 | What is in the box | The **Highlights** field on the product. Nothing in it, and the block is left out |
+| The line above it | The **Highlight title** field on the product, so it can differ per product. Empty falls back to the element's own |
 | Quantity and cart | A stepper writing single figures as 01, and add-to-cart without a reload |
 | Promises | Three fixed lines, the same on every product |
 
 Every border on the page reads one token, `--pfh-pdp-line`, which the client
 gave as `#EAEAEA`.
 
-### The two fields on the product
+### The three fields on the product
 
-WooCommerce has nowhere to put a corner tag or a "what is in the box" list, so
-the plugin adds both in their own **Products For Home** tab in the Product data
-box, next to the price and stock.
+WooCommerce has nowhere to put a corner tag, a heading, or a "what is in the
+box" list, so the plugin adds all three in their own **Products For Home** tab
+in the Product data box, next to the price and stock.
 
 * **Tag** — a short badge for the corner of the gallery. Empty means none.
+* **Highlight title** — the line above the box ("Smaak — Mandarijn"). It is
+  the client's to write, fixed rather than following the chooser, and
+  different for every product.
 * **Highlights** — a line and, optionally, a note that sits to its right
   ("1x 1000ml Griekse vruchtensap" · "33 glazen van 467ml"). Add and remove
   rows as needed; different for every product.
@@ -1048,8 +1052,10 @@ combination is visibly not on offer rather than failing at the cart. Clicking
 the chosen pill again clears it. Past 60 variations the data is not printed and
 the chooser falls back to posting the form.
 
-The chosen pill is solid by default. Groups named in **Groups using the soft
-selected colour** get the tinted treatment instead — "smaak" in the design.
+The first group's chosen pill is solid `#2B5F63` and every group under it is
+the softer `#7CAEB2`, which is the order the design draws them in. Naming
+groups in **Groups using the soft selected colour** decides it by name instead
+of by position — "smaak" in the design.
 Name them the way the panel shows them; the taxonomy name works too.
 
 ### Adding to the cart
@@ -1115,6 +1121,59 @@ Below 768px the strip scrolls sideways instead of wrapping — four wrapped tabs
 read as two rows of links — and the chosen tab is scrolled into view. The
 nutrition table gets its own scroller so a wide table never pushes the page
 sideways.
+
+---
+
+## PFH Related Products
+
+The row under a product. It **extends** the product slider rather than copying
+it, so the card, the drag behaviour and every style control are the same ones
+by construction — the two cannot drift apart the way a duplicate would. Only
+the source is its own, and it is pinned:
+
+1. **What the editor chose** — *Related products* in the Products For Home tab,
+   using WooCommerce's own product search.
+2. **Otherwise the rest of that product's category**, in the order the shop
+   itself puts them in, never including the product being looked at.
+3. **Otherwise nothing.** A row filled with whatever the shop happens to sell
+   is worse than no row, so a product with neither leaves the section off the
+   page entirely.
+
+On a product page it always follows the product being viewed; the ID on the
+element is only so there is something to look at while building.
+
+---
+
+## PFH Product USP
+
+A band of pastel cards saying why this product. The eyebrow, the title and
+every card — icon, heading, text — are the product's own, so the band reads
+differently under every product in the shop, and a product with none is left
+off the page rather than shown empty. The element's own cards are the fallback,
+for products nobody has filled in yet.
+
+The four pastels — `#F9E9CF`, `#DFE9DC`, `#E6EFF4`, `#FDE1D5` — fall in turn,
+so a product that adds a fifth card starts the run again. Any card can name its
+own colour instead, and the run carries on around it. Each card's colour is set
+inline as `--pfh-usp-card`, which is what lets one element paint a different
+band per product without a stylesheet per product.
+
+The hover is a three-pixel lift with a shadow that was not there before, and
+the icon tile grows by six percent. On four cards at once anything more reads
+as motion for its own sake. Both are dropped under `prefers-reduced-motion`.
+
+Two columns below 992px and one below 560px: two pastel cards side by side at
+phone width leaves neither enough room for its own sentence.
+
+---
+
+## PFH FAQ, per product
+
+The same accordion as the shop page, reading the product first. Switch on
+*Questions from the product* and each product answers with its own — the
+questions live in the Products For Home tab beside everything else — and a
+product with none falls back to the questions typed on the element, which is
+what the shop page keeps using.
 
 ---
 

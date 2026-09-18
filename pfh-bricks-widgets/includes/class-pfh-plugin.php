@@ -110,6 +110,14 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-product-tabs.php',
 				'class' => 'PFH_Element_Product_Tabs',
 			],
+			'pfh-product-related' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-product-related.php',
+				'class' => 'PFH_Element_Product_Related',
+			],
+			'pfh-product-usp' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-product-usp.php',
+				'class' => 'PFH_Element_Product_Usp',
+			],
 			'pfh-cta'        => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-cta.php',
 				'class' => 'PFH_Element_Cta',

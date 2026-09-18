@@ -36,6 +36,14 @@ class PFH_Widgets_Product_Fields {
 	const NUTRITION_COLS  = '_pfh_nutrition_cols';
 	const NUTRITION       = '_pfh_nutrition';
 
+	/* The sections under the product. */
+	const HIGHLIGHT_TITLE = '_pfh_highlight_title';
+	const RELATED         = '_pfh_related';
+	const USP_EYEBROW     = '_pfh_usp_eyebrow';
+	const USP_TITLE       = '_pfh_usp_title';
+	const USP             = '_pfh_usp';
+	const FAQ             = '_pfh_faq';
+
 	public static function init() {
 		add_filter( 'woocommerce_product_data_tabs', [ __CLASS__, 'tab' ] );
 		add_action( 'woocommerce_product_data_panels', [ __CLASS__, 'panel' ] );
@@ -83,6 +91,24 @@ class PFH_Widgets_Product_Fields {
 					'icon'    => [ 'label' => __( 'Icon', 'pfh-widgets' ), 'type' => 'media' ],
 					'heading' => [ 'label' => __( 'Heading', 'pfh-widgets' ), 'type' => 'text', 'placeholder' => 'Na openen' ],
 					'text'    => [ 'label' => __( 'Text', 'pfh-widgets' ), 'type' => 'textarea', 'placeholder' => 'Na opening 30 dagen houdbaar.' ],
+				],
+			],
+			self::USP        => [
+				'label'   => __( 'Why this product', 'pfh-widgets' ),
+				'help'    => __( 'One card each. Leave the colour empty and they take the four pastels in turn.', 'pfh-widgets' ),
+				'columns' => [
+					'icon'  => [ 'label' => __( 'Icon', 'pfh-widgets' ), 'type' => 'media' ],
+					'label' => [ 'label' => __( 'Title', 'pfh-widgets' ), 'type' => 'text', 'placeholder' => 'Authentiek Grieks' ],
+					'text'  => [ 'label' => __( 'Text', 'pfh-widgets' ), 'type' => 'textarea', 'placeholder' => 'Gemaakt van vers geoogst Grieks fruit.' ],
+					'color' => [ 'label' => __( 'Background', 'pfh-widgets' ), 'type' => 'text', 'placeholder' => '#F9E9CF' ],
+				],
+			],
+			self::FAQ        => [
+				'label'   => __( 'Questions', 'pfh-widgets' ),
+				'help'    => __( 'This product\'s own questions. With none, the element falls back to the ones set on it.', 'pfh-widgets' ),
+				'columns' => [
+					'label' => [ 'label' => __( 'Question', 'pfh-widgets' ), 'type' => 'text', 'placeholder' => 'Is Gia giamas gemaakt van echt fruit?' ],
+					'text'  => [ 'label' => __( 'Answer', 'pfh-widgets' ), 'type' => 'textarea' ],
 				],
 			],
 			self::NUTRITION  => [
@@ -145,6 +171,20 @@ class PFH_Widgets_Product_Fields {
 			</div>
 
 			<?php self::section( esc_html__( 'Product section', 'pfh-widgets' ) ); ?>
+			<div class="options_group">
+				<?php
+				woocommerce_wp_text_input(
+					[
+						'id'          => self::HIGHLIGHT_TITLE,
+						'value'       => self::text( $id, self::HIGHLIGHT_TITLE ),
+						'label'       => esc_html__( 'Highlight title', 'pfh-widgets' ),
+						'placeholder' => 'Smaak — Mandarijn',
+						'desc_tip'    => true,
+						'description' => esc_html__( 'The small line above the highlights, different for every product. Empty leaves it out.', 'pfh-widgets' ),
+					]
+				);
+				?>
+			</div>
 			<?php self::repeater( $id, self::HIGHLIGHTS ); ?>
 
 			<?php self::section( esc_html__( 'Tab: Ingredienten', 'pfh-widgets' ) ); ?>
@@ -230,6 +270,60 @@ class PFH_Widgets_Product_Fields {
 				</p>
 			</div>
 			<?php self::repeater( $id, self::NUTRITION ); ?>
+
+			<?php self::section( esc_html__( 'Related products', 'pfh-widgets' ) ); ?>
+			<div class="options_group">
+				<p class="form-field">
+					<label for="<?php echo esc_attr( self::RELATED ); ?>"><?php esc_html_e( 'Show these products', 'pfh-widgets' ); ?></label>
+					<select class="wc-product-search" multiple="multiple" style="width:50%" id="<?php echo esc_attr( self::RELATED ); ?>"
+						name="<?php echo esc_attr( self::RELATED ); ?>[]"
+						data-placeholder="<?php esc_attr_e( 'Search for a product…', 'pfh-widgets' ); ?>"
+						data-action="woocommerce_json_search_products_and_variations"
+						data-exclude="<?php echo esc_attr( $id ); ?>">
+						<?php
+						foreach ( self::related( $id ) as $related_id ) {
+							$related = wc_get_product( $related_id );
+
+							if ( $related ) {
+								printf( '<option value="%s" selected="selected">%s</option>', esc_attr( $related_id ), esc_html( wp_strip_all_tags( $related->get_formatted_name() ) ) );
+							}
+						}
+						?>
+					</select>
+					<span class="description" style="display:block;margin:6px 0 0">
+						<?php esc_html_e( 'Leave empty and the section shows other products from this product\'s own category. With neither, it is not shown at all.', 'pfh-widgets' ); ?>
+					</span>
+				</p>
+			</div>
+
+			<?php self::section( esc_html__( 'Why this product', 'pfh-widgets' ) ); ?>
+			<div class="options_group">
+				<?php
+				woocommerce_wp_text_input(
+					[
+						'id'          => self::USP_EYEBROW,
+						'value'       => self::text( $id, self::USP_EYEBROW ),
+						'label'       => esc_html__( 'Eyebrow', 'pfh-widgets' ),
+						'placeholder' => 'WAAROM GIA...GIAMAS',
+					]
+				);
+
+				woocommerce_wp_text_input(
+					[
+						'id'          => self::USP_TITLE,
+						'value'       => self::text( $id, self::USP_TITLE ),
+						'label'       => esc_html__( 'Section title', 'pfh-widgets' ),
+						'placeholder' => 'Puur natuur, <em>ongeevenaard</em> van smaak',
+						'desc_tip'    => true,
+						'description' => esc_html__( 'Wrap a word in <em> to set it in the italic serif, as drawn.', 'pfh-widgets' ),
+					]
+				);
+				?>
+			</div>
+			<?php self::repeater( $id, self::USP ); ?>
+
+			<?php self::section( esc_html__( 'Questions', 'pfh-widgets' ) ); ?>
+			<?php self::repeater( $id, self::FAQ ); ?>
 		</div>
 		<?php
 		self::script();
@@ -443,6 +537,9 @@ class PFH_Widgets_Product_Fields {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput
 		$plain = [
 			self::BADGE           => 'text',
+			self::HIGHLIGHT_TITLE => 'text',
+			self::USP_EYEBROW     => 'text',
+			self::USP_TITLE       => 'html',
 			self::STORAGE_TITLE   => 'text',
 			self::NUTRITION_TITLE => 'text',
 			self::INGREDIENTS     => 'html',
@@ -469,6 +566,21 @@ class PFH_Widgets_Product_Fields {
 		}
 
 		self::put( $product_id, self::NUTRITION_COLS, array_filter( $columns ) ? $columns : '' );
+
+		$related = [];
+
+		if ( isset( $_POST[ self::RELATED ] ) && is_array( $_POST[ self::RELATED ] ) ) {
+			foreach ( wp_unslash( $_POST[ self::RELATED ] ) as $related_id ) {
+				$related_id = absint( $related_id );
+
+				// A product cannot be related to itself.
+				if ( $related_id && $related_id !== (int) $product_id ) {
+					$related[] = $related_id;
+				}
+			}
+		}
+
+		self::put( $product_id, self::RELATED, array_values( array_unique( $related ) ) );
 
 		foreach ( self::repeaters() as $key => $spec ) {
 			$rows = [];
@@ -639,6 +751,18 @@ class PFH_Widgets_Product_Fields {
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * The products chosen to sit beside this one.
+	 *
+	 * @param int $product_id Product.
+	 * @return int[]
+	 */
+	public static function related( $product_id ) {
+		$value = get_post_meta( (int) $product_id, self::RELATED, true );
+
+		return is_array( $value ) ? array_values( array_filter( array_map( 'absint', $value ) ) ) : [];
 	}
 
 	/**

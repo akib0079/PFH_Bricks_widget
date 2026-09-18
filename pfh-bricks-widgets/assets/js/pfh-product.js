@@ -310,7 +310,6 @@
 			return;
 		}
 
-		var boxLabel = form.querySelector( '[data-pfh-box-label]' );
 		var now = form.parentNode.querySelector( '[data-pfh-price-now]' );
 		var was = form.parentNode.querySelector( '[data-pfh-price-was]' );
 		var save = form.parentNode.querySelector( '[data-pfh-price-save]' );
@@ -430,17 +429,6 @@
 				}
 			} );
 
-			/*
-			 * The line above what is in the box repeats the last group and its
-			 * choice, as drawn, so it has to follow the chooser too.
-			 */
-			if ( boxLabel && groups.length ) {
-				var last = groups[ groups.length - 1 ].querySelector( '.pfh-pdp__attr-label' );
-
-				if ( last ) {
-					boxLabel.textContent = last.textContent.trim();
-				}
-			}
 
 			var found = match();
 

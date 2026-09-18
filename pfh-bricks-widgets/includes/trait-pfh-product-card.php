@@ -217,6 +217,44 @@ trait PFH_Product_Card_Trait {
 				unset( $args['order'] );
 				break;
 
+			case 'related':
+				/*
+				 * What the editor chose for this product, else the rest of its
+				 * own category, else nothing at all — the section is not worth
+				 * showing filled with whatever the shop happens to sell.
+				 */
+				$current = $this->related_to();
+				$chosen  = $current ? PFH_Widgets_Product_Fields::related( $current ) : [];
+
+				if ( $chosen ) {
+					$args['post__in'] = $chosen;
+					$args['orderby']  = 'post__in';
+					unset( $args['order'] );
+
+					break;
+				}
+
+				$cats = $current ? wp_get_post_terms( $current, 'product_cat', [ 'fields' => 'ids' ] ) : [];
+
+				if ( $current && $cats && ! is_wp_error( $cats ) ) {
+					$args['tax_query'][] = [
+						'taxonomy'         => 'product_cat',
+						'field'            => 'term_id',
+						'terms'            => $cats,
+						'include_children' => true,
+					];
+
+					// Never the product the shopper is already looking at. The
+					// order is the shop's own, so what the editor arranged in
+					// the category is what appears here.
+					$args['post__not_in'] = [ $current ];
+
+					break;
+				}
+
+				$args['post__in'] = [ 0 ];
+				break;
+
 			case 'onsale':
 				$on_sale = function_exists( 'wc_get_product_ids_on_sale' ) ? wc_get_product_ids_on_sale() : [];
 				// The 0 keeps post__in non-empty so an empty sale list returns nothing
@@ -741,6 +779,33 @@ trait PFH_Product_Card_Trait {
 			),
 			$glyph // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above.
 		);
+	}
+
+	/**
+	 * The product these are related to.
+	 *
+	 * @return int
+	 */
+	private function related_to() {
+		if ( is_singular( 'product' ) ) {
+			return (int) get_queried_object_id();
+		}
+
+		$preview = (int) $this->get( 'previewId', 0 );
+
+		if ( $preview ) {
+			return $preview;
+		}
+
+		global $post;
+
+		if ( $post && 'product' === get_post_type( $post ) ) {
+			return (int) $post->ID;
+		}
+
+		$recent = get_posts( [ 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => 1, 'fields' => 'ids' ] );
+
+		return $recent ? (int) $recent[0] : 0;
 	}
 
 	private function source_controls() {

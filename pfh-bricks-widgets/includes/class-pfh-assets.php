@@ -175,6 +175,13 @@ class PFH_Widgets_Assets {
 			PFH_WIDGETS_VERSION
 		);
 
+		wp_register_style(
+			'pfh-product-usp',
+			PFH_WIDGETS_URL . 'assets/css/pfh-product-usp.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
 		wp_register_script(
 			'pfh-product-tabs',
 			PFH_WIDGETS_URL . 'assets/js/pfh-product-tabs.js',
@@ -553,6 +560,14 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-product-tabs' );
 		wp_enqueue_script( 'pfh-product-tabs' );
+	}
+
+	/**
+	 * Enqueue everything the reasons band needs. No script: it is a hover.
+	 */
+	public static function product_usp() {
+		self::base();
+		wp_enqueue_style( 'pfh-product-usp' );
 	}
 
 	/**

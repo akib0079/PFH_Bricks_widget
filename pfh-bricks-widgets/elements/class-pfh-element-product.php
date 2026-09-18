@@ -291,8 +291,8 @@ class PFH_Element_Product extends \Bricks\Element {
 			esc_html__( 'Line above them', 'pfh-widgets' ),
 			[
 				'inline'      => true,
-				'placeholder' => 'SMAAK — PERZIK',
-				'description' => esc_html__( 'Left empty it repeats the last variant group and its choice, as drawn, and follows the chooser. Type something here to fix it instead.', 'pfh-widgets' ),
+				'placeholder' => 'Smaak — Mandarijn',
+				'description' => esc_html__( 'Used for products with no Highlight title of their own. Each product sets its own under Products For Home.', 'pfh-widgets' ),
 			]
 		);
 	}
@@ -893,40 +893,6 @@ class PFH_Element_Product extends \Bricks\Element {
 	}
 
 	/**
-	 * "Smaak — Perzik": the last variant group and what is chosen in it.
-	 *
-	 * The design repeats it above what is in the box, and the chooser keeps it
-	 * in step. Rendered here as well so it is right before any script runs.
-	 *
-	 * @param WC_Product $product Product.
-	 * @return string
-	 */
-	private function variant_line( $product ) {
-		if ( ! $product->is_type( 'variable' ) || ! $this->switched_on( 'showVariants' ) ) {
-			return '';
-		}
-
-		$attributes = $product->get_variation_attributes();
-
-		if ( ! $attributes ) {
-			return '';
-		}
-
-		$names    = array_keys( $attributes );
-		$name     = end( $names );
-		$label    = $this->attribute_label( $name, $product );
-		$defaults = $product->get_default_attributes();
-		$chosen   = isset( $defaults[ sanitize_title( $name ) ] ) ? (string) $defaults[ sanitize_title( $name ) ] : '';
-
-		if ( '' === $chosen ) {
-			return $label;
-		}
-
-		// Double quotes: an escape in single quotes is the literal characters.
-		return $label . " \u{2014} " . $this->option_label( $name, $chosen );
-	}
-
-	/**
 	 * The readable name of one attribute group.
 	 *
 	 * WooCommerce hands back the raw taxonomy when its attribute cache has not
@@ -981,12 +947,19 @@ class PFH_Element_Product extends \Bricks\Element {
 
 		echo '<div class="pfh-pdp__box">';
 
-		$typed  = trim( (string) $this->setting( 'highlightsLabel', '' ) );
-		$label  = '' !== $typed ? $typed : $this->variant_line( $product );
-		$mirror = '' === $typed ? ' data-pfh-box-label' : '';
+		/*
+		 * The product's own line first: it differs per product and is set
+		 * where the rest of the product is. The element's wording is only a
+		 * fallback for products that have not been given one.
+		 */
+		$label = trim( PFH_Widgets_Product_Fields::text( $product->get_id(), PFH_Widgets_Product_Fields::HIGHLIGHT_TITLE ) );
 
-		if ( '' !== $label || '' === $typed ) {
-			printf( '<p class="pfh-pdp__attr-label"%s>%s</p>', $mirror, esc_html( $label ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- literal attribute.
+		if ( '' === $label ) {
+			$label = trim( (string) $this->setting( 'highlightsLabel', '' ) );
+		}
+
+		if ( '' !== $label ) {
+			echo '<p class="pfh-pdp__attr-label">' . esc_html( $label ) . '</p>';
 		}
 
 		echo '<ul class="pfh-pdp__list">';

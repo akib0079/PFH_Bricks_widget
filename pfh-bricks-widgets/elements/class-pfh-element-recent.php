@@ -24,6 +24,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/*
+ * It extends the product slider, so the parent has to be there before this
+ * class is declared. Bricks loads an element file on its own, and a parent
+ * merely assumed to be loaded is a fatal on a live page rather than a notice.
+ */
+if ( ! class_exists( 'PFH_Element_Products' ) && defined( 'PFH_WIDGETS_DIR' ) ) {
+	require_once PFH_WIDGETS_DIR . 'elements/class-pfh-element-products.php';
+}
+
 class PFH_Element_Recent extends PFH_Element_Products {
 
 	/** Where the deferred render finds its settings. */

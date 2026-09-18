@@ -180,6 +180,25 @@ update_post_meta( $id, PFH_Widgets_Product_Fields::NUTRITION, [
 	[ 'c1' => '— waarvan suikers', 'c2' => '0,1 g', 'c3' => '18,4 g' ],
 ] );
 
+update_post_meta( $id, PFH_Widgets_Product_Fields::HIGHLIGHT_TITLE, 'Smaak — Mandarijn' );
+
+update_post_meta( $id, PFH_Widgets_Product_Fields::USP_EYEBROW, 'WAAROM GIA...GIAMAS' );
+update_post_meta( $id, PFH_Widgets_Product_Fields::USP_TITLE, 'Puur natuur, <em>ongeevenaard</em> van smaak' );
+update_post_meta( $id, PFH_Widgets_Product_Fields::USP, [
+	[ 'icon' => '', 'label' => 'Authentiek Grieks', 'text' => 'Gemaakt van vers geoogst Grieks fruit, met eeuwenoude tradities in elke fles.', 'color' => '' ],
+	[ 'icon' => '', 'label' => 'Zonder kunstmatige toevoegingen', 'text' => 'Geen conserveringsmiddelen, kunstmatige kleurstoffen, -zoetstoffen of gluten.', 'color' => '' ],
+	[ 'icon' => '', 'label' => 'Aanpasbare dosering', 'text' => 'Gebruik de doseerdop of pomp voor de perfecte sterkte.', 'color' => '' ],
+	[ 'icon' => '', 'label' => 'Bekroond product', 'text' => 'Wereldwijde erkenning voor Gia giamas met de Superior Taste Award.', 'color' => '' ],
+] );
+
+update_post_meta( $id, PFH_Widgets_Product_Fields::FAQ, [
+	// Deliberately unlike the element's own first question, so a test that finds
+	// it knows which of the two it is looking at.
+	[ 'label' => 'Hoeveel glazen haal ik uit dit pakket?', 'text' => 'Ongeveer 33 glazen van 467ml per fles.' ],
+	[ 'label' => 'Heb je een pomp nodig?', 'text' => 'Nee, maar de pomp maakt doseren makkelijker.' ],
+	[ 'label' => 'Zit er suiker in?', 'text' => 'Alleen de natuurlijke suikers uit het fruit.' ],
+] );
+
 // Variations: every type x a few flavours, one of them reduced.
 $built = 0;
 foreach ( $terms['soort'] as $type_name => $type_slug ) {

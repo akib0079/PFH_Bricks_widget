@@ -109,6 +109,24 @@ class PFH_Element_Faq extends \Bricks\Element {
 
 		/* ---- items ---- */
 
+		$this->controls['fromProduct'] = [
+			'tab'         => 'content',
+			'group'       => 'items',
+			'label'       => esc_html__( 'Use the product\'s own questions', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'description' => esc_html__( 'For a product page. Each product sets its questions under Products For Home, and the ones below are used for any product that has none.', 'pfh-widgets' ),
+		];
+
+		$this->controls['productId'] = [
+			'tab'         => 'content',
+			'group'       => 'items',
+			'label'       => esc_html__( 'Product to read while editing', 'pfh-widgets' ),
+			'type'        => 'text',
+			'inline'      => true,
+			'placeholder' => esc_html__( 'e.g. 1482', 'pfh-widgets' ),
+			'required'    => [ 'fromProduct', '=', true ],
+		];
+
 		$this->controls['items'] = [
 			'tab'           => 'content',
 			'group'         => 'items',
@@ -452,7 +470,7 @@ class PFH_Element_Faq extends \Bricks\Element {
 	private function items() {
 		$out = [];
 
-		foreach ( (array) $this->get( 'items', [] ) as $row ) {
+		foreach ( $this->rows() as $row ) {
 			$q = isset( $row['q'] ) ? trim( PFH_Widgets_Helpers::dd( (string) $row['q'] ) ) : '';
 
 			if ( '' === $q ) {
@@ -574,6 +592,36 @@ class PFH_Element_Faq extends \Bricks\Element {
 				'--pfh-fq-bg-img'  => $this->background_url() ? 'url(' . esc_url( $this->background_url() ) . ')' : 'none',
 			]
 		);
+	}
+
+	/**
+	 * The questions to draw: the product's own, else the ones set here.
+	 *
+	 * A product with none falls back rather than showing an empty accordion,
+	 * which is the same rule the rest of the product page follows.
+	 *
+	 * @return array
+	 */
+	private function rows() {
+		$own = [];
+
+		if ( $this->is_on( 'fromProduct', false ) && class_exists( 'PFH_Widgets_Product_Fields' ) ) {
+			$id = is_singular( 'product' ) ? (int) get_queried_object_id() : (int) $this->get( 'productId', 0 );
+
+			if ( ! $id ) {
+				global $post;
+
+				$id = ( $post && 'product' === get_post_type( $post ) ) ? (int) $post->ID : 0;
+			}
+
+			if ( $id ) {
+				foreach ( PFH_Widgets_Product_Fields::rows( $id, PFH_Widgets_Product_Fields::FAQ ) as $row ) {
+					$own[] = [ 'q' => $row['label'], 'a' => $row['text'] ];
+				}
+			}
+		}
+
+		return $own ? $own : (array) $this->get( 'items', [] );
 	}
 
 	private function get( $key, $default = null ) {

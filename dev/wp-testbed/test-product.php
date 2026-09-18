@@ -290,11 +290,17 @@ ok( 'and the second one is', isset( $groups[1][1] ) && false !== strpos( $groups
 ok( 'naming a group still decides it instead', false !== strpos( pdp( $variable->ID, [ 'tintedAttrs' => 'type' ] ), 'pfh-pdp__attr--soft" data-pfh-attr="attribute_pa_soort"' ) );
 
 echo "\n── the line above what is in the box ──\n";
-ok( 'it is drawn', false !== strpos( $html, 'data-pfh-box-label' ) );
-// Double quotes: the escape is literal in single ones.
-ok( 'repeating the last group and its choice', false !== strpos( $html, "Smaak \u{2014} Appel" ) );
-ok( 'and a typed one is used as typed', false !== strpos( pdp( $variable->ID, [ 'highlightsLabel' => 'WAT ZIT ERIN' ] ), '>WAT ZIT ERIN</p>' ) );
-ok( 'which then stops following the chooser', false === strpos( pdp( $variable->ID, [ 'highlightsLabel' => 'WAT ZIT ERIN' ] ), 'data-pfh-box-label' ) );
+/*
+ * The product's own Highlight title, set where the rest of the product is, so
+ * it can differ per product. It used to repeat the variant chooser and follow
+ * it; that was replaced on request with something the client controls.
+ */
+update_post_meta( $variable->ID, PFH_Widgets_Product_Fields::HIGHLIGHT_TITLE, 'Smaak - Mandarijn' );
+ok( 'it says what the product says', false !== strpos( pdp( $variable->ID ), '>Smaak - Mandarijn</p>' ) );
+ok( 'and it is fixed, not following the chooser', false === strpos( pdp( $variable->ID ), 'data-pfh-box-label' ) );
+
+delete_post_meta( $variable->ID, PFH_Widgets_Product_Fields::HIGHLIGHT_TITLE );
+ok( 'a product without one falls back to the element', false !== strpos( pdp( $variable->ID, [ 'highlightsLabel' => 'WAT ZIT ERIN' ] ), '>WAT ZIT ERIN</p>' ) );
 
 echo "\n── the quantity reads minus, figure, plus ──\n";
 $minus = strpos( $html, 'data-pfh-qty="-1"' );
