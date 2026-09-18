@@ -118,6 +118,10 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-product-usp.php',
 				'class' => 'PFH_Element_Product_Usp',
 			],
+			'pfh-instagram' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-instagram.php',
+				'class' => 'PFH_Element_Instagram',
+			],
 			'pfh-cta'        => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-cta.php',
 				'class' => 'PFH_Element_Cta',
@@ -223,6 +227,7 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Consent::init();
 		PFH_Widgets_Permalinks::init();
 		PFH_Widgets_Badge::init();
+		PFH_Widgets_Instagram::init();
 		PFH_Widgets_Documents::init();
 		PFH_Widgets_Diagnostics::init();
 	}
@@ -260,6 +265,7 @@ class PFH_Widgets_Plugin {
 	 */
 	public static function deactivate() {
 		wp_clear_scheduled_hook( PFH_Widgets_Reviews::CRON );
+		wp_clear_scheduled_hook( PFH_Widgets_Instagram::CRON );
 		flush_rewrite_rules( false );
 	}
 

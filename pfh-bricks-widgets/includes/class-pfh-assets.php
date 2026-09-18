@@ -182,6 +182,21 @@ class PFH_Widgets_Assets {
 			PFH_WIDGETS_VERSION
 		);
 
+		wp_register_style(
+			'pfh-instagram',
+			PFH_WIDGETS_URL . 'assets/css/pfh-instagram.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_script(
+			'pfh-instagram',
+			PFH_WIDGETS_URL . 'assets/js/pfh-instagram.js',
+			[],
+			PFH_WIDGETS_VERSION,
+			true
+		);
+
 		wp_register_script(
 			'pfh-product-tabs',
 			PFH_WIDGETS_URL . 'assets/js/pfh-product-tabs.js',
@@ -560,6 +575,15 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-product-tabs' );
 		wp_enqueue_script( 'pfh-product-tabs' );
+	}
+
+	/**
+	 * Enqueue everything the Instagram strip needs.
+	 */
+	public static function instagram() {
+		self::base();
+		wp_enqueue_style( 'pfh-instagram' );
+		wp_enqueue_script( 'pfh-instagram' );
 	}
 
 	/**

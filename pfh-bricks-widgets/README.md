@@ -59,7 +59,7 @@ its Custom-list source.
 
 ## Store services
 
-Four modules that exist to take plugins off the site, not to add features.
+Five modules that exist to take plugins off the site, not to add features.
 Each is a tab under **WP Admin → Products For Home**.
 
 | Tab | Replaces | Off by default? |
@@ -67,6 +67,7 @@ Each is a tab under **WP Admin → Products For Home**.
 | **Cookie consent** | Complianz Privacy Suite | No — on, with blocking |
 | **Permalinks** | Premmerce Permalink Manager | No — defaults match the live URLs |
 | **WebwinkelKeur** | WebwinkelKeur | Badge is off; credentials empty |
+| **Instagram** | Smash Balloon / Spotlight | Token empty — the strip falls back to Bricks |
 | **Invoices** | PDF Invoices & Packing Slips | No — but nothing is numbered until an invoice is opened |
 
 ### Cookie consent
@@ -1174,6 +1175,75 @@ The same accordion as the shop page, reading the product first. Switch on
 questions live in the Products For Home tab beside everything else — and a
 product with none falls back to the questions typed on the element, which is
 what the shop page keeps using.
+
+---
+
+## PFH Instagram Strip
+
+The heading, the account, two round arrows, and under all of it a row of square
+photographs that runs past both edges of the page and never reaches an end.
+
+### Where the pictures come from
+
+1. **The shop's Instagram feed**, when a token is connected under
+   **Products For Home → Instagram**. One account for the whole shop, so the
+   strip is the same wherever it is dropped.
+2. **The pictures set on the element**, whenever there is no token — and
+   equally when Instagram is down, the token has lapsed, or the answer comes
+   back in a shape nobody expected. The shop does not notice; it just shows the
+   other set.
+3. **Nothing.** With neither, the section is left off the page rather than
+   drawn hollow. In the builder it says so instead, and names where the token
+   goes.
+
+A video's poster is used rather than the file, a post with no picture at all is
+skipped, and the caption becomes the alt text — trimmed, with its hashtag tail
+and any emoji dropped. Emoji are dropped deliberately: the feed is cached in
+the options table, and on a shop still running utf8 rather than utf8mb4 a
+4-byte character makes that write fail outright, so the cache would never
+store and every page view would go back to Instagram.
+
+### The token
+
+It lives in the settings screen, not on the element, and `PFH_INSTAGRAM_TOKEN`
+in `wp-config.php` beats it — which is where it belongs on production, since a
+token in the database is in every backup and export. A long-lived token lasts
+60 days, so a weekly cron refreshes the stored one before it lapses; a token in
+`wp-config.php` is left alone, because it is the site owner's to manage and
+cannot be written back anyway. The screen says which of the two is in play,
+whether Instagram is answering, and when the token runs out.
+
+The feed is fetched once every few hours and cached. A failed call is cached
+for fifteen minutes, so a revoked token costs one request a quarter of an hour
+rather than one per page view.
+
+### The marquee
+
+The track is moved with a transform rather than `scrollLeft`: a transform is
+composited, so the drift stays smooth while the rest of the page is doing its
+own work. One set of pictures is printed and the script clones it until the row
+is wider than the screen, then wraps at the width of a single set — and because
+the wrap falls on the seam where one set ends and the next begins, there is
+nothing to see when it happens.
+
+It holds still whenever moving would be rude or pointless: under the cursor,
+during a drag, while the tab is hidden, while the section is off screen, and
+for anyone who asked for reduced motion. The arrows and dragging keep working
+in every one of those cases. An arrow moves it by exactly one picture, eased;
+a drag throws it and settles; a drag that ends on a picture does not also open
+it.
+
+Speed, direction and whether it pauses under the cursor are all controls. Speed
+0 holds it still and leaves the arrows and dragging working.
+
+Nothing is cloned on the server — doubling the markup would double what a
+browser downloads for no gain — and the clones that the script makes are marked
+as scenery, so a screen reader reads the pictures once and the keyboard walks
+them once.
+
+Below 992px the pictures come down to 220px, below 560px to 180px, and below
+768px the account and the arrows take their own row under the title rather than
+crushing it.
 
 ---
 

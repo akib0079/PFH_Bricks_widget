@@ -1,0 +1,292 @@
+/**
+ * The Instagram strip.
+ *
+ * A heading row inside the content column, and under it a row of square
+ * photographs that runs past both edges of the page. The track is moved with a
+ * transform rather than scrollLeft: a transform is composited, so the drift
+ * stays smooth while the rest of the page is doing its own work.
+ */
+
+.pfh-ig {
+	--pfh-ig-max: 1240px;
+	--pfh-ig-tile: var(--pfh-ig-tile-set, 272px);
+	--pfh-ig-gap: var(--pfh-ig-gap-set, 24px);
+	--pfh-ig-head: var(--pfh-ig-head-set, 36px);
+	--pfh-ig-pt: var(--pfh-ig-pt-set, 72px);
+	--pfh-ig-pb: var(--pfh-ig-pb-set, 72px);
+	--pfh-ig-title: var(--pfh-ig-title-set, 36px);
+	--pfh-ig-pill: var(--pfh-ig-pill-set, 36px);
+	--pfh-ig-nav: var(--pfh-ig-nav-set, 38px);
+	--pfh-ig-radius: 15px;
+	--pfh-ig-title-ink: #14181b;
+	--pfh-ig-accent: #2b5f63;
+	--pfh-ig-pill-ink: #14181b;
+	--pfh-ig-pill-line: #cfdbd6;
+	--pfh-ig-nav-ink: #14181b;
+	--pfh-ig-nav-line: #dcd8c6;
+
+	display: block;
+	padding-block: var(--pfh-ig-pt) var(--pfh-ig-pb);
+	font-family: var(--pfh-font);
+	overflow: hidden;
+}
+
+.pfh-ig__inner {
+	max-width: calc(var(--pfh-ig-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	width: 100%;
+}
+
+/* ------------------------------------------------------------------ *
+ * Heading row
+ * ------------------------------------------------------------------ */
+
+.pfh-ig__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 20px;
+	margin-bottom: var(--pfh-ig-head);
+}
+
+.pfh-ig .pfh-ig__title {
+	margin: 0;
+	color: var(--pfh-ig-title-ink);
+	font-size: var(--pfh-ig-title);
+	font-weight: 600;
+	line-height: 1.15;
+	letter-spacing: -.01em;
+}
+
+/* The one serif note in the row, and no underline: unlike the shop
+   headings this word is not a link to anywhere. */
+.pfh-ig__title em,
+.pfh-ig__title i {
+	font-family: var(--pfh-ig-serif, "Playfair Display", Georgia, serif);
+	font-style: italic;
+	font-weight: 400;
+	color: var(--pfh-ig-accent);
+	text-decoration: none;
+}
+
+.pfh-ig__tools {
+	flex: none;
+	display: flex;
+	align-items: center;
+	gap: 18px;
+}
+
+.pfh-ig__pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	height: var(--pfh-ig-pill);
+	padding-inline: 14px;
+	border: 1px solid var(--pfh-ig-pill-line);
+	border-radius: 999px;
+	color: var(--pfh-ig-pill-ink);
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 1;
+	white-space: nowrap;
+	text-decoration: none;
+	transition: border-color var(--pfh-speed) var(--pfh-ease), color var(--pfh-speed) var(--pfh-ease);
+}
+
+a.pfh-ig__pill:hover {
+	border-color: var(--pfh-ig-accent);
+	color: var(--pfh-ig-accent);
+}
+
+.pfh-ig__pill-icon {
+	width: 16px;
+	height: 16px;
+	flex: none;
+}
+
+.pfh-ig__nav {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.pfh-ig__arrow {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--pfh-ig-nav);
+	height: var(--pfh-ig-nav);
+	padding: 0;
+	border: 1px solid var(--pfh-ig-nav-line);
+	border-radius: 50%;
+	background: none;
+	color: var(--pfh-ig-nav-ink);
+	cursor: pointer;
+	transition: border-color var(--pfh-speed) var(--pfh-ease), background-color var(--pfh-speed) var(--pfh-ease), color var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-ig__arrow svg {
+	width: 14px;
+	height: 14px;
+}
+
+.pfh-ig__arrow:hover {
+	border-color: var(--pfh-ig-accent);
+	background: var(--pfh-ig-accent);
+	color: #fff;
+}
+
+.pfh-ig__arrow:focus-visible {
+	outline: 2px solid var(--pfh-ig-accent);
+	outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * The strip
+ * ------------------------------------------------------------------ */
+
+.pfh-ig__strip {
+	/*
+	 * Wider than the page on purpose: the photographs are meant to run off
+	 * both edges, so the row is clipped rather than fitted.
+	 */
+	overflow: hidden;
+	width: 100%;
+}
+
+.pfh-ig__track {
+	display: flex;
+	gap: var(--pfh-ig-gap);
+	width: max-content;
+	will-change: transform;
+}
+
+.pfh-ig__set {
+	display: flex;
+	flex: none;
+	gap: var(--pfh-ig-gap);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-ig__tile {
+	flex: none;
+	width: var(--pfh-ig-tile);
+	aspect-ratio: 1 / 1;
+	overflow: hidden;
+	border-radius: var(--pfh-ig-radius);
+	background: #f1f1ef;
+}
+
+.pfh-ig__link {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.pfh-ig__link:focus-visible {
+	outline: 2px solid var(--pfh-ig-accent);
+	outline-offset: -4px;
+	border-radius: var(--pfh-ig-radius);
+}
+
+.pfh-ig__img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	/* The lift is the whole effect: the picture grows inside a frame that
+	   does not move, so the row keeps its rhythm while one tile answers. */
+	transition: transform .5s var(--pfh-ease, ease);
+}
+
+.pfh-ig__tile:hover .pfh-ig__img {
+	transform: scale(1.05);
+}
+
+/* Once the script is driving it, the row is dragged rather than scrolled. */
+.pfh-ig__strip.is-live {
+	cursor: grab;
+	touch-action: pan-y;
+}
+
+.pfh-ig__strip.is-dragging {
+	cursor: grabbing;
+}
+
+.pfh-ig__strip.is-dragging .pfh-ig__img {
+	/* No hover growth mid-drag: the pointer is over a dozen tiles in turn. */
+	transform: none;
+}
+
+/* Before the script runs, the row is a plain scroller rather than a dead
+   clipped strip — a browser with no JavaScript can still see all of it. */
+.pfh-ig__strip:not(.is-live) {
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.pfh-ig__strip:not(.is-live)::-webkit-scrollbar {
+	display: none;
+}
+
+/* ---------- builder placeholder ---------- */
+
+.pfh-ig--empty {
+	padding: 40px;
+	border: 1px dashed rgba(20, 24, 27, .16);
+	border-radius: 12px;
+	color: #6b6b6b;
+	text-align: center;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 991px) {
+	.pfh-ig {
+		--pfh-ig-title: 30px;
+		--pfh-ig-tile: 220px;
+		--pfh-ig-gap: 16px;
+		--pfh-ig-head: 28px;
+		--pfh-ig-pt: 52px;
+		--pfh-ig-pb: 52px;
+	}
+}
+
+@media (max-width: 767px) {
+	/* The heading and the tools no longer fit on one line: the account and
+	   the arrows take their own row under the title, at its two ends. */
+	.pfh-ig__head {
+		display: grid;
+		gap: 16px;
+		justify-items: stretch;
+	}
+
+	.pfh-ig__tools {
+		justify-content: space-between;
+	}
+}
+
+@media (max-width: 560px) {
+	.pfh-ig {
+		--pfh-ig-title: 25px;
+		--pfh-ig-tile: 180px;
+		--pfh-ig-gap: 12px;
+	}
+
+	.pfh-ig__pill { font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-ig__img,
+	.pfh-ig__pill,
+	.pfh-ig__arrow {
+		transition: none;
+	}
+
+	.pfh-ig__tile:hover .pfh-ig__img {
+		transform: none;
+	}
+}

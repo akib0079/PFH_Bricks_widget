@@ -67,6 +67,32 @@ foreach ( $attributes as $slug => $values ) {
 	}
 }
 
+/*
+ * WooCommerce keeps the attribute list in a cache that was filled before these
+ * attributes existed, and nothing rebuilds it inside one request. A real shop
+ * never creates an attribute and renders a product in the same breath, so
+ * without this the fixture is the only place where wc_attribute_label() cannot
+ * find a label it plainly has — and the group heading comes out "Soort" where
+ * the shop says "Type".
+ */
+delete_transient( 'wc_attribute_taxonomies' );
+
+if ( class_exists( 'WC_Cache_Helper' ) ) {
+	WC_Cache_Helper::invalidate_cache_group( 'woocommerce-attributes' );
+}
+
+/*
+ * $wc_product_attributes is what wc_attribute_label() actually consults, and
+ * WooCommerce fills it once at init from the list above. Refill it here the
+ * same way, or every attribute made in this request stays invisible to it.
+ */
+global $wc_product_attributes;
+$wc_product_attributes = is_array( $wc_product_attributes ) ? $wc_product_attributes : [];
+
+foreach ( wc_get_attribute_taxonomies() as $taxonomy_row ) {
+	$wc_product_attributes[ wc_attribute_taxonomy_name( $taxonomy_row->attribute_name ) ] = $taxonomy_row;
+}
+
 $product = new WC_Product_Variable();
 $product->set_name( 'PFH...Fixture Starterspakket' );
 $product->set_slug( 'pfh-fixture-starterspakket' );
