@@ -28,6 +28,7 @@ Two halves:
 | **PFH Review Slider** | Products For Home | Live WebwinkelKeur reviews in a paged card grid, with a manual fallback |
 | **PFH Call To Action** | Products For Home | Closing card that overlaps the footer via a negative margin and its own stacking context |
 | **PFH Product** | Products For Home | The whole top of a product page: breadcrumbs, gallery with tag, title, rating, price with the amount saved, variant pills, what is in the box, quantity, add to cart and the promises |
+| **PFH Product Tabs** | Products For Home | Omschrijving, Ingredienten, Houdbaarheid and Voedingswaarden, with the steps panel beside them — all of it from fields on the product |
 | **PFH Product Highlight** | Products For Home | Static banner for one offer — every word, price and link typed in the panel, overlaps the footer |
 | **PFH Recently Viewed** | Products For Home | The product slider, showing only what this visitor has already looked at; renders nothing when that is nothing |
 | **PFH Rating Badge** | Products For Home | Inline "Excellent 9,7 | 270 reviews on WebwinkelKeur", live from the API |
@@ -1057,6 +1058,63 @@ Goes through the same endpoint the product cards use, so the cart drawer and
 the header count update the way they do everywhere else. Turn it off and the
 form posts normally. A failure says so and leaves the form alone, so the
 ordinary submit is still there.
+
+---
+
+## PFH Product Tabs
+
+The four panels under the product, and the steps panel beside them. Everything
+in them comes from the product, so one element covers every product in the
+shop.
+
+| Tab | Where it comes from |
+| --- | --- |
+| **Omschrijving** | The product's own description in WooCommerce. Every bullet in it is drawn with the tick from the design |
+| **Ingredienten** | The ingredients field, the allergens box, and the *Zonder* claims as ticked pills |
+| **Houdbaarheid** | A heading and a row of cards — icon, heading, text — as many as the product needs |
+| **Voedingswaarden** | A heading, a line under it, and a table whose three column headings and every row are the client's |
+
+Each tab has its own switch. A tab whose fields are empty is **not drawn at
+all** rather than opening onto a blank panel — except Omschrijving, which
+always shows and says *Geen informatie beschikbaar.* when there is nothing
+there. With every tab switched off the element renders nothing.
+
+### The fields
+
+All of them are in the **Products For Home** tab in the Product data box, so
+whoever adds a product fills them in where they are already working. The
+repeating ones — highlights, claims, storage cards, nutrition rows — add and
+remove rows, and the storage icons come from the media library with the
+supplied icon as the default.
+
+The reader understands other field shapes too: a plain list of strings, or
+ACF's own row key names, so an ACF field can be pointed at instead by changing
+the field name on the element.
+
+### The steps panel
+
+The copy is the same on every product, so it is set once on the element. Each
+product can still switch it off — *Show "In 3 stappen klaar"* in the same tab —
+and when it is off the panels widen to fill the space rather than leaving a
+gap.
+
+### Tabs, properly
+
+The strip is a real tablist: the buttons carry `role="tab"`, only the open
+panel is in the document, and only the open tab is in the tab order, so the
+arrow keys, Home and End move between them the way they do anywhere else. The
+active underline is one element scaled from the centre, which is what keeps the
+row from shifting by a pixel on hover.
+
+The ticks in the description are a CSS mask on `li::before` rather than
+rewritten markup. Whatever the client types into WooCommerce comes out with the
+right bullet without anyone touching the HTML, and the tick takes its colour
+from the element's own token.
+
+Below 768px the strip scrolls sideways instead of wrapping — four wrapped tabs
+read as two rows of links — and the chosen tab is scrolled into view. The
+nutrition table gets its own scroller so a wide table never pushes the page
+sideways.
 
 ---
 

@@ -72,7 +72,15 @@ $product->set_name( 'PFH...Fixture Starterspakket' );
 $product->set_slug( 'pfh-fixture-starterspakket' );
 $product->set_status( 'publish' );
 $product->set_short_description( 'Het complete starterspakket voor thuis gemaakt van 100% Grieks fruit, doseerpomp en twee speciale glazen.' );
-$product->set_description( 'Een frisse smaak van Griekenland.' );
+$product->set_description(
+	"<h2>Een frisse smaak van Griekenland</h2>\n"
+	. "<p>Het pakket neemt je mee naar de zonnige heuvels van Griekenland. Elk flesje vruchtensap is gemaakt van zorgvuldig geselecteerde Griekse vruchten.</p>\n"
+	. "<p>Dankzij de unieke formule krijg je tot 33 glazen heerlijke huisgemaakte limonade uit een fles van 1000ml.</p>\n"
+	. "<ul><li>Gemaakt van 100% Grieks fruit, zonder kunstmatige toevoegingen</li>"
+	. "<li>Glutenvrij en vrij van conserveringsmiddelen</li>"
+	. "<li>SKAL bio gecertificeerd</li>"
+	. "<li>Geschikt voor stil en bruisend water</li></ul>"
+);
 
 $objects = [];
 foreach ( $attributes as $slug => $values ) {
@@ -140,6 +148,36 @@ update_post_meta( $id, PFH_Widgets_Product_Fields::HIGHLIGHTS, [
 	[ 'label' => '1x 1000ml Griekse vruchtensap', 'note' => '33 glazen van 467ml' ],
 	[ 'label' => '1x Doseerpomp', 'note' => 'Precies 30ml' ],
 	[ 'label' => '2x Speciale glazen (467ml)', 'note' => 'Inclusief markering' ],
+] );
+
+// The tab fields.
+update_post_meta( $id, PFH_Widgets_Product_Fields::INGREDIENTS, '<p><strong>Perzik (voorbeeld smaak):</strong> Vruchtensap uit concentraat van perzik (min. 50%), water, suiker, citroenzuur (E330), natuurlijk aroma.</p><p>De exacte ingredientenlijst verschilt per smaak.</p>' );
+update_post_meta( $id, PFH_Widgets_Product_Fields::ALLERGENS, 'Dit product bevat geen van de 14 grote allergenen. Geproduceerd in een faciliteit die ook andere vruchtenproducten verwerkt.' );
+update_post_meta( $id, PFH_Widgets_Product_Fields::FREE_FROM, [
+	[ 'label' => 'Glutenvrij' ],
+	[ 'label' => 'Conserveringsmiddelenvrij' ],
+	[ 'label' => 'Kunstmatige kleurstoffenvrij' ],
+	[ 'label' => 'Lactosevrij' ],
+	[ 'label' => 'Kunstmatige zoetstoffenvrij' ],
+	[ 'label' => 'Notenvrij' ],
+] );
+
+update_post_meta( $id, PFH_Widgets_Product_Fields::STORAGE_TITLE, 'Bewaring & houdbaarheid' );
+update_post_meta( $id, PFH_Widgets_Product_Fields::STORAGE, [
+	[ 'icon' => '', 'heading' => 'Bewaring & houdbaarheid', 'text' => 'Bewaar op kamertemperatuur, droog en uit direct zonlicht. Gemiddeld 12-18 maanden houdbaar.' ],
+	[ 'icon' => '', 'heading' => 'Na openen', 'text' => 'Na opening 30 dagen houdbaar. Bewaar gesloten op kamertemperatuur, niet in de koelkast.' ],
+	[ 'icon' => '', 'heading' => 'Licht & temperatuur', 'text' => 'Vermijd direct zonlicht en temperaturen boven 25°C.' ],
+	[ 'icon' => '', 'heading' => 'Invriezen', 'text' => 'Het concentraat is niet geschikt om in te vriezen.' ],
+] );
+
+update_post_meta( $id, PFH_Widgets_Product_Fields::NUTRITION_TITLE, 'Voedingswaarden' );
+update_post_meta( $id, PFH_Widgets_Product_Fields::NUTRITION_INTRO, 'Per 100ml bereide drank (1 glas, Classic smaak Perzik — voorbeeld)' );
+update_post_meta( $id, PFH_Widgets_Product_Fields::NUTRITION, [
+	[ 'c1' => 'Energie', 'c2' => '38 kcal / 158 kJ', 'c3' => '76 kcal / 316 kJ' ],
+	[ 'c1' => 'Vetten', 'c2' => '0,1 g', 'c3' => '18,4 g' ],
+	[ 'c1' => '— waarvan verzadigd', 'c2' => '0,1 g', 'c3' => '18,4 g' ],
+	[ 'c1' => 'Koolhydraten', 'c2' => '0,1 g', 'c3' => '18,4 g' ],
+	[ 'c1' => '— waarvan suikers', 'c2' => '0,1 g', 'c3' => '18,4 g' ],
 ] );
 
 // Variations: every type x a few flavours, one of them reduced.

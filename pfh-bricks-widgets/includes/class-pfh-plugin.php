@@ -106,6 +106,10 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-product.php',
 				'class' => 'PFH_Element_Product',
 			],
+			'pfh-product-tabs' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-product-tabs.php',
+				'class' => 'PFH_Element_Product_Tabs',
+			],
 			'pfh-cta'        => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-cta.php',
 				'class' => 'PFH_Element_Cta',
