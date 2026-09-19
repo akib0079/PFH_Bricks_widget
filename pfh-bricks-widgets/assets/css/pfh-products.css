@@ -10,6 +10,9 @@
 	--pfh-p-pad-top: var(--pfh-p-pad-top-set, 88px);
 	--pfh-p-pad-bot: var(--pfh-p-pad-bot-set, 88px);
 	--pfh-p-bg: #fff;
+	--pfh-p-image: none;
+	--pfh-p-bg-size: cover;
+	--pfh-p-bg-pos: center center;
 
 	--pfh-head-font: inherit;
 	--pfh-head-size: var(--pfh-head-size-set, 38px);
@@ -85,7 +88,17 @@
 	position: relative;
 	width: 100%;
 	padding-block: var(--pfh-p-pad-top) var(--pfh-p-pad-bot);
-	background: var(--pfh-p-bg);
+
+	/*
+	 * Longhand, not the shorthand: `background:` would reset the image every
+	 * time the colour is set, which is the whole reason the artwork behind
+	 * the related row kept disappearing behind white.
+	 */
+	background-color: var(--pfh-p-bg);
+	background-image: var(--pfh-p-image);
+	background-size: var(--pfh-p-bg-size);
+	background-position: var(--pfh-p-bg-pos);
+	background-repeat: no-repeat;
 }
 
 .pfh-prod--empty {

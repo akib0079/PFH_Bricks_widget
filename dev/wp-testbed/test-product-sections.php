@@ -78,6 +78,36 @@ ok( 'never the product being looked at', false === strpos( $fallback, 'PFH...Fix
 ok( 'as the same slider as everywhere else', false !== strpos( $fallback, 'pfh-prod' ) && false !== strpos( $fallback, 'pfh-prod__track' ) );
 ok( 'under the drawn heading', false !== strpos( $fallback, 'Gerelateerde' ) && false !== strpos( $fallback, '<em>Producten</em>' ) );
 
+echo "\n── the band behind it ──\n";
+ok( 'it sits on the artwork the design gives it', false !== strpos( $fallback, 'Group-1000001553.webp' ) );
+ok( '  as a real background, not a colour that wipes it out', false !== strpos( $fallback, '--pfh-p-image:url(' ) );
+ok( 'a picture chosen in Bricks wins', false !== strpos( related( $fixture_id, [ 'bgImage' => [ 'url' => 'https://example.com/chosen.jpg' ] ] ), 'chosen.jpg' ) );
+ok( 'a URL typed in wins over the default', false !== strpos( related( $fixture_id, [ 'bgUrl' => 'https://example.com/typed.jpg' ] ), 'typed.jpg' ) );
+ok( 'and clearing it leaves the section plain', false !== strpos( related( $fixture_id, [ 'bgUrl' => '' ] ), '--pfh-p-image:none' ) );
+ok( 'the fit is the client\'s', false !== strpos( related( $fixture_id, [ 'bgSize' => 'contain' ] ), '--pfh-p-bg-size:contain' ) );
+ok( '  and so is the position', false !== strpos( related( $fixture_id, [ 'bgPosition' => 'center bottom' ] ), '--pfh-p-bg-pos:center bottom' ) );
+
+/*
+ * The shop's own sliders are unchanged: they gained the controls but not a
+ * picture, so no existing page suddenly grows a background.
+ */
+$plain = ( function () {
+	$el = new PFH_Element_Products( [ 'id' => 'pl' ] );
+	$el->name = 'pfh-products';
+	$el->settings = [];
+
+	ob_start();
+	$el->render();
+
+	return (string) ob_get_clean();
+} )();
+ok( 'the shop\'s own slider still has none', false !== strpos( $plain, '--pfh-p-image:none' ) );
+
+// The colour and the picture are separate longhands; `background:` would drop
+// the picture every time the colour was set.
+$css = (string) file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/css/pfh-products.css' );
+ok( 'the stylesheet paints both, not one over the other', false !== strpos( $css, 'background-image: var(--pfh-p-image)' ) && false === strpos( $css, 'background: var(--pfh-p-bg);' ) );
+
 $chosen = array_slice( get_posts( [ 'post_type' => 'product', 'numberposts' => 2, 'fields' => 'ids', 'exclude' => [ $fixture_id ] ] ), 0, 2 );
 update_post_meta( $fixture_id, $F::RELATED, $chosen );
 $picked = related( $fixture_id );

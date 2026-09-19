@@ -410,6 +410,54 @@ class PFH_Element_Products extends \Bricks\Element {
 			'default' => [ 'hex' => '#ffffff' ],
 		];
 
+		$this->controls['bgImage'] = [
+			'tab'         => 'content',
+			'group'       => 'layout',
+			'label'       => esc_html__( 'Background image', 'pfh-widgets' ),
+			'type'        => 'image',
+			'description' => esc_html__( 'Sits behind the whole section, over the colour above.', 'pfh-widgets' ),
+		];
+
+		$this->controls['bgUrl'] = [
+			'tab'         => 'content',
+			'group'       => 'layout',
+			'label'       => esc_html__( 'or background image URL', 'pfh-widgets' ),
+			'type'        => 'text',
+			'inline'      => true,
+			'default'     => '',
+			'description' => esc_html__( 'Used only when no image is chosen above.', 'pfh-widgets' ),
+		];
+
+		$this->controls['bgSize'] = [
+			'tab'      => 'content',
+			'group'    => 'layout',
+			'label'    => esc_html__( 'Background fit', 'pfh-widgets' ),
+			'type'     => 'select',
+			'inline'   => true,
+			'default'  => 'cover',
+			'options'  => [
+				'cover'   => esc_html__( 'Fill the section', 'pfh-widgets' ),
+				'contain' => esc_html__( 'Fit inside it', 'pfh-widgets' ),
+				'auto'    => esc_html__( 'Its own size', 'pfh-widgets' ),
+			],
+		];
+
+		$this->controls['bgPosition'] = [
+			'tab'     => 'content',
+			'group'   => 'layout',
+			'label'   => esc_html__( 'Background position', 'pfh-widgets' ),
+			'type'    => 'select',
+			'inline'  => true,
+			'default' => 'center center',
+			'options' => [
+				'center center' => esc_html__( 'Centre', 'pfh-widgets' ),
+				'center top'    => esc_html__( 'Top', 'pfh-widgets' ),
+				'center bottom' => esc_html__( 'Bottom', 'pfh-widgets' ),
+				'left center'   => esc_html__( 'Left', 'pfh-widgets' ),
+				'right center'  => esc_html__( 'Right', 'pfh-widgets' ),
+			],
+		];
+
 		$this->controls['bleed'] = [
 			'tab'     => 'content',
 			'group'   => 'layout',
@@ -636,6 +684,29 @@ class PFH_Element_Products extends \Bricks\Element {
 	 * Tokens & config
 	 * ------------------------------------------------------------------ */
 
+	/**
+	 * The section's background image, as a CSS value.
+	 *
+	 * A chosen picture first, then a URL — which is what lets an element that
+	 * extends this one ship artwork of its own, since an image control cannot
+	 * carry a URL as its default.
+	 *
+	 * @return string url(...) or 'none'.
+	 */
+	protected function background_image() {
+		$url = PFH_Widgets_Helpers::image_url( $this->get( 'bgImage' ), 'full' );
+
+		if ( '' === $url ) {
+			$url = trim( (string) $this->get( 'bgUrl', '' ) );
+		}
+
+		if ( '' === $url ) {
+			return 'none';
+		}
+
+		return 'url(' . esc_url_raw( $url ) . ')';
+	}
+
 	private function build_vars() {
 		$stack = ', ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif';
 		$head  = trim( (string) $this->get( 'headFamily', 'Playfair Display' ) );
@@ -649,6 +720,9 @@ class PFH_Element_Products extends \Bricks\Element {
 				'--pfh-p-pad-top-set'  => PFH_Widgets_Helpers::unit( $this->get( 'paddingTop', 88 ) ),
 				'--pfh-p-pad-bot-set'  => PFH_Widgets_Helpers::unit( $this->get( 'paddingBottom', 88 ) ),
 				'--pfh-p-bg'           => PFH_Widgets_Helpers::color( $this->get( 'bgColor' ), '#ffffff' ),
+				'--pfh-p-image'        => $this->background_image(),
+				'--pfh-p-bg-size'      => $this->get( 'bgSize', 'cover' ),
+				'--pfh-p-bg-pos'       => $this->get( 'bgPosition', 'center center' ),
 
 				'--pfh-head-font'      => $head ? $head . $stack : 'inherit',
 				'--pfh-head-size-set'  => PFH_Widgets_Helpers::unit( $this->get( 'headSize', 38 ) ),

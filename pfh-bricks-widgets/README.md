@@ -1143,6 +1143,22 @@ the source is its own, and it is pinned:
 On a product page it always follows the product being viewed; the ID on the
 element is only so there is something to look at while building.
 
+### The band behind it
+
+Unlike the shop's own sliders this row sits on artwork, and ships with the
+design's: choose a picture under **Layout & background → Background image**, or
+paste a URL under the one below it, and either replaces the default. Clearing
+both leaves the section plain. *Background fit* and *Background position* are
+there for artwork that is a shape rather than a wash.
+
+Every slider gained the same four controls — the product slider, the recently
+viewed row and the grid — but only this one ships a picture, so no existing
+page grows a background it was not asked for.
+
+The section paints `background-color` and `background-image` as separate
+longhands. The shorthand would reset the picture every time the colour was set,
+which is the sort of thing that works until someone changes the colour.
+
 ---
 
 ## PFH Product USP

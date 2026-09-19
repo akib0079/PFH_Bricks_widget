@@ -31,6 +31,9 @@ if ( ! class_exists( 'PFH_Element_Products' ) && defined( 'PFH_WIDGETS_DIR' ) ) 
 
 class PFH_Element_Product_Related extends PFH_Element_Products {
 
+	/** The band this row sits on when nothing else is chosen. */
+	const BACKGROUND = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Group-1000001553.webp';
+
 	public $name = 'pfh-product-related';
 	public $icon = 'ti-layout-grid3';
 
@@ -54,6 +57,16 @@ class PFH_Element_Product_Related extends PFH_Element_Products {
 
 		if ( isset( $this->controls['limit'] ) ) {
 			$this->controls['limit']['default'] = 8;
+		}
+
+		/*
+		 * Unlike the shop's own sliders this row sits on a band. It goes in as
+		 * a URL rather than a picture because an image control cannot carry a
+		 * default — choosing one in the panel still wins over it.
+		 */
+		if ( isset( $this->controls['bgUrl'] ) ) {
+			$this->controls['bgUrl']['default']     = self::BACKGROUND;
+			$this->controls['bgUrl']['description'] = esc_html__( 'Used only when no image is chosen above. Empty leaves the section plain.', 'pfh-widgets' );
 		}
 
 		$this->controls['previewId'] = [
