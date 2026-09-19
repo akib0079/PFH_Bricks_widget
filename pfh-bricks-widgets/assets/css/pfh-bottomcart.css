@@ -1,0 +1,371 @@
+/**
+ * The bottom add-to-cart reminder.
+ *
+ * A card on the shop's artwork, sitting over whatever follows it — the footer,
+ * in the design. The overlap is a negative bottom margin on the section, the
+ * same way the closing banner does it, so nothing needs to know it is there.
+ */
+
+.pfh-bcart {
+	--pfh-bc-max: 1140px;
+	--pfh-bc-body: var(--pfh-bc-body-set, 505px);
+	--pfh-bc-pad: var(--pfh-bc-pad-set, 44px);
+	--pfh-bc-pt: var(--pfh-bc-pt-set, 64px);
+	--pfh-bc-overlap: var(--pfh-bc-overlap-set, 90px);
+	--pfh-bc-shot: var(--pfh-bc-shot-set, 420px);
+	--pfh-bc-form: var(--pfh-bc-form-set, 426px);
+	--pfh-bc-shot-max: 300px;
+	--pfh-bc-radius: 17px;
+	--pfh-bc-title: var(--pfh-bc-title-set, 36px);
+	--pfh-bc-price: var(--pfh-bc-price-set, 24px);
+	--pfh-bc-card: #cfe0d2;
+	--pfh-bc-eyebrow: #8a9a8a;
+	--pfh-bc-title-ink: #2f3e2b;
+	--pfh-bc-price-ink: #3c868c;
+	--pfh-bc-save-ink: #2f3e2b;
+	--pfh-bc-field-line: #828282;
+	--pfh-bc-button: #377a7f;
+	--pfh-bc-button-ink: #fff;
+	--pfh-bc-field: 39px;
+
+	position: relative;
+	/* Over the footer, not under it. */
+	z-index: 2;
+	display: block;
+	padding-top: var(--pfh-bc-pt);
+	font-family: var(--pfh-font);
+
+	/*
+	 * The whole point of the section: pull whatever comes next up behind the
+	 * card, so the page ends on the product rather than on a gap.
+	 */
+	margin-bottom: calc(-1 * var(--pfh-bc-overlap));
+}
+
+.pfh-bcart__inner {
+	max-width: calc(var(--pfh-bc-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+	width: 100%;
+}
+
+.pfh-bcart__card {
+	position: relative;
+	display: flex;
+	align-items: stretch;
+	justify-content: space-between;
+	gap: 24px;
+	padding: var(--pfh-bc-pad);
+	border-radius: var(--pfh-bc-radius);
+	background-color: var(--pfh-bc-card);
+	background-image: var(--pfh-bc-image);
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	overflow: hidden;
+}
+
+/* ------------------------------------------------------------------ *
+ * The words
+ * ------------------------------------------------------------------ */
+
+.pfh-bcart__body {
+	flex: 0 1 var(--pfh-bc-body);
+	max-width: var(--pfh-bc-body);
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.pfh-bcart .pfh-bcart__eyebrow {
+	margin: 0 0 18px;
+	color: var(--pfh-bc-eyebrow);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: 0;
+	text-transform: uppercase;
+}
+
+.pfh-bcart .pfh-bcart__title {
+	margin: 0;
+	color: var(--pfh-bc-title-ink);
+	font-size: var(--pfh-bc-title);
+	font-weight: 600;
+	line-height: 1;
+	letter-spacing: 0;
+	text-wrap: balance;
+}
+
+.pfh-bcart__title a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.pfh-bcart__title a:hover {
+	text-decoration: underline;
+	text-underline-offset: 4px;
+}
+
+.pfh-bcart__prices {
+	display: flex;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 8px 14px;
+	margin-top: 14px;
+}
+
+.pfh-bcart__now {
+	color: var(--pfh-bc-price-ink);
+	font-size: var(--pfh-bc-price);
+	font-weight: 700;
+	line-height: 1.1;
+	white-space: nowrap;
+}
+
+.pfh-bcart__was {
+	color: rgba(0, 0, 0, .38);
+	font-size: 14px;
+	font-weight: 200;
+	line-height: 1.1;
+	text-decoration: line-through;
+	white-space: nowrap;
+}
+
+.pfh-bcart__save {
+	color: var(--pfh-bc-save-ink);
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.5;
+	white-space: nowrap;
+}
+
+/* WooCommerce wraps its amounts; they must not become their own blocks. */
+.pfh-bcart__prices .woocommerce-Price-amount,
+.pfh-bcart__prices bdi {
+	display: inline;
+}
+
+/* ------------------------------------------------------------------ *
+ * Choosing and buying
+ * ------------------------------------------------------------------ */
+
+.pfh-bcart__form {
+	/* Narrower than the words above it, as drawn: the dropdowns and the
+	   button line up with each other, not with the product name. */
+	max-width: var(--pfh-bc-form);
+	margin-top: 28px;
+}
+
+.pfh-bcart__choices {
+	display: flex;
+	gap: 6px;
+	margin-bottom: 12px;
+}
+
+.pfh-bcart__choice {
+	position: relative;
+	/* Every dropdown takes an equal share of the button's width, so one
+	   attribute or three both come out lined up with it. */
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.pfh-bcart .pfh-bcart__select {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 100%;
+	height: var(--pfh-bc-field);
+	margin: 0;
+	padding: 0 32px 0 14px;
+	border: 1px solid var(--pfh-bc-field-line);
+	border-radius: 8px;
+	background: #fff;
+	color: var(--pfh-bc-title-ink);
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.5;
+	text-overflow: ellipsis;
+	cursor: pointer;
+	transition: border-color var(--pfh-speed) var(--pfh-ease);
+}
+
+/* Nothing chosen yet: the placeholder is quieter than a real answer. */
+.pfh-bcart__select:invalid,
+.pfh-bcart__select option[value=""] {
+	color: rgba(0, 0, 0, .4);
+}
+
+.pfh-bcart__select:focus-visible {
+	outline: 2px solid var(--pfh-bc-button);
+	outline-offset: 1px;
+}
+
+.pfh-bcart__chev {
+	position: absolute;
+	top: 50%;
+	right: 12px;
+	width: 14px;
+	height: 14px;
+	transform: translateY(-50%);
+	color: var(--pfh-bc-title-ink);
+	pointer-events: none;
+}
+
+.pfh-bcart .pfh-bcart__cart {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	width: 100%;
+	min-height: 46px;
+	padding: 12px 20px;
+	border: 0;
+	border-radius: 8px;
+	background: var(--pfh-bc-button);
+	color: var(--pfh-bc-button-ink);
+	font-family: inherit;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1;
+	text-align: center;
+	cursor: pointer;
+	transition: filter var(--pfh-speed) var(--pfh-ease), opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-bcart__cart:hover:not(:disabled) { filter: brightness(1.08); }
+.pfh-bcart__cart:disabled { opacity: .55; cursor: not-allowed; }
+
+.pfh-bcart__cart:focus-visible {
+	outline: 2px solid var(--pfh-bc-button);
+	outline-offset: 3px;
+}
+
+/* The loader: the label stays put and the ring appears beside it, so the
+   button does not change width at the moment it is pressed. */
+.pfh-bcart__cart-spin {
+	width: 0;
+	height: 16px;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	opacity: 0;
+	transition: width .2s var(--pfh-ease), opacity .2s var(--pfh-ease);
+}
+
+.pfh-bcart__cart.is-busy .pfh-bcart__cart-spin {
+	width: 16px;
+	opacity: 1;
+	animation: pfh-bcart-spin .7s linear infinite;
+}
+
+@keyframes pfh-bcart-spin {
+	to { transform: rotate(360deg); }
+}
+
+.pfh-bcart__notice {
+	margin: 10px 0 0;
+	color: #a1332b;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------ *
+ * The picture
+ * ------------------------------------------------------------------ */
+
+.pfh-bcart__shots {
+	flex: 0 1 var(--pfh-bc-shot);
+	display: flex;
+	align-items: flex-end;
+	justify-content: flex-end;
+	min-width: 0;
+}
+
+.pfh-bcart__shot {
+	display: none;
+	width: 100%;
+	max-height: var(--pfh-bc-shot-max);
+	object-fit: contain;
+	object-position: right bottom;
+}
+
+/* The script swaps this class when a variant brings its own photograph. */
+.pfh-bcart__shot.is-active { display: block; }
+
+/* ---------- builder placeholder ---------- */
+
+.pfh-bcart--empty {
+	padding: 40px;
+	border: 1px dashed rgba(20, 24, 27, .16);
+	border-radius: 12px;
+	color: #6b6b6b;
+	text-align: center;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 991px) {
+	.pfh-bcart {
+		--pfh-bc-title: 28px;
+		--pfh-bc-pad: 32px;
+		--pfh-bc-pt: 48px;
+		--pfh-bc-shot-max: 220px;
+		--pfh-bc-overlap: 64px;
+	}
+}
+
+@media (max-width: 767px) {
+	/* Side by side there is no room for both; the words come first, because
+	   the button is what this section exists for. */
+	.pfh-bcart__card {
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.pfh-bcart {
+		--pfh-bc-title: 24px;
+		--pfh-bc-pad: 24px;
+		--pfh-bc-shot-max: 180px;
+		--pfh-bc-overlap: 48px;
+	}
+
+	.pfh-bcart__body {
+		flex: 1 1 auto;
+		max-width: none;
+	}
+
+	/* On a phone the button is the section, so it takes the whole width. */
+	.pfh-bcart { --pfh-bc-form: 100%; }
+
+	/*
+	 * Stacked, the card is a column — where flex-basis is a HEIGHT, not a
+	 * width. Left as it is on desktop the picture box claims 420px of empty
+	 * card under the button.
+	 */
+	.pfh-bcart__shots {
+		flex: 0 0 auto;
+		justify-content: center;
+	}
+
+	.pfh-bcart__shot { object-position: center bottom; }
+}
+
+@media (max-width: 560px) {
+	/* Two dropdowns across a phone leave neither able to show its answer. */
+	.pfh-bcart__choices { flex-direction: column; gap: 8px; }
+	.pfh-bcart { --pfh-bc-field: 44px; }
+	.pfh-bcart .pfh-bcart__select { font-size: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-bcart__cart,
+	.pfh-bcart__cart-spin,
+	.pfh-bcart .pfh-bcart__select {
+		transition: none;
+	}
+
+	.pfh-bcart__cart.is-busy .pfh-bcart__cart-spin { animation-duration: 1.6s; }
+}

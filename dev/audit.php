@@ -24,6 +24,7 @@ require $dir . 'includes/class-pfh-assets.php';
 require $dir . 'includes/trait-pfh-element-defaults.php';
 require $dir . 'includes/trait-pfh-design-revision.php';
 require $dir . 'includes/trait-pfh-product-card.php';
+require $dir . 'includes/trait-pfh-product-price.php';
 require $dir . 'includes/class-pfh-archive.php';
 
 $elements = [
@@ -45,6 +46,7 @@ $elements = [
 	'PFH_Element_Reviews'        => [ 'class-pfh-element-reviews.php', 'pfh-reviews.css' ],
 	'PFH_Element_Features'       => [ 'class-pfh-element-features.php', 'pfh-features.css' ],
 	'PFH_Element_Instagram'      => [ 'class-pfh-element-instagram.php', 'pfh-instagram.css' ],
+	'PFH_Element_Bottomcart'     => [ 'class-pfh-element-bottomcart.php', 'pfh-bottomcart.css' ],
 	'PFH_Element_Cta'            => [ 'class-pfh-element-cta.php', 'pfh-cta.css' ],
 	'PFH_Element_Rating'         => [ 'class-pfh-element-rating.php', 'pfh-rating.css' ],
 	'PFH_Element_Archive'        => [ 'class-pfh-element-archive.php', 'pfh-archive.css' ],

@@ -39,6 +39,7 @@ class PFH_Widgets_Product_Fields {
 	/* The sections under the product. */
 	const HIGHLIGHT_TITLE = '_pfh_highlight_title';
 	const RELATED         = '_pfh_related';
+	const BOTTOM_IMAGE    = '_pfh_bottom_image';
 	const USP_EYEBROW     = '_pfh_usp_eyebrow';
 	const USP_TITLE       = '_pfh_usp_title';
 	const USP             = '_pfh_usp';
@@ -296,6 +297,18 @@ class PFH_Widgets_Product_Fields {
 				</p>
 			</div>
 
+			<?php self::section( esc_html__( 'Bottom add to cart', 'pfh-widgets' ) ); ?>
+			<div class="options_group">
+				<?php
+				self::media_field(
+					$id,
+					self::BOTTOM_IMAGE,
+					esc_html__( 'Picture', 'pfh-widgets' ),
+					esc_html__( 'Shown beside the reminder at the bottom of the page. A cut-out on a transparent background is what the design uses. Empty uses the product image.', 'pfh-widgets' )
+				);
+				?>
+			</div>
+
 			<?php self::section( esc_html__( 'Why this product', 'pfh-widgets' ) ); ?>
 			<div class="options_group">
 				<?php
@@ -334,6 +347,110 @@ class PFH_Widgets_Product_Fields {
 	 */
 	private static function section( $title ) {
 		echo '<div class="options_group"><p class="form-field" style="margin:0"><strong>' . esc_html( $title ) . '</strong></p></div>';
+	}
+
+	/**
+	 * One picture, chosen from the media library.
+	 *
+	 * The same markup the repeater's picture cells use, so it looks like the
+	 * rest of the box; the handler below is its own, because the repeater's is
+	 * bound to that table rather than to the page.
+	 *
+	 * @param int    $id          Product.
+	 * @param string $key         Meta key.
+	 * @param string $label       Field label.
+	 * @param string $description Help text.
+	 */
+	private static function media_field( $id, $key, $label, $description ) {
+		static $printed = false;
+
+		$value = (int) self::text( $id, $key );
+		$src   = $value ? wp_get_attachment_image_url( $value, 'thumbnail' ) : '';
+		?>
+		<p class="form-field">
+			<label for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label>
+			<span class="pfh-rep__media pfh-one__media">
+				<img src="<?php echo esc_url( $src ? $src : '' ); ?>" alt="" style="width:46px;height:46px;object-fit:contain;vertical-align:middle;<?php echo $src ? '' : 'display:none'; ?>" />
+				<input type="hidden" id="<?php echo esc_attr( $key ); ?>" name="<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( (string) $value ); ?>" />
+				<button type="button" class="button pfh-one__pick"><?php esc_html_e( 'Choose', 'pfh-widgets' ); ?></button>
+				<button type="button" class="button-link pfh-one__drop"<?php echo $src ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Remove', 'pfh-widgets' ); ?></button>
+			</span>
+			<span class="description" style="display:block;margin:6px 0 0"><?php echo esc_html( $description ); ?></span>
+		</p>
+		<?php
+
+		if ( $printed ) {
+			return;
+		}
+
+		$printed = true;
+		?>
+		<script>
+		( function () {
+			document.addEventListener( 'click', function ( event ) {
+				var pick = event.target.closest( '.pfh-one__pick' );
+				var drop = event.target.closest( '.pfh-one__drop' );
+				var host = ( pick || drop ) && ( pick || drop ).closest( '.pfh-one__media' );
+
+				if ( ! host ) {
+					return;
+				}
+
+				if ( drop ) {
+					host.querySelector( 'input' ).value = '';
+					host.querySelector( 'img' ).style.display = 'none';
+					drop.style.display = 'none';
+
+					return;
+				}
+
+				if ( ! window.wp || ! window.wp.media ) {
+					return;
+				}
+
+				var frame = window.wp.media( { title: pick.textContent, multiple: false, library: { type: 'image' } } );
+
+				frame.on( 'select', function () {
+					var image = frame.state().get( 'selection' ).first().toJSON();
+					var thumb = ( image.sizes && image.sizes.thumbnail ) ? image.sizes.thumbnail.url : image.url;
+
+					host.querySelector( 'input' ).value = image.id;
+					host.querySelector( 'img' ).src = thumb;
+					host.querySelector( 'img' ).style.display = '';
+					host.querySelector( '.pfh-one__drop' ).style.display = '';
+				} );
+
+				frame.open();
+			} );
+		}() );
+		</script>
+		<?php
+	}
+
+	/**
+	 * The picture the bottom reminder should use.
+	 *
+	 * The product's own choice, then whatever WooCommerce already shows for
+	 * it — a product nobody has set a cut-out for still has a picture.
+	 *
+	 * @param int    $id   Product.
+	 * @param string $size Image size.
+	 * @return string URL, or '' when the product has no picture at all.
+	 */
+	public static function bottom_image( $id, $size = 'large' ) {
+		$own = (int) self::text( $id, self::BOTTOM_IMAGE );
+
+		if ( $own ) {
+			$url = wp_get_attachment_image_url( $own, $size );
+
+			if ( $url ) {
+				return (string) $url;
+			}
+		}
+
+		$featured = (int) get_post_thumbnail_id( $id );
+
+		return $featured ? (string) wp_get_attachment_image_url( $featured, $size ) : '';
 	}
 
 	/**
@@ -556,6 +673,8 @@ class PFH_Widgets_Product_Fields {
 
 		// A checkbox that is off is simply absent, so "no" has to be written.
 		self::put( $product_id, self::STEPS_SHOW, isset( $_POST[ self::STEPS_SHOW ] ) ? 'yes' : 'no', true );
+
+		self::put( $product_id, self::BOTTOM_IMAGE, isset( $_POST[ self::BOTTOM_IMAGE ] ) ? (int) absint( $_POST[ self::BOTTOM_IMAGE ] ) : 0 );
 
 		$columns = [];
 

@@ -183,6 +183,13 @@ class PFH_Widgets_Assets {
 		);
 
 		wp_register_style(
+			'pfh-bottomcart',
+			PFH_WIDGETS_URL . 'assets/css/pfh-bottomcart.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_style(
 			'pfh-instagram',
 			PFH_WIDGETS_URL . 'assets/css/pfh-instagram.css',
 			[ 'pfh-base' ],
@@ -575,6 +582,18 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-product-tabs' );
 		wp_enqueue_script( 'pfh-product-tabs' );
+	}
+
+	/**
+	 * Enqueue everything the bottom reminder needs.
+	 *
+	 * The single product script, not one of its own: the reminder prints the
+	 * same form and is driven by the same code.
+	 */
+	public static function bottomcart() {
+		self::base();
+		wp_enqueue_style( 'pfh-bottomcart' );
+		wp_enqueue_script( 'pfh-product' );
 	}
 
 	/**

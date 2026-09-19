@@ -1178,6 +1178,58 @@ what the shop page keeps using.
 
 ---
 
+## PFH Bottom Add To Cart
+
+The reminder at the foot of the page: the category, the product, what it costs
+and what that saves, a dropdown for each choice, and one button that adds it
+without a reload. It sits over the footer, so the page ends on the thing the
+shopper came for rather than on a gap.
+
+It follows the product being viewed. Off a product page it shows whichever
+product is named on the element, so it can close a landing page too.
+
+| Part | Where it comes from |
+| --- | --- |
+| Category | The product's own category — the deepest one, which is its shelf rather than "Shop" |
+| Name and price | The product. A variable product opens on its default variation, so the price shown is one that can actually be bought |
+| Saving | The difference between the two, **as an amount** — "Bespaar €5,00", not a percentage |
+| Choices | One dropdown per attribute, sharing the button's width |
+| Picture | The **Bottom add to cart → Picture** field on the product. Empty uses the product image |
+
+### The overlap
+
+The section carries a negative bottom margin, the way the closing banner does,
+so whatever follows rises behind the card. Put it directly above the footer and
+set *Pull the next section up* to taste — 90px in the design. Nothing else
+needs to know it is there.
+
+### One piece of code, not two
+
+The card prints the same form the single product page does, down to the data
+attributes, so `pfh-product.js` drives both: choosing, the price following the
+choice, unreachable combinations greying out, the loader, the moment of
+"Toegevoegd" and the cart drawer opening are one implementation. There is no
+second script to drift from the first, and the test suite asserts both sides of
+every hook they share.
+
+What a variable product costs before anyone has chosen is likewise settled in
+one place — `trait-pfh-product-price.php` — because the product page and the
+reminder showing different opening prices for the same product is the kind of
+thing nobody notices until a customer does.
+
+### The dropdowns
+
+Real `<select>` fields rather than the pills upstairs: down here the row has to
+stay one line high whatever the product has, and a phone gives a select its own
+native picker. Each is labelled for a screen reader, and the chevron is drawn
+rather than left to the browser.
+
+Below 768px the card stacks, the dropdowns go full width, and the picture drops
+under the button. Below 560px the dropdowns stack and grow to 44px, which is a
+thumb rather than a pointer.
+
+---
+
 ## PFH Instagram Strip
 
 The heading, the account, two round arrows, and under all of it a row of square

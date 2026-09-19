@@ -32,9 +32,14 @@ if ( ! class_exists( 'PFH_Widgets_Product_Fields' ) && defined( 'PFH_WIDGETS_DIR
 	require_once PFH_WIDGETS_DIR . 'includes/class-pfh-product-fields.php';
 }
 
+if ( ! trait_exists( 'PFH_Element_Product_Price' ) && defined( 'PFH_WIDGETS_DIR' ) ) {
+	require_once PFH_WIDGETS_DIR . 'includes/trait-pfh-product-price.php';
+}
+
 class PFH_Element_Product extends \Bricks\Element {
 
 	use PFH_Element_Defaults;
+	use PFH_Element_Product_Price;
 
 	/** Past this many variations WooCommerce stops printing them inline. */
 	const VARIATION_LIMIT = 60;
@@ -730,38 +735,18 @@ class PFH_Element_Product extends \Bricks\Element {
 	 * @return array{now: string, was: string, save: string}
 	 */
 	private function price_of( $product ) {
-		$empty = [ 'now' => '', 'was' => '', 'save' => '' ];
+		$parts = $this->price_parts( $product );
 
-		if ( ! function_exists( 'wc_get_price_to_display' ) ) {
-			return $empty;
+		if ( '' === $parts['now'] ) {
+			return [ 'now' => '', 'was' => '', 'save' => '' ];
 		}
 
-		$target = $product;
-
-		// A variable product shows whichever variation it opens on.
-		if ( $product->is_type( 'variable' ) ) {
-			$default = $this->default_variation( $product );
-			$target  = $default ? $default : $product;
-		}
-
-		if ( $target->is_type( 'variable' ) ) {
-			$now = $target->get_variation_price( 'min', true );
-			$was = $target->get_variation_regular_price( 'min', true );
-		} else {
-			$now = wc_get_price_to_display( $target );
-			$was = wc_get_price_to_display( $target, [ 'price' => $target->get_regular_price() ] );
-		}
-
-		if ( '' === $now || null === $now ) {
-			return $empty;
-		}
-
-		$saving = (float) $was - (float) $now;
+		$saving = $parts['saving'];
 		$show   = $this->switched_on( 'showSaving' ) && $saving > 0;
 
 		return [
-			'now'  => wc_price( $now ),
-			'was'  => $saving > 0 ? wc_price( $was ) : '',
+			'now'  => wc_price( $parts['now'] ),
+			'was'  => $saving > 0 ? wc_price( $parts['was'] ) : '',
 			'save' => $show ? $this->saving_text( $saving ) : '',
 		];
 	}
@@ -1168,41 +1153,6 @@ class PFH_Element_Product extends \Bricks\Element {
 		}
 
 		return $best;
-	}
-
-	/**
-	 * The variation a variable product opens on, if its defaults name one.
-	 *
-	 * @param WC_Product $product Variable product.
-	 * @return WC_Product|null
-	 */
-	private function default_variation( $product ) {
-		$defaults = $product->get_default_attributes();
-
-		if ( ! $defaults || ! class_exists( 'WC_Data_Store' ) ) {
-			return null;
-		}
-
-		$wanted = [];
-
-		foreach ( $defaults as $name => $value ) {
-			$wanted[ 'attribute_' . $name ] = $value;
-		}
-
-		try {
-			$store = WC_Data_Store::load( 'product' );
-			$id    = $store->find_matching_product_variation( $product, $wanted );
-		} catch ( \Throwable $e ) {
-			return null;
-		}
-
-		if ( ! $id ) {
-			return null;
-		}
-
-		$variation = wc_get_product( $id );
-
-		return ( $variation && is_object( $variation ) ) ? $variation : null;
 	}
 
 	/**

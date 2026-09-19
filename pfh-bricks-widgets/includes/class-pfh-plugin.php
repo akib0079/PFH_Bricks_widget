@@ -118,6 +118,10 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-product-usp.php',
 				'class' => 'PFH_Element_Product_Usp',
 			],
+			'pfh-bottomcart' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-bottomcart.php',
+				'class' => 'PFH_Element_Bottomcart',
+			],
 			'pfh-instagram' => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-instagram.php',
 				'class' => 'PFH_Element_Instagram',

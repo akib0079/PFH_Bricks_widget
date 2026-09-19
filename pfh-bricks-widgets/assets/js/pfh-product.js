@@ -520,7 +520,7 @@
 				}
 			} );
 
-			var label = buy.querySelector( '.pfh-pdp__cart-label' ) || buy;
+			var label = buy.querySelector( '[data-pfh-cart-label]' ) || buy.querySelector( '.pfh-pdp__cart-label' ) || buy;
 			var said = label.textContent;
 
 			buy.classList.add( 'is-busy' );
@@ -582,7 +582,12 @@
 	}
 
 	function start() {
-		Array.prototype.forEach.call( document.querySelectorAll( '.pfh-pdp' ), function ( root ) {
+		/*
+		 * The bottom reminder prints the same form, down to the data
+		 * attributes, so it is driven from here rather than from a second
+		 * script that would slowly stop agreeing with this one.
+		 */
+		Array.prototype.forEach.call( document.querySelectorAll( '.pfh-pdp, .pfh-bcart' ), function ( root ) {
 			if ( root.hasAttribute( 'data-pfh-ready' ) ) {
 				return;
 			}
