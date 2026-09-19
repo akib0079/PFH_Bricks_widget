@@ -8,6 +8,20 @@
 
 namespace Bricks {
 
+	/**
+	 * Bricks renders an element's children itself. The stand-in says so
+	 * unmistakably, so a test can tell "the element asked Bricks" apart from
+	 * "the element drew something of its own".
+	 */
+	class Frontend {
+
+		public static function render_children( $element ) {
+			$children = isset( $element->element['children'] ) ? (array) $element->element['children'] : [];
+
+			return '<div data-bricks-children="' . count( $children ) . '">BRICKS CHILDREN</div>';
+		}
+	}
+
 	class Element {
 		public $element        = [];
 		public $settings       = [];

@@ -20,6 +20,32 @@ class PFH_Element_Contact extends \Bricks\Element {
 	public $icon         = 'ti-email';
 	public $css_selector = '.pfh-contact';
 
+	/**
+	 * Things can be dropped inside it.
+	 *
+	 * Which is how the contact form gets here: Bricks' own Form element, with
+	 * its own fields, its own actions and its own spam settings. Writing a
+	 * second form would mean a second set of everything to keep working.
+	 */
+	public $nestable = true;
+
+	/**
+	 * What a freshly dropped element comes with.
+	 *
+	 * A Bricks form and nothing else — no settings of ours, so it arrives with
+	 * Bricks' own defaults rather than a half-configured copy of them.
+	 *
+	 * @return array
+	 */
+	public function get_nestable_children() {
+		return [
+			[
+				'name'  => 'form',
+				'label' => esc_html__( 'Contact form', 'pfh-widgets' ),
+			],
+		];
+	}
+
 	public function get_label() {
 		return esc_html__( 'PFH Contact', 'pfh-widgets' );
 	}
@@ -111,6 +137,20 @@ class PFH_Element_Contact extends \Bricks\Element {
 			]
 		);
 
+		$this->controls['mapPlace'] = [
+			'tab'         => 'content',
+			'group'       => 'map',
+			'label'       => esc_html__( 'Where the map goes', 'pfh-widgets' ),
+			'type'        => 'select',
+			'inline'      => true,
+			'default'     => 'side',
+			'options'     => [
+				'side'  => esc_html__( 'Beside the details', 'pfh-widgets' ),
+				'under' => esc_html__( 'Under the card', 'pfh-widgets' ),
+			],
+			'description' => esc_html__( 'A form dropped into this element takes the space beside the details, so put the map under the card to have both.', 'pfh-widgets' ),
+		];
+
 		$this->controls['showMap'] = [
 			'tab'     => 'content',
 			'group'   => 'map',
@@ -179,7 +219,13 @@ class PFH_Element_Contact extends \Bricks\Element {
 			return;
 		}
 
-		$map = $this->map();
+		$slot  = $this->slot();
+		$map   = $this->map();
+		$under = 'under' === $this->setting( 'mapPlace', 'side' );
+
+		// The column beside the details: what was dropped in first, then the
+		// map — unless the map has been sent under the card.
+		$beside = '' !== $slot ? $slot : ( $under ? '' : $map );
 
 		$this->set_attribute( '_root', 'class', [ 'pfh-contact', 'pfh-scope' ] );
 		$this->set_attribute( '_root', 'style', $this->build_vars() );
@@ -189,7 +235,7 @@ class PFH_Element_Contact extends \Bricks\Element {
 
 		$this->render_head();
 
-		printf( '<div class="pfh-contact__card%s">', '' === $map ? ' pfh-contact__card--plain' : '' );
+		printf( '<div class="pfh-contact__card%s">', '' === $beside ? ' pfh-contact__card--plain' : '' );
 		echo '<div class="pfh-contact__body">';
 
 		if ( $ways ) {
@@ -206,11 +252,22 @@ class PFH_Element_Contact extends \Bricks\Element {
 
 		echo '</div>';
 
-		if ( '' !== $map ) {
-			echo '<div class="pfh-contact__map">' . $map . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built below.
+		if ( '' !== $beside ) {
+			printf(
+				'<div class="%s">%s</div>',
+				'' !== $slot ? 'pfh-contact__slot' : 'pfh-contact__map',
+				$beside // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built below.
+			);
 		}
 
-		echo '</div></div></section>';
+		echo '</div>';
+
+		// A form took the column, so the map goes full width under the card.
+		if ( $under && '' !== $map ) {
+			echo '<div class="pfh-contact__map pfh-contact__map--under">' . $map . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built below.
+		}
+
+		echo '</div></section>';
 	}
 
 	private function render_head() {
@@ -342,6 +399,31 @@ class PFH_Element_Contact extends \Bricks\Element {
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Whatever was dropped inside this element.
+	 *
+	 * Bricks renders its own children; all this does is ask it to, and only
+	 * when there is something to render and a Bricks to ask. Every call is
+	 * guarded because an element file is loaded in places Bricks is not —
+	 * the audit, the tests, and admin-ajax among them.
+	 *
+	 * @return string
+	 */
+	private function slot() {
+		$children = isset( $this->element['children'] ) ? (array) $this->element['children'] : [];
+
+		if ( ! $children || ! class_exists( '\\Bricks\\Frontend' ) || ! method_exists( '\\Bricks\\Frontend', 'render_children' ) ) {
+			return '';
+		}
+
+		// Some versions return the markup and some echo it; take either.
+		ob_start();
+		$returned = \Bricks\Frontend::render_children( $this );
+		$echoed   = (string) ob_get_clean();
+
+		return ( is_string( $returned ) && '' !== $returned ) ? $returned : $echoed;
 	}
 
 	/**

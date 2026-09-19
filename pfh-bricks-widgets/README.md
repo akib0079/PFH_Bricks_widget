@@ -1251,6 +1251,23 @@ that loads nothing from Google; `pfh_contact_map` is there for a shop that
 wants its own embed. With the map off, the details take the full width rather
 than leaving a gap where it was.
 
+### The form is Bricks' own
+
+The element is **nestable**, and arrives holding a Bricks **Form** element.
+Open it in the structure panel and it is the ordinary Bricks form — its fields,
+its actions, its email settings, its reCAPTCHA, its success message. None of
+that is reimplemented here, because a second form would mean a second set of
+all of it to keep working.
+
+Whatever is dropped in takes the space beside the details. So: **form beside
+the details, map under the card** — that is what *Where the map goes* is for.
+Delete the form child and the map moves back beside the details on its own.
+
+Until the form is styled in Bricks it inherits the page's own look — the same
+field height, border and radius, the same teal button — from rules scoped to
+the slot. Bricks writes its CSS against the element's id, which outranks all of
+them, so the first thing the editor changes wins.
+
 ---
 
 ## PFH My Account

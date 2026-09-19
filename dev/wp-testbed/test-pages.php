@@ -28,8 +28,8 @@ function about( array $settings = [] ) {
 	return (string) ob_get_clean();
 }
 
-function contact( array $settings = [] ) {
-	$el       = new PFH_Element_Contact( [ 'id' => 'ct' ] );
+function contact( array $settings = [], array $children = [] ) {
+	$el       = new PFH_Element_Contact( [ 'id' => 'ct', 'children' => $children ] );
 	$el->name = 'pfh-contact';
 	$el->settings = $settings;
 
@@ -149,6 +149,35 @@ ok( '  and the details take the width', false !== strpos( $mapless, 'pfh-contact
 add_filter( 'pfh_contact_map', static function () { return '<p id="own-map">Mijn eigen kaart</p>'; } );
 ok( 'a shop can supply its own map', false !== strpos( contact(), 'own-map' ) );
 remove_all_filters( 'pfh_contact_map' );
+
+echo "\n── the form is Bricks' own ──\n";
+$el = new PFH_Element_Contact( [ 'id' => 'ct' ] );
+$el->name = 'pfh-contact';
+
+ok( 'things can be dropped inside the element', ! empty( $el->nestable ) );
+
+$kids = $el->get_nestable_children();
+ok( 'and it arrives holding a form', isset( $kids[0]['name'] ) && 'form' === $kids[0]['name'] );
+ok( '  with no settings of ours on it', ! isset( $kids[0]['settings'] ), 'Bricks should supply its own defaults' );
+
+/*
+ * A real child is a Bricks element array; what matters here is that the
+ * element hands the job to Bricks rather than drawing a form of its own.
+ */
+$dropped = contact( [], [ [ 'id' => 'frm', 'name' => 'form' ] ] );
+
+ok( 'a dropped-in element is rendered by Bricks', false !== strpos( $dropped, 'BRICKS CHILDREN' ) );
+ok( '  in its own slot', false !== strpos( $dropped, 'class="pfh-contact__slot"' ) );
+ok( '  taking the space the map had', false === strpos( $dropped, '<iframe' ) );
+ok( 'and the details still sit beside it', false !== strpos( $dropped, 'pfh-contact__way' ) && false === strpos( $dropped, 'pfh-contact__card--plain' ) );
+ok( 'no form of our own is written', false === strpos( $dropped, '<form' ) );
+
+$both = contact( [ 'mapPlace' => 'under' ], [ [ 'id' => 'frm', 'name' => 'form' ] ] );
+ok( 'the map can move under the card to make room', false !== strpos( $both, 'pfh-contact__map--under' ) && false !== strpos( $both, '<iframe' ) );
+ok( '  with the form still beside the details', false !== strpos( $both, 'pfh-contact__slot' ) );
+
+$empty_slot = contact( [], [] );
+ok( 'with nothing dropped in, the map has the column as before', false !== strpos( $empty_slot, '<iframe' ) && false === strpos( $empty_slot, 'pfh-contact__slot' ) );
 
 echo "\n── an empty contact page ──\n";
 ok( 'nothing is drawn on the front end', '' === trim( contact( [ 'title' => '', 'lede' => '', 'eyebrow' => '', 'phone' => '', 'email' => '', 'address' => '' ] ) ) );
