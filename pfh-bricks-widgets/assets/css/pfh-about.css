@@ -1,0 +1,264 @@
+/**
+ * The about page.
+ *
+ * An opening, a run of sections that alternate a picture with their text, and
+ * a band of the awards the shop has won. Nothing else: the page is a story,
+ * and the only job of the design is to stay out of its way.
+ */
+
+.pfh-about {
+	--pfh-ab-max: 1140px;
+	--pfh-ab-pt: var(--pfh-ab-pt-set, 72px);
+	--pfh-ab-pb: var(--pfh-ab-pb-set, 72px);
+	--pfh-ab-gap: var(--pfh-ab-gap-set, 64px);
+	--pfh-ab-radius: 16px;
+
+	--pfh-ab-ink: #22301c;
+	--pfh-ab-body: #5c6657;
+	--pfh-ab-muted: #8d9589;
+	--pfh-ab-accent: #2b5f63;
+	--pfh-ab-line: #eaeaea;
+	--pfh-ab-band: #f6f8f5;
+
+	--pfh-ab-title: var(--pfh-ab-title-set, 40px);
+	--pfh-ab-head: var(--pfh-ab-head-set, 28px);
+
+	display: block;
+	padding-block: var(--pfh-ab-pt) var(--pfh-ab-pb);
+	font-family: var(--pfh-font);
+	color: var(--pfh-ab-body);
+	font-size: 15px;
+	line-height: 1.7;
+}
+
+.pfh-about[hidden],
+.pfh-about [hidden] { display: none !important; }
+
+.pfh-about__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-ab-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* The one serif note, as everywhere else in the shop. */
+.pfh-about em,
+.pfh-about i {
+	font-family: var(--pfh-ab-serif, "Playfair Display", Georgia, serif);
+	font-style: italic;
+	font-weight: 400;
+}
+
+/* ------------------------------------------------------------------ *
+ * The opening
+ * ------------------------------------------------------------------ */
+
+.pfh-about__head {
+	max-width: 760px;
+	margin-bottom: var(--pfh-ab-gap);
+}
+
+.pfh-about__eyebrow {
+	margin: 0 0 12px;
+	color: var(--pfh-ab-muted);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: .18em;
+	text-transform: uppercase;
+}
+
+.pfh-about .pfh-about__title {
+	margin: 0;
+	color: var(--pfh-ab-ink);
+	font-size: var(--pfh-ab-title);
+	font-weight: 600;
+	line-height: 1.15;
+	letter-spacing: -.01em;
+	text-wrap: balance;
+}
+
+.pfh-about .pfh-about__lede {
+	margin: 16px 0 0;
+	font-size: 17px;
+	line-height: 1.65;
+}
+
+/* ------------------------------------------------------------------ *
+ * The sections
+ * ------------------------------------------------------------------ */
+
+.pfh-about__blocks {
+	display: grid;
+	gap: var(--pfh-ab-gap);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-about__block {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	align-items: center;
+	gap: 48px;
+}
+
+/* Every other one turns around, so the eye moves down the page rather
+   than straight down one side of it. */
+.pfh-about__block:nth-child(even) .pfh-about__media { order: 2; }
+
+/* A section with no picture is simply a column of text, set to a width
+   that can still be read. */
+.pfh-about__block--text {
+	grid-template-columns: minmax(0, 1fr);
+	max-width: 760px;
+}
+
+.pfh-about__media {
+	margin: 0;
+	border-radius: var(--pfh-ab-radius);
+	overflow: hidden;
+	background: var(--pfh-ab-band);
+}
+
+.pfh-about__media img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	aspect-ratio: var(--pfh-ab-ratio, 4 / 3);
+	object-fit: cover;
+}
+
+.pfh-about .pfh-about__block-title {
+	margin: 0 0 14px;
+	color: var(--pfh-ab-ink);
+	font-size: var(--pfh-ab-head);
+	font-weight: 600;
+	line-height: 1.25;
+	letter-spacing: -.01em;
+	text-wrap: balance;
+}
+
+.pfh-about__block-body > :first-child { margin-top: 0; }
+.pfh-about__block-body > :last-child { margin-bottom: 0; }
+.pfh-about__block-body p { margin: 0 0 14px; }
+
+.pfh-about__block-body a {
+	color: var(--pfh-ab-accent);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.pfh-about__block-body ul {
+	margin: 0 0 14px;
+	padding-left: 1.2em;
+}
+
+/* ------------------------------------------------------------------ *
+ * The awards
+ * ------------------------------------------------------------------ */
+
+.pfh-about__awards {
+	margin-top: var(--pfh-ab-gap);
+	padding: 48px;
+	border-radius: var(--pfh-ab-radius);
+	background: var(--pfh-ab-band);
+}
+
+.pfh-about .pfh-about__awards-title {
+	margin: 0 auto 12px;
+	max-width: 30ch;
+	color: var(--pfh-ab-ink);
+	font-size: var(--pfh-ab-head);
+	font-weight: 600;
+	line-height: 1.25;
+	letter-spacing: -.01em;
+	text-align: center;
+	text-wrap: balance;
+}
+
+.pfh-about__awards-lede {
+	margin: 0 auto;
+	max-width: 62ch;
+	text-align: center;
+}
+
+.pfh-about__awards-list {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 40px 56px;
+	margin: 36px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-about__award {
+	display: grid;
+	justify-items: center;
+	gap: 12px;
+	max-width: 180px;
+	text-align: center;
+}
+
+.pfh-about__award img {
+	width: var(--pfh-ab-award, 96px);
+	height: var(--pfh-ab-award, 96px);
+	object-fit: contain;
+	/* The medals are photographs of metal; a touch of grey behind them
+	   would fight the band, so they sit on it directly. */
+	mix-blend-mode: multiply;
+}
+
+.pfh-about__award-label {
+	color: var(--pfh-ab-muted);
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+/* ---------- builder placeholder ---------- */
+
+.pfh-about--empty {
+	padding: 40px;
+	border: 1px dashed rgba(20, 24, 27, .16);
+	border-radius: 12px;
+	color: #6b6b6b;
+	text-align: center;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 991px) {
+	.pfh-about {
+		--pfh-ab-title: 32px;
+		--pfh-ab-head: 24px;
+		--pfh-ab-gap: 44px;
+		--pfh-ab-pt: 52px;
+		--pfh-ab-pb: 52px;
+	}
+
+	.pfh-about__block { gap: 32px; }
+	.pfh-about__awards { padding: 36px 28px; }
+	.pfh-about__awards-list { gap: 32px 40px; }
+}
+
+@media (max-width: 767px) {
+	.pfh-about {
+		--pfh-ab-title: 27px;
+		--pfh-ab-head: 21px;
+	}
+
+	/* Stacked, the picture goes above its text every time — alternating
+	   sides means nothing in one column, and order:2 would put half of
+	   them below their own heading. */
+	.pfh-about__block {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 20px;
+	}
+
+	.pfh-about__block:nth-child(even) .pfh-about__media { order: 0; }
+	.pfh-about__awards { padding: 28px 20px; }
+	.pfh-about__awards-list { gap: 28px; }
+	.pfh-about__award { max-width: 140px; }
+}

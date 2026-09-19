@@ -183,6 +183,20 @@ class PFH_Widgets_Assets {
 		);
 
 		wp_register_style(
+			'pfh-about',
+			PFH_WIDGETS_URL . 'assets/css/pfh-about.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_style(
+			'pfh-contact',
+			PFH_WIDGETS_URL . 'assets/css/pfh-contact.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_style(
 			'pfh-account',
 			PFH_WIDGETS_URL . 'assets/css/pfh-account.css',
 			[ 'pfh-base' ],
@@ -599,6 +613,22 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-product-tabs' );
 		wp_enqueue_script( 'pfh-product-tabs' );
+	}
+
+	/**
+	 * Enqueue everything the about page needs. It is pure CSS.
+	 */
+	public static function about() {
+		self::base();
+		wp_enqueue_style( 'pfh-about' );
+	}
+
+	/**
+	 * Enqueue everything the contact page needs. Pure CSS as well.
+	 */
+	public static function contact() {
+		self::base();
+		wp_enqueue_style( 'pfh-contact' );
 	}
 
 	/**

@@ -1,0 +1,248 @@
+/**
+ * The contact page.
+ *
+ * A heading, then a card holding the ways to reach the shop beside a map. The
+ * details are links, not text: a phone number on a phone should dial, and an
+ * address should open in whatever the visitor uses for maps.
+ */
+
+.pfh-contact {
+	--pfh-ct-max: 1140px;
+	--pfh-ct-pt: var(--pfh-ct-pt-set, 72px);
+	--pfh-ct-pb: var(--pfh-ct-pb-set, 72px);
+	--pfh-ct-radius: 16px;
+
+	--pfh-ct-ink: #22301c;
+	--pfh-ct-body: #5c6657;
+	--pfh-ct-muted: #8d9589;
+	--pfh-ct-accent: #2b5f63;
+	--pfh-ct-line: #eaeaea;
+	--pfh-ct-tile: #f4f7f4;
+
+	--pfh-ct-title: var(--pfh-ct-title-set, 40px);
+	--pfh-ct-map: var(--pfh-ct-map-set, 380px);
+
+	display: block;
+	padding-block: var(--pfh-ct-pt) var(--pfh-ct-pb);
+	font-family: var(--pfh-font);
+	color: var(--pfh-ct-body);
+	font-size: 15px;
+	line-height: 1.7;
+}
+
+.pfh-contact[hidden],
+.pfh-contact [hidden] { display: none !important; }
+
+.pfh-contact__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-ct-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+.pfh-contact em,
+.pfh-contact i {
+	font-family: var(--pfh-ct-serif, "Playfair Display", Georgia, serif);
+	font-style: italic;
+	font-weight: 400;
+}
+
+/* ------------------------------------------------------------------ *
+ * The opening
+ * ------------------------------------------------------------------ */
+
+.pfh-contact__head {
+	max-width: 620px;
+	margin-bottom: 40px;
+}
+
+.pfh-contact__eyebrow {
+	margin: 0 0 12px;
+	color: var(--pfh-ct-muted);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: .18em;
+	text-transform: uppercase;
+}
+
+.pfh-contact .pfh-contact__title {
+	margin: 0;
+	color: var(--pfh-ct-ink);
+	font-size: var(--pfh-ct-title);
+	font-weight: 600;
+	line-height: 1.15;
+	letter-spacing: -.01em;
+	text-wrap: balance;
+}
+
+.pfh-contact .pfh-contact__lede {
+	margin: 14px 0 0;
+	font-size: 16px;
+}
+
+/* ------------------------------------------------------------------ *
+ * The card
+ * ------------------------------------------------------------------ */
+
+.pfh-contact__card {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	align-items: stretch;
+	overflow: hidden;
+	border: 1px solid var(--pfh-ct-line);
+	border-radius: var(--pfh-ct-radius);
+	background: #fff;
+}
+
+/* No map: the ways to reach the shop share the width instead. */
+.pfh-contact__card--plain { grid-template-columns: minmax(0, 1fr); }
+
+.pfh-contact__body { padding: 44px; }
+
+.pfh-contact__ways {
+	display: grid;
+	gap: 22px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-contact__card--plain .pfh-contact__ways {
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 28px 40px;
+}
+
+.pfh-contact__way {
+	display: grid;
+	grid-template-columns: 44px minmax(0, 1fr);
+	align-items: start;
+	gap: 16px;
+}
+
+.pfh-contact__way-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	background: var(--pfh-ct-tile);
+	color: var(--pfh-ct-accent);
+}
+
+.pfh-contact__way-icon svg { width: 20px; height: 20px; }
+
+.pfh-contact__way-label {
+	display: block;
+	color: var(--pfh-ct-muted);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: .12em;
+	text-transform: uppercase;
+}
+
+.pfh-contact__way-value {
+	display: block;
+	margin-top: 7px;
+	color: var(--pfh-ct-ink);
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 1.45;
+	text-decoration: none;
+	overflow-wrap: anywhere;
+}
+
+a.pfh-contact__way-value {
+	transition: color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+a.pfh-contact__way-value:hover { color: var(--pfh-ct-accent); }
+
+a.pfh-contact__way-value:focus-visible,
+.pfh-contact a:focus-visible {
+	outline: 2px solid var(--pfh-ct-accent);
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
+.pfh-contact__way-note {
+	display: block;
+	margin-top: 3px;
+	color: var(--pfh-ct-muted);
+	font-size: 13.5px;
+	line-height: 1.5;
+}
+
+/* The registration numbers: present, but quiet. */
+.pfh-contact__legal {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 32px;
+	margin: 32px 0 0;
+	padding-top: 24px;
+	border-top: 1px solid var(--pfh-ct-line);
+	font-size: 13.5px;
+	color: var(--pfh-ct-muted);
+}
+
+.pfh-contact__legal strong {
+	color: var(--pfh-ct-body);
+	font-weight: 500;
+}
+
+/* ------------------------------------------------------------------ *
+ * The map
+ * ------------------------------------------------------------------ */
+
+.pfh-contact__map {
+	position: relative;
+	min-height: var(--pfh-ct-map);
+	background: var(--pfh-ct-tile);
+}
+
+.pfh-contact__map iframe,
+.pfh-contact__map img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-height: var(--pfh-ct-map);
+	border: 0;
+	object-fit: cover;
+}
+
+/* ---------- builder placeholder ---------- */
+
+.pfh-contact--empty {
+	padding: 40px;
+	border: 1px dashed rgba(20, 24, 27, .16);
+	border-radius: 12px;
+	color: #6b6b6b;
+	text-align: center;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 991px) {
+	.pfh-contact {
+		--pfh-ct-title: 32px;
+		--pfh-ct-pt: 52px;
+		--pfh-ct-pb: 52px;
+		--pfh-ct-map: 300px;
+	}
+
+	/* Side by side neither half has room; the details come first, because
+	   they are what the page is for. */
+	.pfh-contact__card { grid-template-columns: minmax(0, 1fr); }
+	.pfh-contact__body { padding: 32px; }
+}
+
+@media (max-width: 560px) {
+	.pfh-contact { --pfh-ct-title: 27px; --pfh-ct-map: 240px; }
+	.pfh-contact__body { padding: 24px; }
+	.pfh-contact__way { grid-template-columns: 38px minmax(0, 1fr); gap: 12px; }
+	.pfh-contact__way-icon { width: 38px; height: 38px; }
+	.pfh-contact__way-icon svg { width: 18px; height: 18px; }
+	.pfh-contact__legal { gap: 6px 20px; }
+}

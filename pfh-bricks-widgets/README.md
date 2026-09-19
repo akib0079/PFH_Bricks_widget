@@ -1208,6 +1208,51 @@ what the shop page keeps using.
 
 ---
 
+## PFH About
+
+An opening, a run of sections that alternate a picture with their text, and a
+band of the awards the shop has won. Every part is a field, so the story can be
+rewritten without anyone opening a template.
+
+Sections are a repeater: heading, text, picture. One **with** a picture sits
+beside it and every other one turns around, so the eye moves down the page
+rather than straight down one side of it. One **without** is a column of text
+set to a width that can still be read. Stacked on a phone the picture goes
+above its text every time — alternating sides means nothing in one column.
+
+The awards band takes its own heading and paragraph and a repeater of badges,
+each with a caption and an optional link. With no badges it shows just the
+words; with neither it is left off the page. The badges are set to multiply
+against the band, so a photograph of a medal on a white square does not sit in
+a white box.
+
+---
+
+## PFH Contact
+
+A heading, then a card holding the ways to reach the shop beside a map.
+
+**Every detail is a link, not a line of text.** The phone dials, the email
+opens a message, the address opens whatever the visitor uses for maps. Each one
+has a label and an optional note under it, and any left empty is left out
+entirely — no empty row, no stray icon.
+
+A written-out number still dials. `+31 (0)6 17 39 23 02` becomes
+`tel:+31617392302`: the bracketed nought is an instruction rather than a digit,
+the one you leave out when you dial the country code, and keeping it gives a
+number that reads correctly and rings nowhere.
+
+The KVK and BTW numbers sit quietly under a rule, and go together when both are
+empty.
+
+The map follows the address unless given a place of its own. A **picture**
+chosen instead replaces it entirely, which is also how to have a contact page
+that loads nothing from Google; `pfh_contact_map` is there for a shop that
+wants its own embed. With the map off, the details take the full width rather
+than leaving a gap where it was.
+
+---
+
 ## PFH My Account
 
 One element, two states, no page reloads.
