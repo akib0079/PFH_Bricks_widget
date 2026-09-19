@@ -649,3 +649,38 @@
 	.pfh-pdp__pill,
 	.pfh-pdp__cart { transition: none; }
 }
+
+/* ------------------------------------------------------------------ *
+ * Keyboard
+ *
+ * Everything here can be reached with a keyboard, and until now none of it
+ * said so. One ring, in the section's own accent. No border-radius is set:
+ * an outline already follows the shape of what it is drawn around, and
+ * forcing one would square off the pills at the moment they are focused.
+ * ------------------------------------------------------------------ */
+
+.pfh-pdp a:focus-visible,
+.pfh-pdp button:focus-visible,
+.pfh-pdp select:focus-visible,
+.pfh-pdp input:focus-visible {
+	outline: 2px solid var(--pfh-pdp-accent);
+	outline-offset: 2px;
+}
+
+/*
+ * Inside the gallery the thumbnails scroll in a clipped strip, so a ring
+ * drawn outside them would be cut off. These two draw theirs inside.
+ */
+.pfh-pdp .pfh-pdp__thumb:focus-visible {
+	outline-offset: -3px;
+}
+
+/*
+ * The quantity field clears its ring on :focus — deliberately, because the
+ * browser's own box sat oddly inside the stepper. That rule is more specific
+ * than the one above, so the keyboard ring has to match it to come back.
+ */
+.pfh-pdp .pfh-pdp__qty-input:focus-visible {
+	outline: 2px solid var(--pfh-pdp-accent);
+	outline-offset: -2px;
+}

@@ -64,6 +64,17 @@ class PFH_Element_Product_Related extends PFH_Element_Products {
 		 * a URL rather than a picture because an image control cannot carry a
 		 * default — choosing one in the panel still wins over it.
 		 */
+		/*
+		 * Every section on the product page pads 72 above and below. This row
+		 * inherited the shop slider's 88, which put a step in the page each
+		 * time someone scrolled past it. The controls are still there.
+		 */
+		foreach ( [ 'paddingTop' => 72, 'paddingBottom' => 72 ] as $control => $value ) {
+			if ( isset( $this->controls[ $control ] ) ) {
+				$this->controls[ $control ]['default'] = $value;
+			}
+		}
+
 		if ( isset( $this->controls['bgUrl'] ) ) {
 			$this->controls['bgUrl']['default']     = self::BACKGROUND;
 			$this->controls['bgUrl']['description'] = esc_html__( 'Used only when no image is chosen above. Empty leaves the section plain.', 'pfh-widgets' );

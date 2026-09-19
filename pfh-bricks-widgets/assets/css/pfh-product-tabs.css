@@ -6,8 +6,8 @@
 	--pfh-tabs-max: 1240px;
 	--pfh-tabs-gap: var(--pfh-tabs-gap-set, 40px);
 	--pfh-tabs-aside: 305px;
-	--pfh-tabs-pt: 40px;
-	--pfh-tabs-pb: 56px;
+	--pfh-tabs-pt: var(--pfh-tabs-pt-set, 40px);
+	--pfh-tabs-pb: var(--pfh-tabs-pb-set, 72px);
 	--pfh-tabs-radius: 8px;
 	--pfh-tabs-heading: var(--pfh-tabs-heading-set, 30px);
 	--pfh-tabs-tab: var(--pfh-tabs-tab-set, 16px);
@@ -428,4 +428,13 @@
 	.pfh-tabs__tab,
 	.pfh-tabs__tab::after { transition: none; }
 	.pfh-tabs__panel.is-active { animation: none; }
+}
+
+@media (max-width: 991px) {
+	/* Every section pads 52 on a phone, so the gaps between them stay even
+	   however they are stacked. */
+	.pfh-tabs {
+		--pfh-tabs-pt: 40px;
+		--pfh-tabs-pb: 52px;
+	}
 }

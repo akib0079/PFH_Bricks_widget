@@ -32,7 +32,7 @@ trait PFH_Element_Product_Price {
 
 		// A variable product shows whichever variation it opens on.
 		if ( $product->is_type( 'variable' ) ) {
-			$default = $this->default_variation( $product );
+			$default = $this->opening_variation( $product );
 			$target  = $default ? $default : $product;
 		}
 
@@ -58,7 +58,101 @@ trait PFH_Element_Product_Price {
 	}
 
 	/**
-	 * The variation a variable product opens on, if it names one.
+	 * The variation a variable product opens on.
+	 *
+	 * Its own default if that can be bought, and otherwise the first variation
+	 * that can be — so the chooser opens on something real and the add to cart
+	 * button is live rather than greyed out until the shopper guesses which
+	 * combination exists.
+	 *
+	 * The answer is memoised per product: the price row asks for it, and so
+	 * does the chooser, and resolving it walks every variation.
+	 *
+	 * @param WC_Product $product Variable product.
+	 * @return WC_Product|null
+	 */
+	private function opening_variation( $product ) {
+		static $memo = [];
+
+		$id = (int) $product->get_id();
+
+		if ( array_key_exists( $id, $memo ) ) {
+			return $memo[ $id ];
+		}
+
+		$found = $this->default_variation( $product );
+
+		if ( $found && $found->is_purchasable() && $found->is_in_stock() ) {
+			$memo[ $id ] = $found;
+
+			return $found;
+		}
+
+		$first = $this->first_available( $product );
+
+		// Nothing is buyable: keep the declared default, so the page at least
+		// shows the combination the shop meant to lead with.
+		$memo[ $id ] = $first ? $first : $found;
+
+		return $memo[ $id ];
+	}
+
+	/**
+	 * The first variation a shopper could actually buy, in the shop's own
+	 * order.
+	 *
+	 * @param WC_Product $product Variable product.
+	 * @return WC_Product|null
+	 */
+	private function first_available( $product ) {
+		foreach ( (array) $product->get_children() as $child ) {
+			$variation = wc_get_product( $child );
+
+			if ( $variation && is_object( $variation ) && $variation->is_purchasable() && $variation->is_in_stock() ) {
+				return $variation;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * What the chooser should open with: attribute key => value.
+	 *
+	 * Taken from the opening variation, so the pills, the dropdowns and the
+	 * price are all describing the same thing. A variation that answers "any"
+	 * for an attribute leaves that one unchosen, which is correct — there is
+	 * nothing to choose.
+	 *
+	 * @param WC_Product $product Variable product.
+	 * @return array<string, string> Keyed by the bare attribute name.
+	 */
+	private function opening_choice( $product ) {
+		$out = [];
+
+		foreach ( (array) $product->get_default_attributes() as $name => $value ) {
+			$out[ sanitize_title( $name ) ] = (string) $value;
+		}
+
+		$variation = $this->opening_variation( $product );
+
+		if ( ! $variation ) {
+			return $out;
+		}
+
+		foreach ( (array) $variation->get_variation_attributes() as $key => $value ) {
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$out[ sanitize_title( preg_replace( '/^attribute_/', '', $key ) ) ] = (string) $value;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The variation a variable product names as its default, if any.
 	 *
 	 * @param WC_Product $product Variable product.
 	 * @return WC_Product|null

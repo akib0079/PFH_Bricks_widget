@@ -194,7 +194,7 @@ class PFH_Element_Instagram extends \Bricks\Element {
 
 		/* ---- layout ---- */
 
-		$this->controls['maxWidth'] = $this->number( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 1240, 600, 1600 );
+		$this->controls['maxWidth'] = $this->number( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 1140, 600, 1600 );
 		$this->controls['tile']     = $this->number( 'layout', esc_html__( 'Picture size (px)', 'pfh-widgets' ), 272, 120, 480 );
 		$this->controls['gap']      = $this->number( 'layout', esc_html__( 'Space between pictures (px)', 'pfh-widgets' ), 24, 0, 60 );
 		$this->controls['headGap']  = $this->number( 'layout', esc_html__( 'Space under the heading (px)', 'pfh-widgets' ), 36, 0, 120 );
@@ -459,7 +459,7 @@ class PFH_Element_Instagram extends \Bricks\Element {
 	private function build_vars() {
 		return PFH_Widgets_Helpers::css_vars(
 			[
-				'--pfh-ig-max'       => PFH_Widgets_Helpers::unit( $this->setting( 'maxWidth', 1240 ) ),
+				'--pfh-ig-max'       => PFH_Widgets_Helpers::unit( $this->setting( 'maxWidth', 1140 ) ),
 				'--pfh-ig-tile-set'  => PFH_Widgets_Helpers::unit( $this->setting( 'tile', 272 ) ),
 				'--pfh-ig-gap-set'   => PFH_Widgets_Helpers::unit( $this->setting( 'gap', 24 ) ),
 				'--pfh-ig-head-set'  => PFH_Widgets_Helpers::unit( $this->setting( 'headGap', 36 ) ),

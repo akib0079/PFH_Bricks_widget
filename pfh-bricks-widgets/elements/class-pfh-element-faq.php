@@ -326,7 +326,7 @@ class PFH_Element_Faq extends \Bricks\Element {
 			'min'     => 400,
 			'max'     => 1600,
 			'inline'  => true,
-			'default' => 1240,
+			'default' => 1140,
 		];
 
 		$this->controls['listWidth'] = [
@@ -371,7 +371,7 @@ class PFH_Element_Faq extends \Bricks\Element {
 			'min'     => 0,
 			'max'     => 240,
 			'inline'  => true,
-			'default' => 64,
+			'default' => 72,
 		];
 
 		$this->controls['padBottom'] = [
@@ -574,8 +574,8 @@ class PFH_Element_Faq extends \Bricks\Element {
 			[
 				'--pfh-fq-max'    => PFH_Widgets_Helpers::unit( $this->get( 'maxWidth', 1140 ) ),
 				'--pfh-fq-list'   => PFH_Widgets_Helpers::unit( $this->get( 'listWidth', 620 ) ),
-				'--pfh-fq-pt'     => PFH_Widgets_Helpers::unit( $this->get( 'padTop', 64 ) ),
-				'--pfh-fq-pb'     => PFH_Widgets_Helpers::unit( $this->get( 'padBottom', 72 ) ),
+				'--pfh-fq-pt-set' => PFH_Widgets_Helpers::unit( $this->get( 'padTop', 72 ) ),
+				'--pfh-fq-pb-set' => PFH_Widgets_Helpers::unit( $this->get( 'padBottom', 72 ) ),
 				'--pfh-fq-bg'     => PFH_Widgets_Helpers::color( $this->get( 'bg' ) ),
 				'--pfh-fq-title'  => PFH_Widgets_Helpers::unit( $this->get( 'titleSize', 28 ) ),
 				'--pfh-fq-q'      => PFH_Widgets_Helpers::unit( $this->get( 'qSize', 14 ) ),

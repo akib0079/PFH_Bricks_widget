@@ -574,9 +574,11 @@ a.pfh-prod__reviews:hover .pfh-prod__reviews-text {
 @media (max-width: 991px) {
 	.pfh-prod {
 		--pfh-per: var(--pfh-per-t);
-		--pfh-p-pad-top: 60px;
-		--pfh-p-pad-bot: 60px;
-		--pfh-gutter: 20px;
+		--pfh-p-pad-top: 52px;
+		--pfh-p-pad-bot: 52px;
+		/* 24, like every other section: a 4px narrower gutter here put a
+		   step in the page wherever a slider sat between two of them. */
+		--pfh-gutter: 24px;
 		--pfh-head-gap: 28px;
 		--pfh-bar-gap: 26px;
 		--pfh-media-pad: var(--pfh-media-pad-t);

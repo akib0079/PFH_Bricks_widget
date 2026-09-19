@@ -133,7 +133,7 @@ class PFH_Element_Product_Usp extends \Bricks\Element {
 
 		/* ---- layout ---- */
 
-		$this->controls['maxWidth'] = $this->number( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 1240, 600, 1600 );
+		$this->controls['maxWidth'] = $this->number( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 1140, 600, 1600 );
 		$this->controls['columns']  = $this->number( 'layout', esc_html__( 'Cards per row', 'pfh-widgets' ), 4, 1, 6 );
 		$this->controls['gap']      = $this->number( 'layout', esc_html__( 'Space between cards (px)', 'pfh-widgets' ), 20, 8, 60 );
 		$this->controls['padTop']   = $this->number( 'layout', esc_html__( 'Space above (px)', 'pfh-widgets' ), 72, 0, 200 );
@@ -378,7 +378,7 @@ class PFH_Element_Product_Usp extends \Bricks\Element {
 	private function build_vars() {
 		return PFH_Widgets_Helpers::css_vars(
 			[
-				'--pfh-usp-max'       => PFH_Widgets_Helpers::unit( $this->setting( 'maxWidth', 1240 ) ),
+				'--pfh-usp-max'       => PFH_Widgets_Helpers::unit( $this->setting( 'maxWidth', 1140 ) ),
 				'--pfh-usp-cols-set'      => max( 1, (int) $this->setting( 'columns', 4 ) ),
 				'--pfh-usp-gap-set'   => PFH_Widgets_Helpers::unit( $this->setting( 'gap', 20 ) ),
 				'--pfh-usp-pt-set'        => PFH_Widgets_Helpers::unit( $this->setting( 'padTop', 72 ) ),

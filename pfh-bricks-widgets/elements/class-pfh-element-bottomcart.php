@@ -144,6 +144,15 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 			'description' => esc_html__( 'Put before the attribute, as "Select Type". Empty uses the attribute on its own.', 'pfh-widgets' ),
 		];
 
+		$this->controls['preselect'] = [
+			'tab'         => 'content',
+			'group'       => 'content',
+			'label'       => esc_html__( 'Open on an available variant', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'So the button works straight away rather than waiting for a choice.', 'pfh-widgets' ),
+		];
+
 		$this->controls['ajaxCart'] = [
 			'tab'         => 'content',
 			'group'       => 'content',
@@ -182,7 +191,7 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 		$this->controls['bodyWidth'] = $this->number( 'layout', esc_html__( 'Text column width (px)', 'pfh-widgets' ), 505, 300, 900 );
 		$this->controls['formWidth'] = $this->number( 'layout', esc_html__( 'Dropdowns and button width (px)', 'pfh-widgets' ), 426, 200, 900 );
 		$this->controls['pad']      = $this->number( 'layout', esc_html__( 'Card padding (px)', 'pfh-widgets' ), 44, 12, 96 );
-		$this->controls['padTop']   = $this->number( 'layout', esc_html__( 'Space above (px)', 'pfh-widgets' ), 64, 0, 200 );
+		$this->controls['padTop']   = $this->number( 'layout', esc_html__( 'Space above (px)', 'pfh-widgets' ), 72, 0, 200 );
 
 		$this->controls['overlap'] = [
 			'tab'         => 'content',
@@ -341,7 +350,14 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 
 		printf( '<input type="hidden" name="add-to-cart" value="%d" />', (int) $product->get_id() );
 		printf( '<input type="hidden" name="product_id" value="%d" />', (int) $product->get_id() );
-		echo '<input type="hidden" name="variation_id" value="0" data-pfh-variation />';
+		/*
+		 * The opening variation goes in the field too, not only into the
+		 * chooser: a browser with no JavaScript posts this form as it stands,
+		 * and WooCommerce should not have to work out what was meant.
+		 */
+		$opening = ( $variable && $this->switched_on( 'preselect', true ) ) ? $this->opening_variation( $product ) : null;
+
+		printf( '<input type="hidden" name="variation_id" value="%d" data-pfh-variation />', $opening ? (int) $opening->get_id() : 0 );
 		echo '<input type="hidden" name="quantity" value="1" />';
 
 		printf(
@@ -373,8 +389,12 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 			return;
 		}
 
-		$defaults = $product->get_default_attributes();
-		$prefix   = trim( (string) $this->setting( 'choosePrefix', '' ) );
+		// Open on something buyable, so the button is live on arrival.
+		$defaults = $this->switched_on( 'preselect', true )
+			? $this->opening_choice( $product )
+			: $product->get_default_attributes();
+
+		$prefix = trim( (string) $this->setting( 'choosePrefix', '' ) );
 
 		echo '<div class="pfh-bcart__choices">';
 
@@ -609,7 +629,7 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 				'--pfh-bc-body-set'   => PFH_Widgets_Helpers::unit( $this->setting( 'bodyWidth', 505 ) ),
 				'--pfh-bc-form-set'   => PFH_Widgets_Helpers::unit( $this->setting( 'formWidth', 426 ) ),
 				'--pfh-bc-pad-set'    => PFH_Widgets_Helpers::unit( $this->setting( 'pad', 44 ) ),
-				'--pfh-bc-pt-set'     => PFH_Widgets_Helpers::unit( $this->setting( 'padTop', 64 ) ),
+				'--pfh-bc-pt-set'     => PFH_Widgets_Helpers::unit( $this->setting( 'padTop', 72 ) ),
 				'--pfh-bc-overlap-set' => PFH_Widgets_Helpers::unit( $this->setting( 'overlap', 90 ) ),
 				'--pfh-bc-shot-set'   => PFH_Widgets_Helpers::unit( $this->setting( 'imageWidth', 420 ) ),
 				'--pfh-bc-radius'     => PFH_Widgets_Helpers::unit( $this->setting( 'radius', 17 ) ),

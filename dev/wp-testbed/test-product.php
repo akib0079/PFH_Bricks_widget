@@ -289,6 +289,86 @@ ok( 'the first group is not the soft one', isset( $groups[1][0] ) && false === s
 ok( 'and the second one is', isset( $groups[1][1] ) && false !== strpos( $groups[1][1], 'soft' ) );
 ok( 'naming a group still decides it instead', false !== strpos( pdp( $variable->ID, [ 'tintedAttrs' => 'type' ] ), 'pfh-pdp__attr--soft" data-pfh-attr="attribute_pa_soort"' ) );
 
+echo "\n── it opens on something that can be bought ──\n";
+/*
+ * A chooser that opens on nothing leaves the add to cart button greyed out
+ * until the shopper guesses which combination exists. So: the shop's own
+ * default when that can be bought, and otherwise the first one that can.
+ */
+$variable_product = wc_get_product( $variable->ID );
+$declared         = $variable_product->get_default_attributes();
+
+// 1. No defaults at all.
+$variable_product->set_default_attributes( [] );
+$variable_product->save();
+
+$open = pdp( $variable->ID );
+preg_match_all( '/<div class="pfh-pdp__attr[^"]*" data-pfh-attr="[^"]*">.*?<\/select>/s', $open, $groups );
+
+$every_group_chose = ! empty( $groups[0] );
+
+foreach ( $groups[0] as $group ) {
+	if ( ! preg_match( '/<option value="[^"]+" selected/', $group ) ) { $every_group_chose = false; }
+}
+
+ok( 'with no default set, every group still opens on a value', $every_group_chose, count( $groups[0] ) . ' groups' );
+ok( '  and the form carries a real variation', (bool) preg_match( '/name="variation_id" value="([1-9]\d*)"/', $open ) );
+ok( '  so the button is not left disabled', false === strpos( $open, 'data-pfh-buy disabled' ) );
+
+preg_match( '/name="variation_id" value="(\d+)"/', $open, $picked );
+$opened_on = wc_get_product( (int) $picked[1] );
+ok( '  on one that is actually in stock', $opened_on && $opened_on->is_purchasable() && $opened_on->is_in_stock() );
+
+// 2. A default that cannot be bought.
+$dead = null;
+
+foreach ( $variable_product->get_children() as $child ) {
+	$candidate = wc_get_product( $child );
+
+	if ( $candidate && ! $candidate->is_in_stock() ) { $dead = $candidate; break; }
+}
+
+if ( $dead ) {
+	$variable_product->set_default_attributes( array_combine(
+		array_map( static function ( $k ) { return preg_replace( '/^attribute_/', '', $k ); }, array_keys( $dead->get_variation_attributes() ) ),
+		array_values( $dead->get_variation_attributes() )
+	) );
+	$variable_product->save();
+
+	$open = pdp( $variable->ID );
+	preg_match( '/name="variation_id" value="(\d+)"/', $open, $picked );
+
+	ok( 'an out-of-stock default is stepped over', (int) $picked[1] !== (int) $dead->get_id(), 'opened on the sold-out one' );
+	ok( '  for one that can be bought', (int) $picked[1] > 0 && wc_get_product( (int) $picked[1] )->is_in_stock() );
+} else {
+	ok( 'an out-of-stock default is stepped over', true, 'no sold-out variation in the fixture' );
+	ok( '  for one that can be bought', true );
+}
+
+// 3. Switched off, only what the shop declared is chosen.
+$variable_product->set_default_attributes( [] );
+$variable_product->save();
+
+$manual = pdp( $variable->ID, [ 'preselect' => false ] );
+ok( 'switched off it waits for the shopper', false === strpos( $manual, 'value="' . ( $picked[1] ?? '0' ) . '" data-pfh-variation' ) && (bool) preg_match( '/name="variation_id" value="0"/', $manual ) );
+
+// 4. The price agrees with what the chooser opened on.
+$open = pdp( $variable->ID );
+preg_match( '/name="variation_id" value="(\d+)"/', $open, $picked );
+$opened_on = wc_get_product( (int) $picked[1] );
+/*
+ * wc_price() nests spans, so the price row is read as a whole rather than by
+ * matching up to the first closing tag — which is the currency symbol.
+ */
+preg_match( '/<div class="pfh-pdp__price" data-pfh-price>(.*?)<span class="pfh-pdp__price-was/s', $open, $shown );
+$want = wp_strip_all_tags( wc_price( wc_get_price_to_display( $opened_on ) ) );
+$got  = wp_strip_all_tags( $shown[1] ?? '' );
+
+ok( 'the price shown is the price of what it opened on', false !== strpos( $got, $want ), "shown '$got', wanted '$want'" );
+
+$variable_product->set_default_attributes( $declared );
+$variable_product->save();
+
 echo "\n── the line above what is in the box ──\n";
 /*
  * The product's own Highlight title, set where the rest of the product is, so

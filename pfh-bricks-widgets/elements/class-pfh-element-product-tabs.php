@@ -182,11 +182,11 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 
 		/* ---- layout ---- */
 
-		$this->controls['maxWidth']  = $this->number_field( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 1240, 600, 1600 );
+		$this->controls['maxWidth']  = $this->number_field( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 1140, 600, 1600 );
 		$this->controls['gap']       = $this->number_field( 'layout', esc_html__( 'Space beside the steps (px)', 'pfh-widgets' ), 40, 12, 120 );
 		$this->controls['stepsWidth'] = $this->number_field( 'layout', esc_html__( 'Steps panel width (px)', 'pfh-widgets' ), 305, 220, 480 );
 		$this->controls['padTop']    = $this->number_field( 'layout', esc_html__( 'Space above (px)', 'pfh-widgets' ), 40, 0, 200 );
-		$this->controls['padBottom'] = $this->number_field( 'layout', esc_html__( 'Space below (px)', 'pfh-widgets' ), 56, 0, 200 );
+		$this->controls['padBottom'] = $this->number_field( 'layout', esc_html__( 'Space below (px)', 'pfh-widgets' ), 72, 0, 200 );
 	}
 
 	/* ---------------------------------------------------------------------
@@ -681,11 +681,11 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 	private function build_vars() {
 		return PFH_Widgets_Helpers::css_vars(
 			[
-				'--pfh-tabs-max'         => PFH_Widgets_Helpers::unit( $this->setting( 'maxWidth', 1240 ) ),
+				'--pfh-tabs-max'         => PFH_Widgets_Helpers::unit( $this->setting( 'maxWidth', 1140 ) ),
 				'--pfh-tabs-gap-set'     => PFH_Widgets_Helpers::unit( $this->setting( 'gap', 40 ) ),
 				'--pfh-tabs-aside'       => PFH_Widgets_Helpers::unit( $this->setting( 'stepsWidth', 305 ) ),
-				'--pfh-tabs-pt'          => PFH_Widgets_Helpers::unit( $this->setting( 'padTop', 40 ) ),
-				'--pfh-tabs-pb'          => PFH_Widgets_Helpers::unit( $this->setting( 'padBottom', 56 ) ),
+				'--pfh-tabs-pt-set'      => PFH_Widgets_Helpers::unit( $this->setting( 'padTop', 40 ) ),
+				'--pfh-tabs-pb-set'      => PFH_Widgets_Helpers::unit( $this->setting( 'padBottom', 72 ) ),
 				'--pfh-tabs-radius'      => PFH_Widgets_Helpers::unit( $this->setting( 'radius', 8 ) ),
 				'--pfh-tabs-heading-set' => PFH_Widgets_Helpers::unit( $this->setting( 'headingSize', 30 ) ),
 				'--pfh-tabs-tab-set'     => PFH_Widgets_Helpers::unit( $this->setting( 'tabSize', 16 ) ),

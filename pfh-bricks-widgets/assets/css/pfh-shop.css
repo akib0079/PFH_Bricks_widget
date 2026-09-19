@@ -476,8 +476,8 @@
 .pfh-faq {
 	--pfh-fq-max: 1240px;
 	--pfh-fq-list: 940px;
-	--pfh-fq-pt: 64px;
-	--pfh-fq-pb: 72px;
+	--pfh-fq-pt: var(--pfh-fq-pt-set, 72px);
+	--pfh-fq-pb: var(--pfh-fq-pb-set, 72px);
 	--pfh-fq-bg: transparent;
 	--pfh-fq-bg-img: none;
 	--pfh-fq-title: 32px;
@@ -650,4 +650,24 @@
 
 @media (max-width: 782px) {
 	.pfh-faq__decor { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	/*
+	 * Every transition in this file is a hover tint or a border; none of
+	 * them carry meaning, so for anyone who asked for less motion they
+	 * simply arrive.
+	 */
+	.pfh-shop *,
+	.pfh-faq * {
+		transition: none !important;
+		animation: none !important;
+	}
+}
+
+@media (max-width: 991px) {
+	.pfh-faq {
+		--pfh-fq-pt: 52px;
+		--pfh-fq-pb: 52px;
+	}
 }

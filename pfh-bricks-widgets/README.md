@@ -1039,6 +1039,20 @@ Both fields have a *field name* setting on the element, so an ACF field can be
 pointed at instead. The reader understands a plain list of strings and the
 usual ACF row key names as well as its own shape.
 
+### It opens on something you can buy
+
+A chooser that opens on nothing leaves the add to cart button greyed out until
+the shopper works out for themselves which combination exists. So the page
+opens on the product's own default when that can be bought, and otherwise on
+the first variation that can — in the shop's own order, skipping anything sold
+out. The price row, the chooser and the hidden variation field all describe
+that same variation, so the form is valid before anyone touches it, with or
+without JavaScript.
+
+*Open on an available variant* switches it off, and then only what the shop
+declared as the default is chosen. The bottom reminder does the same thing for
+the same reason.
+
 ### Variants resolve here, not in WooCommerce's script
 
 The pills set a real `<select>` behind each group — that is still the field
@@ -1948,6 +1962,20 @@ add_filter( 'pfh_widgets_load_google_font', '__return_false' );
 ```
 
 ---
+
+## One page, one column
+
+Every section on the product page — the product, the tabs, the reasons, the
+related row, the questions, the Instagram strip, the bottom reminder — and the
+footer under them all sit on the same 1140 column with the same 24px gutter, so
+the content edge never steps as the page scrolls. The vertical rhythm between
+them is 144px on a desktop and 104px on a phone; the product and its tabs sit
+closer together at 96px, because they are one block rather than two.
+
+Each of those is still a control. What changed is only what they default to:
+the sections had drifted to three different widths (1140, 1188, 1240) and six
+different paddings, which is the sort of thing that reads as unfinished without
+anyone being able to say why.
 
 ## Hooks
 

@@ -270,6 +270,13 @@ class PFH_Element_Product extends \Bricks\Element {
 			[ 'description' => esc_html__( 'As drawn: SMAAK — PERZIK.', 'pfh-widgets' ) ]
 		);
 
+		$this->controls['preselect'] = $this->switch_field(
+			'variants',
+			esc_html__( 'Open on an available variant', 'pfh-widgets' ),
+			true,
+			[ 'description' => esc_html__( 'The product\'s own default when it can be bought, otherwise the first one that can — so the add to cart button works straight away.', 'pfh-widgets' ) ]
+		);
+
 		$this->controls['tintedAttrs'] = $this->text_field(
 			'variants',
 			esc_html__( 'Groups using the second colour', 'pfh-widgets' ),
@@ -391,7 +398,7 @@ class PFH_Element_Product extends \Bricks\Element {
 	}
 
 	private function layout_controls() {
-		$this->controls['maxWidth'] = $this->number_field( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 1240, 600, 1600 );
+		$this->controls['maxWidth'] = $this->number_field( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 1140, 600, 1600 );
 		$this->controls['gap']      = $this->number_field( 'layout', esc_html__( 'Space between the columns (px)', 'pfh-widgets' ), 40, 12, 120 );
 		$this->controls['padTop']   = $this->number_field( 'layout', esc_html__( 'Space above (px)', 'pfh-widgets' ), 24, 0, 160 );
 		$this->controls['padBottom'] = $this->number_field( 'layout', esc_html__( 'Space below (px)', 'pfh-widgets' ), 56, 0, 200 );
@@ -804,8 +811,17 @@ class PFH_Element_Product extends \Bricks\Element {
 			return;
 		}
 
-		$tinted   = array_filter( array_map( 'trim', explode( ',', strtolower( (string) $this->setting( 'tintedAttrs', '' ) ) ) ) );
-		$defaults = $product->get_default_attributes();
+		$tinted = array_filter( array_map( 'trim', explode( ',', strtolower( (string) $this->setting( 'tintedAttrs', '' ) ) ) ) );
+
+		/*
+		 * Open on something that can actually be bought, so the button is live
+		 * on arrival. Switched off, only what the shop declared is chosen —
+		 * which leaves the button greyed out until the shopper works out for
+		 * themselves which combination exists.
+		 */
+		$defaults = $this->switched_on( 'preselect', true )
+			? $this->opening_choice( $product )
+			: $product->get_default_attributes();
 
 		echo '<div class="pfh-pdp__attrs">';
 
@@ -1009,7 +1025,14 @@ class PFH_Element_Product extends \Bricks\Element {
 
 		printf( '<input type="hidden" name="add-to-cart" value="%d" />', (int) $product->get_id() );
 		printf( '<input type="hidden" name="product_id" value="%d" />', (int) $product->get_id() );
-		echo '<input type="hidden" name="variation_id" value="0" data-pfh-variation />';
+		/*
+		 * The opening variation goes in the field too, not only into the
+		 * chooser: a browser with no JavaScript posts this form as it stands,
+		 * and WooCommerce should not have to work out what was meant.
+		 */
+		$opening = ( $variable && $this->switched_on( 'preselect', true ) ) ? $this->opening_variation( $product ) : null;
+
+		printf( '<input type="hidden" name="variation_id" value="%d" data-pfh-variation />', $opening ? (int) $opening->get_id() : 0 );
 
 		echo '</div>';
 		echo '<p class="pfh-pdp__notice" data-pfh-notice hidden></p>';
@@ -1201,7 +1224,7 @@ class PFH_Element_Product extends \Bricks\Element {
 	private function build_vars() {
 		return PFH_Widgets_Helpers::css_vars(
 			[
-				'--pfh-pdp-max'       => PFH_Widgets_Helpers::unit( $this->setting( 'maxWidth', 1240 ) ),
+				'--pfh-pdp-max'       => PFH_Widgets_Helpers::unit( $this->setting( 'maxWidth', 1140 ) ),
 				'--pfh-pdp-gap-set'   => PFH_Widgets_Helpers::unit( $this->setting( 'gap', 40 ) ),
 				'--pfh-pdp-pt'        => PFH_Widgets_Helpers::unit( $this->setting( 'padTop', 24 ) ),
 				'--pfh-pdp-pb'        => PFH_Widgets_Helpers::unit( $this->setting( 'padBottom', 56 ) ),
