@@ -1208,6 +1208,48 @@ what the shop page keeps using.
 
 ---
 
+## PFH Blog
+
+An opening, an optional lead article given the room it deserves, and a grid of
+cards. The card is the shop's product card with the price taken out — the same
+radius, the same quiet meta line, the same restraint.
+
+### Which posts
+
+**The most recent**, optionally from one category — for a few posts on the home
+page or in a sidebar.
+
+**Whatever this page is about** — for the blog index and the category
+templates. It draws the query WordPress already ran instead of running one of
+its own, so the category, the search and page two all follow without anyone
+configuring them.
+
+### The card
+
+Picture, category on the picture, date, reading time, summary and a link, each
+one switchable. The reading time is worked out from the post at 200 words a
+minute, never less than one, and `pfh_blog_reading_time` is there for a shop
+that counts differently. The category pill skips the default "Uncategorised"
+when the post has anything better to say.
+
+### More posts
+
+A **load more** button that adds the next cards without a reload — and which
+ships as an ordinary link to page two, so a browser with no scripting still
+gets there. If the request ever fails it goes back to being that link, because
+there has to be a way to the rest of the posts. Page numbers and nothing at all
+are the other two options.
+
+The endpoint takes only what changes how a card is drawn — how many, which
+category, which parts to show — clamps every one of them, and asks for
+published posts, which is all the first page showed. It cannot be talked into a
+larger page, a different post type, or a draft.
+
+Below 992px the grid goes to two columns, below 620px to one, and the lead
+article stacks its picture above its words.
+
+---
+
 ## PFH About
 
 An opening, a run of sections that alternate a picture with their text, and a

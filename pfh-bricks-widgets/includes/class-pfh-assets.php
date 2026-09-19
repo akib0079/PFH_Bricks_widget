@@ -183,6 +183,23 @@ class PFH_Widgets_Assets {
 		);
 
 		wp_register_style(
+			'pfh-blog',
+			PFH_WIDGETS_URL . 'assets/css/pfh-blog.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_script(
+			'pfh-blog',
+			PFH_WIDGETS_URL . 'assets/js/pfh-blog.js',
+			[],
+			PFH_WIDGETS_VERSION,
+			true
+		);
+
+		wp_localize_script( 'pfh-blog', 'pfhWidgets', self::endpoint() );
+
+		wp_register_style(
 			'pfh-about',
 			PFH_WIDGETS_URL . 'assets/css/pfh-about.css',
 			[ 'pfh-base' ],
@@ -613,6 +630,15 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-product-tabs' );
 		wp_enqueue_script( 'pfh-product-tabs' );
+	}
+
+	/**
+	 * Enqueue everything the blog needs.
+	 */
+	public static function blog() {
+		self::base();
+		wp_enqueue_style( 'pfh-blog' );
+		wp_enqueue_script( 'pfh-blog' );
 	}
 
 	/**

@@ -1,0 +1,414 @@
+/**
+ * The blog.
+ *
+ * An opening, an optional lead article given the room it deserves, and a grid
+ * of cards under it. The card is the shop's product card with the price taken
+ * out: the same radius, the same quiet meta line, the same restraint.
+ */
+
+.pfh-blog {
+	--pfh-bl-max: 1140px;
+	--pfh-bl-pt: var(--pfh-bl-pt-set, 72px);
+	--pfh-bl-pb: var(--pfh-bl-pb-set, 72px);
+	--pfh-bl-cols: var(--pfh-bl-cols-set, 3);
+	--pfh-bl-gap: var(--pfh-bl-gap-set, 32px);
+	--pfh-bl-radius: 16px;
+
+	--pfh-bl-ink: #22301c;
+	--pfh-bl-body: #5c6657;
+	--pfh-bl-muted: #8d9589;
+	--pfh-bl-accent: #2b5f63;
+	--pfh-bl-line: #eaeaea;
+	--pfh-bl-tile: #f4f4f2;
+	--pfh-bl-tag-bg: #dfe9dc;
+	--pfh-bl-tag-ink: #46603f;
+
+	--pfh-bl-title: var(--pfh-bl-title-set, 40px);
+	--pfh-bl-card: var(--pfh-bl-card-set, 20px);
+	--pfh-bl-ratio: 3 / 2;
+
+	display: block;
+	padding-block: var(--pfh-bl-pt) var(--pfh-bl-pb);
+	font-family: var(--pfh-font);
+	color: var(--pfh-bl-body);
+	font-size: 15px;
+	line-height: 1.7;
+}
+
+.pfh-blog[hidden],
+.pfh-blog [hidden] { display: none !important; }
+
+.pfh-blog__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-bl-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+.pfh-blog em,
+.pfh-blog i {
+	font-family: var(--pfh-bl-serif, "Playfair Display", Georgia, serif);
+	font-style: italic;
+	font-weight: 400;
+}
+
+.pfh-blog a { text-decoration: none; color: inherit; }
+
+.pfh-blog a:focus-visible {
+	outline: 2px solid var(--pfh-bl-accent);
+	outline-offset: 3px;
+	border-radius: 6px;
+}
+
+/* ------------------------------------------------------------------ *
+ * The opening
+ * ------------------------------------------------------------------ */
+
+.pfh-blog__head { margin-bottom: 36px; }
+
+.pfh-blog__eyebrow {
+	margin: 0 0 12px;
+	color: var(--pfh-bl-muted);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: .18em;
+	text-transform: uppercase;
+}
+
+.pfh-blog .pfh-blog__title {
+	margin: 0;
+	max-width: 18ch;
+	color: var(--pfh-bl-ink);
+	font-size: var(--pfh-bl-title);
+	font-weight: 600;
+	line-height: 1.15;
+	letter-spacing: -.01em;
+	text-wrap: balance;
+}
+
+.pfh-blog .pfh-blog__lede {
+	margin: 14px 0 0;
+	max-width: 62ch;
+	font-size: 16px;
+}
+
+/* The categories, as a quiet row of links. */
+.pfh-blog__terms {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 28px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-blog__term {
+	display: inline-flex;
+	align-items: center;
+	height: 36px;
+	padding: 0 16px;
+	border: 1px solid var(--pfh-bl-line);
+	border-radius: 999px;
+	color: var(--pfh-bl-body);
+	font-size: 14px;
+	line-height: 1;
+	white-space: nowrap;
+	transition: border-color var(--pfh-speed, .28s) var(--pfh-ease, ease), color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-blog__term:hover { border-color: var(--pfh-bl-accent); color: var(--pfh-bl-accent); }
+
+.pfh-blog__term.is-on {
+	border-color: var(--pfh-bl-accent);
+	background: var(--pfh-bl-accent);
+	color: #fff;
+}
+
+/* ------------------------------------------------------------------ *
+ * The lead article
+ * ------------------------------------------------------------------ */
+
+.pfh-blog__lead { margin-bottom: var(--pfh-bl-gap); }
+
+/*
+ * The lead is one card given both columns, so it is the card itself that
+ * splits — not the wrapper. Laying the wrapper out instead left the picture
+ * and its words stacked in the first column with the second one empty.
+ */
+.pfh-blog__lead .pfh-blog__card {
+	display: grid;
+	grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+	align-items: center;
+	gap: 40px;
+}
+
+.pfh-blog__lead .pfh-blog__media {
+	aspect-ratio: 16 / 10;
+	margin-bottom: 0;
+}
+.pfh-blog__lead .pfh-blog__card-title { font-size: calc(var(--pfh-bl-card) * 1.5); }
+.pfh-blog__lead .pfh-blog__excerpt { font-size: 15.5px; }
+
+/* ------------------------------------------------------------------ *
+ * The grid
+ * ------------------------------------------------------------------ */
+
+.pfh-blog__grid {
+	display: grid;
+	grid-template-columns: repeat(var(--pfh-bl-cols), minmax(0, 1fr));
+	gap: var(--pfh-bl-gap);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-blog__card {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.pfh-blog__card-body {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	min-width: 0;
+}
+
+.pfh-blog__media {
+	position: relative;
+	display: block;
+	aspect-ratio: var(--pfh-bl-ratio);
+	margin-bottom: 16px;
+	border-radius: var(--pfh-bl-radius);
+	background: var(--pfh-bl-tile);
+	overflow: hidden;
+}
+
+.pfh-blog__media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+	transition: transform .5s var(--pfh-ease, ease);
+}
+
+.pfh-blog__card:hover .pfh-blog__media img { transform: scale(1.04); }
+
+.pfh-blog__tag {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	padding: 6px 12px;
+	border-radius: 999px;
+	background: var(--pfh-bl-tag-bg);
+	color: var(--pfh-bl-tag-ink);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+}
+
+.pfh-blog__meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 10px;
+	color: var(--pfh-bl-muted);
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+/* The dot between the date and the reading time, drawn rather than typed,
+   so a card with only one of the two has no stray bullet. */
+.pfh-blog__meta > * + *::before {
+	content: "";
+	display: inline-block;
+	width: 3px;
+	height: 3px;
+	margin-right: 10px;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: middle;
+}
+
+.pfh-blog .pfh-blog__card-title {
+	margin: 8px 0 0;
+	color: var(--pfh-bl-ink);
+	font-size: var(--pfh-bl-card);
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: -.01em;
+}
+
+.pfh-blog__card-title a {
+	background-image: linear-gradient(currentColor, currentColor);
+	background-size: 0 1px;
+	background-repeat: no-repeat;
+	background-position: 0 100%;
+	transition: background-size .35s var(--pfh-ease, ease);
+}
+
+.pfh-blog__card:hover .pfh-blog__card-title a { background-size: 100% 1px; }
+
+.pfh-blog__excerpt {
+	margin: 10px 0 0;
+	font-size: 14.5px;
+	line-height: 1.65;
+}
+
+.pfh-blog__more {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	margin-top: 14px;
+	color: var(--pfh-bl-accent);
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.pfh-blog__more svg {
+	width: 13px;
+	height: 13px;
+	transition: transform var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-blog__card:hover .pfh-blog__more svg { transform: translate(3px, -3px); }
+
+/* ------------------------------------------------------------------ *
+ * The foot
+ * ------------------------------------------------------------------ */
+
+.pfh-blog__foot {
+	display: flex;
+	justify-content: center;
+	margin-top: 44px;
+}
+
+.pfh-blog__load {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	min-height: 48px;
+	padding: 13px 28px;
+	border: 1px solid var(--pfh-bl-accent);
+	border-radius: 999px;
+	background: transparent;
+	color: var(--pfh-bl-accent);
+	font-family: inherit;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color var(--pfh-speed, .28s) var(--pfh-ease, ease), color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-blog__load:hover:not(:disabled) { background: var(--pfh-bl-accent); color: #fff; }
+.pfh-blog__load:disabled { opacity: .5; cursor: default; }
+
+.pfh-blog__load-spin {
+	width: 0;
+	height: 16px;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	opacity: 0;
+	transition: width .2s var(--pfh-ease, ease), opacity .2s var(--pfh-ease, ease);
+}
+
+.pfh-blog__load.is-busy .pfh-blog__load-spin {
+	width: 16px;
+	opacity: 1;
+	animation: pfh-blog-spin .7s linear infinite;
+}
+
+@keyframes pfh-blog-spin { to { transform: rotate(360deg); } }
+
+/* Ordinary page links, for anyone without scripting. */
+.pfh-blog__pager {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 8px;
+}
+
+.pfh-blog__pager .page-numbers {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 42px;
+	height: 42px;
+	padding: 0 12px;
+	border: 1px solid var(--pfh-bl-line);
+	border-radius: 999px;
+	color: var(--pfh-bl-body);
+	font-size: 14px;
+	line-height: 1;
+}
+
+.pfh-blog__pager .page-numbers:hover { border-color: var(--pfh-bl-accent); color: var(--pfh-bl-accent); }
+
+.pfh-blog__pager .page-numbers.current {
+	border-color: var(--pfh-bl-accent);
+	background: var(--pfh-bl-accent);
+	color: #fff;
+}
+
+/* ---------- nothing to show ---------- */
+
+.pfh-blog__none {
+	padding: 48px 24px;
+	border: 1px dashed var(--pfh-bl-line);
+	border-radius: var(--pfh-bl-radius);
+	text-align: center;
+}
+
+.pfh-blog--empty {
+	padding: 40px;
+	border: 1px dashed rgba(20, 24, 27, .16);
+	border-radius: 12px;
+	color: #6b6b6b;
+	text-align: center;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 991px) {
+	.pfh-blog {
+		--pfh-bl-title: 32px;
+		--pfh-bl-cols: 2;
+		--pfh-bl-gap: 24px;
+		--pfh-bl-pt: 52px;
+		--pfh-bl-pb: 52px;
+		--pfh-bl-card: 18px;
+	}
+
+	.pfh-blog__lead .pfh-blog__card {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0;
+	}
+
+	.pfh-blog__lead .pfh-blog__media { margin-bottom: 16px; }
+
+	.pfh-blog__lead .pfh-blog__card-title { font-size: calc(var(--pfh-bl-card) * 1.3); }
+}
+
+@media (max-width: 620px) {
+	/* One column: two cards across a phone leaves neither a readable
+	   headline. */
+	.pfh-blog { --pfh-bl-cols: 1; --pfh-bl-title: 27px; }
+	.pfh-blog__head { margin-bottom: 28px; }
+	.pfh-blog__foot { margin-top: 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-blog__media img,
+	.pfh-blog__card-title a,
+	.pfh-blog__more svg,
+	.pfh-blog__load,
+	.pfh-blog__term { transition: none; }
+
+	.pfh-blog__card:hover .pfh-blog__media img { transform: none; }
+	.pfh-blog__load.is-busy .pfh-blog__load-spin { animation-duration: 1.6s; }
+}
