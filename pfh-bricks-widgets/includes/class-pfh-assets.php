@@ -183,6 +183,23 @@ class PFH_Widgets_Assets {
 		);
 
 		wp_register_style(
+			'pfh-account',
+			PFH_WIDGETS_URL . 'assets/css/pfh-account.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_script(
+			'pfh-account',
+			PFH_WIDGETS_URL . 'assets/js/pfh-account.js',
+			[],
+			PFH_WIDGETS_VERSION,
+			true
+		);
+
+		wp_localize_script( 'pfh-account', 'pfhWidgets', self::endpoint() );
+
+		wp_register_style(
 			'pfh-bottomcart',
 			PFH_WIDGETS_URL . 'assets/css/pfh-bottomcart.css',
 			[ 'pfh-base' ],
@@ -582,6 +599,15 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-product-tabs' );
 		wp_enqueue_script( 'pfh-product-tabs' );
+	}
+
+	/**
+	 * Enqueue everything the account page needs.
+	 */
+	public static function account() {
+		self::base();
+		wp_enqueue_style( 'pfh-account' );
+		wp_enqueue_script( 'pfh-account' );
 	}
 
 	/**

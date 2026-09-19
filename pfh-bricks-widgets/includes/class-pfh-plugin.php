@@ -118,6 +118,10 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-product-usp.php',
 				'class' => 'PFH_Element_Product_Usp',
 			],
+			'pfh-account' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-account.php',
+				'class' => 'PFH_Element_Account',
+			],
 			'pfh-bottomcart' => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-bottomcart.php',
 				'class' => 'PFH_Element_Bottomcart',
@@ -232,6 +236,7 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Permalinks::init();
 		PFH_Widgets_Badge::init();
 		PFH_Widgets_Instagram::init();
+		PFH_Widgets_Account::init();
 		PFH_Widgets_Documents::init();
 		PFH_Widgets_Diagnostics::init();
 	}

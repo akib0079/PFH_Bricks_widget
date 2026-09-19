@@ -1,0 +1,1360 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PFH Account &mdash; design preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;1,400;1,500&display=swap" rel="stylesheet">
+<style>/**
+ * Products For Home – Bricks Widgets
+ * Shared tokens + primitives.
+ *
+ * Every value here is a fallback: the elements write the real values as
+ * inline custom properties, so the widgets still look right in the builder
+ * before any setting has been saved.
+ */
+
+.pfh-header,
+.pfh-footer,
+.pfh-hero,
+.pfh-portal,
+.pfh-scope {
+	/* Brand */
+	--pfh-font: Outfit, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+	--pfh-accent: #6f8566;
+	--pfh-accent-dark: #55684b;
+	--pfh-accent-soft: #a5be99;
+	--pfh-ink: #14181b;
+	--pfh-surface: #ffffff;
+	--pfh-muted: #f4f4f4;
+	--pfh-line: rgba(20, 24, 27, 0.1);
+
+	/* Layout */
+	--pfh-container: 1140px;
+	--pfh-gutter: var(--pfh-gutter-set, 24px);
+	/*
+	 * How far a full-bleed slider must inset to line its first card up with
+	 * the content column. Measured against the VIEWPORT rather than the
+	 * widget's parent, because a page builder often wraps the section in its
+	 * own narrower container — in which case a percentage would quietly align
+	 * to that wrapper instead of to the logo. --pfh-sbw is the scrollbar
+	 * width, published on :root by the slider script, because 100vw counts the
+	 * scrollbar and the content column does not.
+	 */
+	--pfh-edge: max(
+		var(--pfh-gutter),
+		calc((100vw - var(--pfh-sbw, 0px) - var(--pfh-container)) / 2)
+	);
+	--pfh-z: 100;
+
+	/* Motion */
+	--pfh-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+	--pfh-speed: 0.28s;
+
+	font-family: var(--pfh-font);
+	color: var(--pfh-ink);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* The root itself, not only its descendants — otherwise min-height and
+   width controls exclude padding and every section runs taller than set. */
+.pfh-scope,
+.pfh-scope *,
+.pfh-scope *::before,
+.pfh-scope *::after {
+	box-sizing: border-box;
+}
+
+/*
+ * Resets are wrapped in :where() so they contribute zero specificity — a
+ * single-class component rule like .pfh-footer__submit must always win over
+ * the reset, which a plain `.pfh-footer button` selector would not allow.
+ */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(img) {
+	max-width: 100%;
+	display: block;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(svg) {
+	display: block;
+	flex: none;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(ul) {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(a) {
+	color: inherit;
+	text-decoration: none;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(button) {
+	font: inherit;
+	color: inherit;
+	background: none;
+	border: 0;
+	margin: 0;
+	padding: 0;
+	cursor: pointer;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(p, h1, h2, h3, h4) {
+	margin: 0;
+}
+
+/*
+ * Focus rings are keyboard-only, and the base rule carries zero specificity so
+ * any component can restyle or opt out of it — a plain `.pfh-scope
+ * :focus-visible` out-specifies every single-class component rule, including
+ * the ones that deliberately say `outline: none`.
+ */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope)
+	:where(:focus-visible) {
+	outline: 2px solid var(--pfh-accent);
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
+/* A mouse click must never leave a ring behind. */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope)
+	:focus:not(:focus-visible) {
+	outline: none;
+}
+
+/*
+ * Defensive. Themes and plugins routinely style :focus on inputs and buttons
+ * with selectors a component class cannot out-specify, which is where the
+ * stray rings around the search field and the cart icon come from — they are
+ * not ours. Inside our own components a pointer click leaves nothing behind.
+ */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope)
+	:is(a, button, input, select, textarea, summary, [tabindex]):focus:not(:focus-visible) {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+/*
+ * The scrollers carry tabindex so they can be paged from the keyboard, which
+ * also makes them focusable by click. Their ring is drawn inside, so it reads
+ * as the track and not as a border on the first card.
+ */
+:where(.pfh-scope) [data-pfh-viewport]:focus-visible {
+	outline-offset: -2px;
+}
+
+/* Screen reader only. */
+.pfh-sr-only {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Shared container. */
+.pfh-container {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* Buttons used inside the cart drawer. */
+.pfh-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 48px;
+	padding: 0 22px;
+	border-radius: 12px;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1;
+	text-align: center;
+	transition: background-color var(--pfh-speed) var(--pfh-ease), color var(--pfh-speed) var(--pfh-ease), opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-btn--solid {
+	background: var(--pfh-btn-bg, var(--pfh-accent));
+	color: var(--pfh-btn-color, #fff);
+}
+
+.pfh-btn--solid:hover {
+	opacity: 0.9;
+}
+
+.pfh-btn--ghost {
+	border: 1px solid var(--pfh-line);
+	color: var(--pfh-ink);
+}
+
+.pfh-btn--ghost:hover {
+	background: var(--pfh-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-scope * {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+	}
+}
+</style>
+<style>/**
+ * The account page.
+ *
+ * Two states in one element: the sign-in card for a visitor, and the account
+ * itself for a customer — a rail of tabs beside a panel, with the orders
+ * opening in place rather than navigating away.
+ *
+ * The palette is the shop's own: the teal from the product page, the olive
+ * from the footer, the four pastels from the reasons band doing the work of
+ * order statuses, and #EAEAEA on every border, as the client specified.
+ */
+
+.pfh-acc {
+	--pfh-acc-max: 1140px;
+	--pfh-acc-pt: var(--pfh-acc-pt-set, 64px);
+	--pfh-acc-pb: var(--pfh-acc-pb-set, 96px);
+	--pfh-acc-rail: var(--pfh-acc-rail-set, 264px);
+	--pfh-acc-gap: var(--pfh-acc-gap-set, 32px);
+	--pfh-acc-radius: 16px;
+
+	--pfh-acc-ink: #22301c;
+	--pfh-acc-body: #5c6657;
+	--pfh-acc-muted: #8d9589;
+	--pfh-acc-line: #eaeaea;
+	--pfh-acc-surface: #ffffff;
+	--pfh-acc-tint: #f4f7f4;
+	--pfh-acc-accent: #2b5f63;
+	--pfh-acc-accent-soft: #e8f0f0;
+	--pfh-acc-olive: #51604f;
+
+	--pfh-acc-title: var(--pfh-acc-title-set, 34px);
+	--pfh-acc-field: 46px;
+
+	display: block;
+	padding-block: var(--pfh-acc-pt) var(--pfh-acc-pb);
+	font-family: var(--pfh-font);
+	color: var(--pfh-acc-body);
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.pfh-acc__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-acc-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* The one serif note, as everywhere else in the shop. */
+.pfh-acc em,
+.pfh-acc i {
+	font-family: var(--pfh-acc-serif, "Playfair Display", Georgia, serif);
+	font-style: italic;
+	font-weight: 400;
+}
+
+.pfh-acc__eyebrow {
+	margin: 0 0 10px;
+	color: var(--pfh-acc-muted);
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: .18em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.pfh-acc .pfh-acc__title {
+	margin: 0;
+	color: var(--pfh-acc-ink);
+	font-size: var(--pfh-acc-title);
+	font-weight: 600;
+	line-height: 1.1;
+	letter-spacing: -.01em;
+}
+
+.pfh-acc .pfh-acc__lede {
+	margin: 10px 0 0;
+	max-width: 46ch;
+	color: var(--pfh-acc-body);
+	font-size: 15px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Shared furniture
+ * ------------------------------------------------------------------ */
+
+/*
+ * `hidden` is display:none from the browser's own stylesheet, which any
+ * `display:` rule here outranks — and nearly everything here sets one. Without
+ * this the register form renders under the sign-in form and every closed order
+ * is open. It is the one !important in the file, and it earns it.
+ */
+.pfh-acc[hidden],
+.pfh-acc [hidden] {
+	display: none !important;
+}
+
+.pfh-acc__card {
+	background: var(--pfh-acc-surface);
+	border: 1px solid var(--pfh-acc-line);
+	border-radius: var(--pfh-acc-radius);
+}
+
+.pfh-acc__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 46px;
+	padding: 12px 22px;
+	border: 1px solid transparent;
+	border-radius: 8px;
+	background: var(--pfh-acc-accent);
+	color: #fff;
+	font-family: inherit;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1;
+	text-align: center;
+	text-decoration: none;
+	cursor: pointer;
+	transition: filter var(--pfh-speed, .28s) var(--pfh-ease, ease), opacity var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-acc__btn:hover:not(:disabled) { filter: brightness(1.08); }
+.pfh-acc__btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.pfh-acc__btn--quiet {
+	background: transparent;
+	border-color: var(--pfh-acc-line);
+	color: var(--pfh-acc-ink);
+}
+
+.pfh-acc__btn--quiet:hover {
+	border-color: var(--pfh-acc-accent);
+	color: var(--pfh-acc-accent);
+	filter: none;
+}
+
+.pfh-acc__btn--small {
+	min-height: 38px;
+	padding: 9px 16px;
+	font-size: 14px;
+}
+
+.pfh-acc a:focus-visible,
+.pfh-acc button:focus-visible,
+.pfh-acc input:focus-visible,
+.pfh-acc select:focus-visible,
+.pfh-acc textarea:focus-visible {
+	outline: 2px solid var(--pfh-acc-accent);
+	outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Signed out: the sign-in and register card
+ * ------------------------------------------------------------------ */
+
+.pfh-acc__auth {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	overflow: hidden;
+	margin-top: 32px;
+}
+
+/* The quiet half: the shop's own pastel, an italic line and what the
+   account is actually for. */
+.pfh-acc__auth-aside {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 22px;
+	padding: 48px;
+	background: linear-gradient(160deg, #eef4ee 0%, #e4eeee 100%);
+}
+
+.pfh-acc .pfh-acc__auth-title {
+	margin: 0;
+	color: var(--pfh-acc-ink);
+	font-size: 28px;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: -.01em;
+}
+
+.pfh-acc__auth-points {
+	display: grid;
+	gap: 14px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-acc__auth-point {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	color: var(--pfh-acc-body);
+	font-size: 14px;
+}
+
+.pfh-acc__auth-point svg {
+	flex: none;
+	width: 18px;
+	height: 18px;
+	margin-top: 2px;
+	color: var(--pfh-acc-accent);
+}
+
+.pfh-acc__auth-main { padding: 48px; }
+
+/* The two forms live behind one switch. */
+.pfh-acc__seg {
+	display: inline-flex;
+	gap: 4px;
+	padding: 4px;
+	margin-bottom: 28px;
+	border: 1px solid var(--pfh-acc-line);
+	border-radius: 999px;
+	background: #fbfcfb;
+}
+
+.pfh-acc__seg-btn {
+	padding: 9px 20px;
+	border: 0;
+	border-radius: 999px;
+	background: transparent;
+	color: var(--pfh-acc-body);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color var(--pfh-speed, .28s) var(--pfh-ease, ease), color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-acc__seg-btn[aria-selected="true"] {
+	background: var(--pfh-acc-accent);
+	color: #fff;
+}
+
+/* ------------------------------------------------------------------ *
+ * Forms
+ * ------------------------------------------------------------------ */
+
+.pfh-acc__form { display: grid; gap: 18px; }
+
+.pfh-acc__row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 18px;
+}
+
+.pfh-acc__field { display: grid; gap: 7px; }
+
+.pfh-acc .pfh-acc__label {
+	color: var(--pfh-acc-ink);
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.2;
+}
+
+.pfh-acc__label span { color: var(--pfh-acc-muted); font-weight: 400; }
+
+.pfh-acc .pfh-acc__input {
+	width: 100%;
+	min-height: var(--pfh-acc-field);
+	padding: 12px 14px;
+	border: 1px solid var(--pfh-acc-line);
+	border-radius: 8px;
+	background: #fff;
+	color: var(--pfh-acc-ink);
+	font-family: inherit;
+	font-size: 14px;
+	line-height: 1.4;
+	transition: border-color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-acc .pfh-acc__input::placeholder { color: #b3b9b0; }
+.pfh-acc .pfh-acc__input:hover { border-color: #d8ddd6; }
+.pfh-acc .pfh-acc__input:focus { border-color: var(--pfh-acc-accent); }
+
+.pfh-acc__hint {
+	margin: 0;
+	color: var(--pfh-acc-muted);
+	font-size: 12.5px;
+	line-height: 1.5;
+}
+
+.pfh-acc__form-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.pfh-acc__remember {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--pfh-acc-body);
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.pfh-acc__remember input { accent-color: var(--pfh-acc-accent); width: 16px; height: 16px; }
+
+.pfh-acc__link {
+	color: var(--pfh-acc-accent);
+	font-size: 14px;
+	text-decoration: none;
+	border-bottom: 1px solid currentColor;
+}
+
+.pfh-acc__link:hover { color: var(--pfh-acc-olive); }
+
+/* A password field with the eye inside it. */
+.pfh-acc__pass { position: relative; }
+.pfh-acc__pass .pfh-acc__input { padding-right: 46px; }
+
+.pfh-acc__peek {
+	position: absolute;
+	top: 50%;
+	right: 6px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	padding: 0;
+	transform: translateY(-50%);
+	border: 0;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--pfh-acc-muted);
+	cursor: pointer;
+}
+
+.pfh-acc__peek:hover { color: var(--pfh-acc-accent); }
+.pfh-acc__peek svg { width: 18px; height: 18px; }
+
+/* ------------------------------------------------------------------ *
+ * Signed in: the rail and the panel
+ * ------------------------------------------------------------------ */
+
+.pfh-acc__head {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-bottom: 28px;
+}
+
+.pfh-acc__layout {
+	display: grid;
+	grid-template-columns: var(--pfh-acc-rail) minmax(0, 1fr);
+	align-items: start;
+	gap: var(--pfh-acc-gap);
+}
+
+.pfh-acc__rail {
+	position: sticky;
+	top: 24px;
+	display: grid;
+	gap: 4px;
+	padding: 10px;
+	margin: 0;
+	list-style: none;
+}
+
+.pfh-acc__tab {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	padding: 12px 14px;
+	border: 0;
+	border-radius: 10px;
+	background: transparent;
+	color: var(--pfh-acc-body);
+	font-family: inherit;
+	font-size: 14.5px;
+	font-weight: 500;
+	line-height: 1.2;
+	text-align: left;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color var(--pfh-speed, .28s) var(--pfh-ease, ease), color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-acc__tab svg { flex: none; width: 18px; height: 18px; opacity: .75; }
+.pfh-acc__tab:hover { background: var(--pfh-acc-tint); color: var(--pfh-acc-ink); }
+
+.pfh-acc__tab[aria-selected="true"] {
+	background: var(--pfh-acc-accent-soft);
+	color: var(--pfh-acc-accent);
+}
+
+.pfh-acc__tab[aria-selected="true"] svg { opacity: 1; }
+
+.pfh-acc__tab-count {
+	margin-left: auto;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: #fff;
+	color: var(--pfh-acc-muted);
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.pfh-acc__tab[aria-selected="true"] .pfh-acc__tab-count { color: var(--pfh-acc-accent); }
+
+.pfh-acc__tab--out { color: #9a6b60; }
+.pfh-acc__tab--out:hover { background: #fdf0ec; color: #8d4a3a; }
+
+.pfh-acc__panel { min-width: 0; }
+.pfh-acc__pane[hidden] { display: none; }
+
+.pfh-acc__block { padding: 28px; }
+.pfh-acc__block + .pfh-acc__block { margin-top: 20px; }
+
+.pfh-acc .pfh-acc__block-title {
+	margin: 0 0 4px;
+	color: var(--pfh-acc-ink);
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.pfh-acc__block-lede { margin: 0 0 20px; color: var(--pfh-acc-muted); font-size: 14px; }
+
+/* ---------- the overview tiles ---------- */
+
+.pfh-acc__stats {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+	margin: 0 0 20px;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-acc__stat {
+	padding: 22px;
+	border-radius: 14px;
+	background: var(--pfh-acc-stat, #f4f7f4);
+}
+
+.pfh-acc__stat:nth-child(1) { --pfh-acc-stat: #dfe9dc; }
+.pfh-acc__stat:nth-child(2) { --pfh-acc-stat: #e6eff4; }
+.pfh-acc__stat:nth-child(3) { --pfh-acc-stat: #f9e9cf; }
+
+.pfh-acc__stat-value {
+	display: block;
+	color: var(--pfh-acc-ink);
+	font-size: 28px;
+	font-weight: 600;
+	line-height: 1.1;
+	letter-spacing: -.01em;
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-acc__stat-label {
+	display: block;
+	margin-top: 6px;
+	color: var(--pfh-acc-body);
+	font-size: 13px;
+}
+
+/* ---------- orders ---------- */
+
+.pfh-acc__orders { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+
+.pfh-acc__order {
+	border: 1px solid var(--pfh-acc-line);
+	border-radius: 14px;
+	background: #fff;
+	overflow: hidden;
+	transition: border-color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-acc__order:hover { border-color: #dbe2da; }
+.pfh-acc__order.is-open { border-color: var(--pfh-acc-accent); }
+
+.pfh-acc__order-head {
+	display: grid;
+	grid-template-columns: minmax(0, 1.4fr) auto auto auto;
+	align-items: center;
+	gap: 16px;
+	width: 100%;
+	padding: 18px 20px;
+	border: 0;
+	background: transparent;
+	font-family: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.pfh-acc__order-id {
+	display: block;
+	color: var(--pfh-acc-ink);
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.pfh-acc__order-date {
+	display: block;
+	margin-top: 2px;
+	color: var(--pfh-acc-muted);
+	font-size: 13px;
+}
+
+.pfh-acc__order-total {
+	color: var(--pfh-acc-ink);
+	font-size: 15px;
+	font-weight: 600;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-acc__order-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--pfh-acc-accent);
+	font-size: 14px;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.pfh-acc__order-toggle svg {
+	width: 14px;
+	height: 14px;
+	transition: transform var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-acc__order.is-open .pfh-acc__order-toggle svg { transform: rotate(180deg); }
+
+.pfh-acc__status {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 6px 12px;
+	border-radius: 999px;
+	background: var(--pfh-acc-status-bg, #f4f4f4);
+	color: var(--pfh-acc-status-ink, #4a5f45);
+	font-size: 12.5px;
+	font-weight: 500;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.pfh-acc__status::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: currentColor;
+}
+
+.pfh-acc__status--processing { --pfh-acc-status-bg: #f9e9cf; --pfh-acc-status-ink: #8a6a33; }
+.pfh-acc__status--on-hold    { --pfh-acc-status-bg: #e6eff4; --pfh-acc-status-ink: #3f6478; }
+.pfh-acc__status--completed  { --pfh-acc-status-bg: #dfe9dc; --pfh-acc-status-ink: #46603f; }
+.pfh-acc__status--cancelled,
+.pfh-acc__status--failed,
+.pfh-acc__status--refunded   { --pfh-acc-status-bg: #fde1d5; --pfh-acc-status-ink: #8d4a3a; }
+
+/* ---------- the opened order ---------- */
+
+.pfh-acc__order-body {
+	border-top: 1px solid var(--pfh-acc-line);
+	padding: 24px 20px;
+	background: #fcfdfc;
+}
+
+.pfh-acc__order-body[hidden] { display: none; }
+
+.pfh-acc__loading {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: var(--pfh-acc-muted);
+	font-size: 14px;
+}
+
+.pfh-acc__spin {
+	width: 16px;
+	height: 16px;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	animation: pfh-acc-spin .7s linear infinite;
+}
+
+@keyframes pfh-acc-spin { to { transform: rotate(360deg); } }
+
+/* The tracking line: where the parcel has got to, at a glance. */
+.pfh-acc__track {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: 1fr;
+	gap: 0;
+	margin: 0 0 24px;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-acc__step {
+	position: relative;
+	padding-top: 30px;
+	text-align: center;
+	color: var(--pfh-acc-muted);
+	font-size: 13px;
+}
+
+/* The rail the dots sit on. */
+.pfh-acc__step::before {
+	content: "";
+	position: absolute;
+	top: 9px;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: var(--pfh-acc-line);
+}
+
+.pfh-acc__step:first-child::before { left: 50%; }
+.pfh-acc__step:last-child::before { right: 50%; }
+.pfh-acc__step.is-done::before { background: var(--pfh-acc-accent); }
+.pfh-acc__step.is-done + .pfh-acc__step::before { background: var(--pfh-acc-accent); }
+
+.pfh-acc__step::after {
+	content: "";
+	position: absolute;
+	top: 4px;
+	left: 50%;
+	width: 12px;
+	height: 12px;
+	margin-left: -6px;
+	border: 2px solid var(--pfh-acc-line);
+	border-radius: 50%;
+	background: #fff;
+}
+
+.pfh-acc__step.is-done::after {
+	border-color: var(--pfh-acc-accent);
+	background: var(--pfh-acc-accent);
+}
+
+.pfh-acc__step.is-now::after {
+	border-color: var(--pfh-acc-accent);
+	background: #fff;
+	box-shadow: 0 0 0 4px var(--pfh-acc-accent-soft);
+}
+
+.pfh-acc__step.is-done,
+.pfh-acc__step.is-now { color: var(--pfh-acc-ink); font-weight: 500; }
+
+.pfh-acc__step-when { display: block; color: var(--pfh-acc-muted); font-size: 12px; font-weight: 400; }
+
+.pfh-acc__trace {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
+	padding: 14px 16px;
+	margin-bottom: 20px;
+	border: 1px solid var(--pfh-acc-line);
+	border-radius: 12px;
+	background: #fff;
+	font-size: 13.5px;
+}
+
+.pfh-acc__trace strong { color: var(--pfh-acc-ink); font-weight: 600; }
+
+/* The lines of the order. */
+.pfh-acc__lines { margin: 0 0 20px; padding: 0; list-style: none; display: grid; gap: 12px; }
+
+.pfh-acc__line {
+	display: grid;
+	grid-template-columns: 56px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 14px;
+}
+
+.pfh-acc__line-media {
+	width: 56px;
+	height: 56px;
+	border-radius: 10px;
+	background: #f4f4f4;
+	overflow: hidden;
+}
+
+.pfh-acc__line-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.pfh-acc__line-name { display: block; color: var(--pfh-acc-ink); font-size: 14px; font-weight: 500; line-height: 1.35; }
+.pfh-acc__line-meta { display: block; margin-top: 2px; color: var(--pfh-acc-muted); font-size: 13px; line-height: 1.4; }
+.pfh-acc__line-total { color: var(--pfh-acc-ink); font-size: 14px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.pfh-acc__totals {
+	display: grid;
+	gap: 8px;
+	padding-top: 16px;
+	border-top: 1px solid var(--pfh-acc-line);
+}
+
+.pfh-acc__total-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	font-size: 14px;
+}
+
+.pfh-acc__total-row--grand {
+	padding-top: 10px;
+	border-top: 1px solid var(--pfh-acc-line);
+	color: var(--pfh-acc-ink);
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.pfh-acc__total-row span:last-child { font-variant-numeric: tabular-nums; }
+
+.pfh-acc__order-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+
+/* ---------- addresses ---------- */
+
+.pfh-acc__addresses {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20px;
+}
+
+.pfh-acc__address { padding: 24px; border: 1px solid var(--pfh-acc-line); border-radius: 14px; }
+
+.pfh-acc__address h3 {
+	margin: 0 0 12px;
+	color: var(--pfh-acc-ink);
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.pfh-acc__address address { font-style: normal; line-height: 1.7; }
+.pfh-acc__address .pfh-acc__btn { margin-top: 16px; }
+
+/* ---------- empty states ---------- */
+
+.pfh-acc__empty {
+	display: grid;
+	justify-items: center;
+	gap: 14px;
+	padding: 44px 24px;
+	text-align: center;
+}
+
+.pfh-acc__empty svg { width: 40px; height: 40px; color: var(--pfh-acc-muted); }
+.pfh-acc__empty p { margin: 0; max-width: 42ch; }
+
+/* ---------- notices ---------- */
+
+.pfh-acc__notice {
+	padding: 12px 16px;
+	margin-bottom: 18px;
+	border-radius: 10px;
+	background: #fde1d5;
+	color: #8d4a3a;
+	font-size: 14px;
+}
+
+.pfh-acc__notice--good { background: #dfe9dc; color: #46603f; }
+.pfh-acc__notice[hidden] { display: none; }
+
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 991px) {
+	.pfh-acc {
+		--pfh-acc-title: 28px;
+		--pfh-acc-pt: 48px;
+		--pfh-acc-pb: 64px;
+	}
+
+	.pfh-acc__layout { grid-template-columns: minmax(0, 1fr); }
+
+	/* The rail becomes a strip that scrolls, rather than a stack of
+	   full-width buttons the page has to be scrolled past. */
+	.pfh-acc__rail {
+		position: static;
+		display: flex;
+		gap: 6px;
+		overflow-x: auto;
+		scrollbar-width: none;
+		padding: 8px;
+	}
+
+	.pfh-acc__rail::-webkit-scrollbar { display: none; }
+	.pfh-acc__tab { white-space: nowrap; }
+	.pfh-acc__tab-count { margin-left: 4px; }
+
+	.pfh-acc__auth { grid-template-columns: minmax(0, 1fr); }
+	.pfh-acc__auth-aside { order: 2; padding: 32px; }
+	.pfh-acc__auth-main { padding: 32px; }
+}
+
+@media (max-width: 720px) {
+	.pfh-acc__stats { grid-template-columns: minmax(0, 1fr); }
+	.pfh-acc__addresses { grid-template-columns: minmax(0, 1fr); }
+	.pfh-acc__row { grid-template-columns: minmax(0, 1fr); }
+	.pfh-acc__block { padding: 20px; }
+
+	.pfh-acc__order-head {
+		grid-template-columns: minmax(0, 1fr) auto;
+		row-gap: 12px;
+	}
+
+	.pfh-acc__order-total { grid-column: 1; }
+	.pfh-acc__order-toggle { grid-column: 2; justify-self: end; }
+
+	/* Stacked, the tracking line runs down the side instead of across. */
+	.pfh-acc__track {
+		grid-auto-flow: row;
+		grid-auto-columns: auto;
+		gap: 18px;
+	}
+
+	.pfh-acc__step {
+		padding: 0 0 0 28px;
+		text-align: left;
+	}
+
+	.pfh-acc__step::before {
+		top: 0;
+		bottom: -18px;
+		left: 5px;
+		right: auto;
+		width: 2px;
+		height: auto;
+	}
+
+	.pfh-acc__step:first-child::before { top: 6px; left: 5px; }
+	.pfh-acc__step:last-child::before { bottom: auto; height: 6px; }
+	.pfh-acc__step::after { top: 2px; left: 0; margin-left: 0; }
+
+	.pfh-acc__line { grid-template-columns: 48px minmax(0, 1fr); }
+	.pfh-acc__line-media { width: 48px; height: 48px; }
+	.pfh-acc__line-total { grid-column: 2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-acc *,
+	.pfh-acc *::before,
+	.pfh-acc *::after {
+		transition: none !important;
+	}
+
+	.pfh-acc__spin { animation-duration: 1.6s; }
+}
+</style>
+<style>
+html,body{margin:0;background:#fff}
+.demo{position:sticky;top:0;z-index:20;display:flex;gap:8px;align-items:center;padding:12px 24px;background:#22301c;color:#fff;font:500 13px/1 Outfit,sans-serif}
+.demo button{padding:8px 14px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:transparent;color:#fff;font:inherit;cursor:pointer}
+.demo button[aria-pressed="true"]{background:#fff;color:#22301c}
+.demo span{opacity:.65;margin-left:auto}
+</style>
+</head><body>
+
+<div class="demo">
+ <strong>Preview</strong>
+ <button type="button" data-view="in" aria-pressed="true">Ingelogd</button>
+ <button type="button" data-view="out" aria-pressed="false">Uitgelogd</button>
+ <span>PFH Account &mdash; ontwerp</span>
+</div>
+
+<section class="pfh-acc pfh-scope" data-view-panel="in">
+ <div class="pfh-acc__inner">
+<div class="pfh-acc__head">
+ <div>
+  <p class="pfh-acc__eyebrow">Mijn account</p>
+  <h1 class="pfh-acc__title">Hallo, <em>Akib</em></h1>
+  <p class="pfh-acc__lede">Hier vind je je bestellingen, je adressen en je gegevens &mdash; alles op &eacute;&eacute;n plek.</p>
+ </div>
+ <a class="pfh-acc__btn pfh-acc__btn--quiet" href="#">Verder winkelen</a>
+</div>
+
+<div class="pfh-acc__layout">
+ <nav class="pfh-acc__rail pfh-acc__card" role="tablist" aria-label="Mijn account" data-pfh-acc-rail><button type="button" class="pfh-acc__tab" role="tab" id="tab-dashboard" aria-controls="pane-dashboard" aria-selected="true" tabindex="0" data-pfh-acc-tab="dashboard"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Overzicht</span></button>
+<button type="button" class="pfh-acc__tab" role="tab" id="tab-orders" aria-controls="pane-orders" aria-selected="false" tabindex="-1" data-pfh-acc-tab="orders"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 8 4.2v9.6L12 21l-8-4.2V7.2L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m4 7.2 8 4.2 8-4.2M12 21v-9.6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Bestellingen</span><span class="pfh-acc__tab-count">12</span></button>
+<button type="button" class="pfh-acc__tab" role="tab" id="tab-addresses" aria-controls="pane-addresses" aria-selected="false" tabindex="-1" data-pfh-acc-tab="addresses"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6"/></svg><span>Adressen</span></button>
+<button type="button" class="pfh-acc__tab" role="tab" id="tab-details" aria-controls="pane-details" aria-selected="false" tabindex="-1" data-pfh-acc-tab="details"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Gegevens</span></button>
+<button type="button" class="pfh-acc__tab pfh-acc__tab--out" role="tab" id="tab-logout" aria-controls="pane-logout" aria-selected="false" tabindex="-1" data-pfh-acc-tab="logout"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 12H4m0 0 3.5-3.5M4 12l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 7V5.5A1.5 1.5 0 0 1 11.5 4h6A1.5 1.5 0 0 1 19 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-6A1.5 1.5 0 0 1 10 18.5V17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Uitloggen</span></button></nav>
+
+ <div class="pfh-acc__panel">
+  <section class="pfh-acc__pane" id="pane-dashboard" role="tabpanel" aria-labelledby="tab-dashboard" tabindex="0">
+   <div class="pfh-acc__card pfh-acc__block">
+    <h2 class="pfh-acc__block-title">Overzicht</h2>
+    <p class="pfh-acc__block-lede">Een samenvatting van je account.</p>
+    <ul class="pfh-acc__stats">
+     <li class="pfh-acc__stat"><span class="pfh-acc__stat-value">12</span><span class="pfh-acc__stat-label">Bestellingen</span></li>
+     <li class="pfh-acc__stat"><span class="pfh-acc__stat-value">1</span><span class="pfh-acc__stat-label">Onderweg</span></li>
+     <li class="pfh-acc__stat"><span class="pfh-acc__stat-value">&euro;&nbsp;612,80</span><span class="pfh-acc__stat-label">Totaal besteed</span></li>
+    </ul>
+   </div>
+   <div class="pfh-acc__card pfh-acc__block">
+    <h2 class="pfh-acc__block-title">Laatste bestelling</h2>
+    <p class="pfh-acc__block-lede">Je meest recente bestelling, met de stand van zaken.</p>
+    <ul class="pfh-acc__orders"><li class="pfh-acc__order is-open" data-pfh-acc-order="1482">
+ <button type="button" class="pfh-acc__order-head" aria-expanded="true" aria-controls="order-1482">
+  <span><span class="pfh-acc__order-id">Bestelling #1482</span><span class="pfh-acc__order-date">16 september 2026</span></span>
+  <span class="pfh-acc__status pfh-acc__status--processing">Onderweg</span>
+  <span class="pfh-acc__order-total">&euro;&nbsp;65,47</span>
+  <span class="pfh-acc__order-toggle">Details <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+ </button>
+ <div class="pfh-acc__order-body" id="order-1482">
+<ol class="pfh-acc__track">
+ <li class="pfh-acc__step is-done">Besteld<span class="pfh-acc__step-when">14 sep</span></li>
+ <li class="pfh-acc__step is-done">Betaald<span class="pfh-acc__step-when">14 sep</span></li>
+ <li class="pfh-acc__step is-now">Verzonden<span class="pfh-acc__step-when">16 sep</span></li>
+ <li class="pfh-acc__step">Bezorgd<span class="pfh-acc__step-when">verwacht 18 sep</span></li>
+</ol>
+<p class="pfh-acc__trace"><strong>Track &amp; trace</strong> <span>PostNL &middot; 3SABCD1234567</span> <a class="pfh-acc__link" href="#">Volg je pakket</a></p>
+<ul class="pfh-acc__lines">
+ <li class="pfh-acc__line"><span class="pfh-acc__line-media" style="background:#dfe9dc"></span><span><span class="pfh-acc__line-name">Gia Giamas Starterspakket</span><span class="pfh-acc__line-meta">Traditioneel 1000ml &middot; Mandarijn &middot; 1&times;</span></span><span class="pfh-acc__line-total">&euro;&nbsp;41,97</span></li>
+ <li class="pfh-acc__line"><span class="pfh-acc__line-media" style="background:#f9e9cf"></span><span><span class="pfh-acc__line-name">Rauwe honing 450g</span><span class="pfh-acc__line-meta">Pijnboom &middot; 2&times;</span></span><span class="pfh-acc__line-total">&euro;&nbsp;17,00</span></li>
+ <li class="pfh-acc__line"><span class="pfh-acc__line-media" style="background:#e6eff4"></span><span><span class="pfh-acc__line-name">Gia Giamas pomp</span><span class="pfh-acc__line-meta">1&times;</span></span><span class="pfh-acc__line-total">&euro;&nbsp;6,50</span></li>
+</ul>
+<div class="pfh-acc__totals">
+ <div class="pfh-acc__total-row"><span>Subtotaal</span><span>&euro;&nbsp;65,47</span></div>
+ <div class="pfh-acc__total-row"><span>Verzending</span><span>Gratis</span></div>
+ <div class="pfh-acc__total-row"><span>BTW</span><span>&euro;&nbsp;11,36</span></div>
+ <div class="pfh-acc__total-row pfh-acc__total-row--grand"><span>Totaal</span><span>&euro;&nbsp;65,47</span></div>
+</div>
+<div class="pfh-acc__order-actions">
+ <a class="pfh-acc__btn pfh-acc__btn--small" href="#">Opnieuw bestellen</a>
+ <a class="pfh-acc__btn pfh-acc__btn--quiet pfh-acc__btn--small" href="#">Factuur (PDF)</a>
+</div></div>
+</li></ul>
+   </div>
+  </section>
+
+  <section class="pfh-acc__pane" id="pane-orders" role="tabpanel" aria-labelledby="tab-orders" tabindex="0" hidden>
+   <div class="pfh-acc__card pfh-acc__block">
+    <h2 class="pfh-acc__block-title">Bestellingen</h2>
+    <p class="pfh-acc__block-lede">Klap een bestelling open om de producten en de bezorging te zien.</p>
+    <ul class="pfh-acc__orders"><li class="pfh-acc__order is-open" data-pfh-acc-order="1482">
+ <button type="button" class="pfh-acc__order-head" aria-expanded="true" aria-controls="order-1482">
+  <span><span class="pfh-acc__order-id">Bestelling #1482</span><span class="pfh-acc__order-date">16 september 2026</span></span>
+  <span class="pfh-acc__status pfh-acc__status--processing">Onderweg</span>
+  <span class="pfh-acc__order-total">&euro;&nbsp;65,47</span>
+  <span class="pfh-acc__order-toggle">Details <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+ </button>
+ <div class="pfh-acc__order-body" id="order-1482">
+<ol class="pfh-acc__track">
+ <li class="pfh-acc__step is-done">Besteld<span class="pfh-acc__step-when">14 sep</span></li>
+ <li class="pfh-acc__step is-done">Betaald<span class="pfh-acc__step-when">14 sep</span></li>
+ <li class="pfh-acc__step is-now">Verzonden<span class="pfh-acc__step-when">16 sep</span></li>
+ <li class="pfh-acc__step">Bezorgd<span class="pfh-acc__step-when">verwacht 18 sep</span></li>
+</ol>
+<p class="pfh-acc__trace"><strong>Track &amp; trace</strong> <span>PostNL &middot; 3SABCD1234567</span> <a class="pfh-acc__link" href="#">Volg je pakket</a></p>
+<ul class="pfh-acc__lines">
+ <li class="pfh-acc__line"><span class="pfh-acc__line-media" style="background:#dfe9dc"></span><span><span class="pfh-acc__line-name">Gia Giamas Starterspakket</span><span class="pfh-acc__line-meta">Traditioneel 1000ml &middot; Mandarijn &middot; 1&times;</span></span><span class="pfh-acc__line-total">&euro;&nbsp;41,97</span></li>
+ <li class="pfh-acc__line"><span class="pfh-acc__line-media" style="background:#f9e9cf"></span><span><span class="pfh-acc__line-name">Rauwe honing 450g</span><span class="pfh-acc__line-meta">Pijnboom &middot; 2&times;</span></span><span class="pfh-acc__line-total">&euro;&nbsp;17,00</span></li>
+ <li class="pfh-acc__line"><span class="pfh-acc__line-media" style="background:#e6eff4"></span><span><span class="pfh-acc__line-name">Gia Giamas pomp</span><span class="pfh-acc__line-meta">1&times;</span></span><span class="pfh-acc__line-total">&euro;&nbsp;6,50</span></li>
+</ul>
+<div class="pfh-acc__totals">
+ <div class="pfh-acc__total-row"><span>Subtotaal</span><span>&euro;&nbsp;65,47</span></div>
+ <div class="pfh-acc__total-row"><span>Verzending</span><span>Gratis</span></div>
+ <div class="pfh-acc__total-row"><span>BTW</span><span>&euro;&nbsp;11,36</span></div>
+ <div class="pfh-acc__total-row pfh-acc__total-row--grand"><span>Totaal</span><span>&euro;&nbsp;65,47</span></div>
+</div>
+<div class="pfh-acc__order-actions">
+ <a class="pfh-acc__btn pfh-acc__btn--small" href="#">Opnieuw bestellen</a>
+ <a class="pfh-acc__btn pfh-acc__btn--quiet pfh-acc__btn--small" href="#">Factuur (PDF)</a>
+</div></div>
+</li>
+<li class="pfh-acc__order" data-pfh-acc-order="1463">
+ <button type="button" class="pfh-acc__order-head" aria-expanded="false" aria-controls="order-1463">
+  <span><span class="pfh-acc__order-id">Bestelling #1463</span><span class="pfh-acc__order-date">2 september 2026</span></span>
+  <span class="pfh-acc__status pfh-acc__status--completed">Afgerond</span>
+  <span class="pfh-acc__order-total">&euro;&nbsp;24,99</span>
+  <span class="pfh-acc__order-toggle">Details <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+ </button>
+ <div class="pfh-acc__order-body" id="order-1463" hidden><p class="pfh-acc__loading"><span class="pfh-acc__spin"></span> Bestelling wordt opgehaald&hellip;</p></div>
+</li>
+<li class="pfh-acc__order" data-pfh-acc-order="1401">
+ <button type="button" class="pfh-acc__order-head" aria-expanded="false" aria-controls="order-1401">
+  <span><span class="pfh-acc__order-id">Bestelling #1401</span><span class="pfh-acc__order-date">11 augustus 2026</span></span>
+  <span class="pfh-acc__status pfh-acc__status--completed">Afgerond</span>
+  <span class="pfh-acc__order-total">&euro;&nbsp;112,40</span>
+  <span class="pfh-acc__order-toggle">Details <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+ </button>
+ <div class="pfh-acc__order-body" id="order-1401" hidden><p class="pfh-acc__loading"><span class="pfh-acc__spin"></span> Bestelling wordt opgehaald&hellip;</p></div>
+</li>
+<li class="pfh-acc__order" data-pfh-acc-order="1377">
+ <button type="button" class="pfh-acc__order-head" aria-expanded="false" aria-controls="order-1377">
+  <span><span class="pfh-acc__order-id">Bestelling #1377</span><span class="pfh-acc__order-date">28 juli 2026</span></span>
+  <span class="pfh-acc__status pfh-acc__status--cancelled">Geannuleerd</span>
+  <span class="pfh-acc__order-total">&euro;&nbsp;19,95</span>
+  <span class="pfh-acc__order-toggle">Details <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+ </button>
+ <div class="pfh-acc__order-body" id="order-1377" hidden><p class="pfh-acc__loading"><span class="pfh-acc__spin"></span> Bestelling wordt opgehaald&hellip;</p></div>
+</li></ul>
+   </div>
+  </section>
+
+  <section class="pfh-acc__pane" id="pane-addresses" role="tabpanel" aria-labelledby="tab-addresses" tabindex="0" hidden>
+   <div class="pfh-acc__card pfh-acc__block">
+    <h2 class="pfh-acc__block-title">Adressen</h2>
+    <p class="pfh-acc__block-lede">Deze adressen gebruiken we bij het afrekenen.</p>
+    <div class="pfh-acc__addresses">
+     <div class="pfh-acc__address">
+      <h3>Factuuradres</h3>
+      <address>Akib Rahman<br />Keizersgracht 123<br />1015 CJ Amsterdam<br />Nederland</address>
+      <a class="pfh-acc__btn pfh-acc__btn--quiet pfh-acc__btn--small" href="#">Bewerken</a>
+     </div>
+     <div class="pfh-acc__address">
+      <h3>Verzendadres</h3>
+      <address>Akib Rahman<br />Keizersgracht 123<br />1015 CJ Amsterdam<br />Nederland</address>
+      <a class="pfh-acc__btn pfh-acc__btn--quiet pfh-acc__btn--small" href="#">Bewerken</a>
+     </div>
+    </div>
+   </div>
+  </section>
+
+  <section class="pfh-acc__pane" id="pane-details" role="tabpanel" aria-labelledby="tab-details" tabindex="0" hidden>
+   <div class="pfh-acc__card pfh-acc__block">
+    <h2 class="pfh-acc__block-title">Gegevens</h2>
+    <p class="pfh-acc__block-lede">Je naam, je e-mailadres en je wachtwoord.</p>
+    <form class="pfh-acc__form">
+     <div class="pfh-acc__row">
+      <p class="pfh-acc__field"><label class="pfh-acc__label" for="d1">Voornaam</label><input class="pfh-acc__input" id="d1" type="text" value="Akib" /></p>
+      <p class="pfh-acc__field"><label class="pfh-acc__label" for="d2">Achternaam</label><input class="pfh-acc__input" id="d2" type="text" value="Rahman" /></p>
+     </div>
+     <p class="pfh-acc__field"><label class="pfh-acc__label" for="d3">E-mailadres</label><input class="pfh-acc__input" id="d3" type="email" value="akib@example.com" /></p>
+     <p class="pfh-acc__field"><label class="pfh-acc__label" for="d4">Nieuw wachtwoord <span>&mdash; laat leeg om niets te wijzigen</span></label>
+      <span class="pfh-acc__pass"><input class="pfh-acc__input" id="d4" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" /><button type="button" class="pfh-acc__peek" aria-label="Toon wachtwoord"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg></button></span></p>
+     <div><button type="submit" class="pfh-acc__btn">Opslaan</button></div>
+    </form>
+   </div>
+  </section>
+ </div>
+</div></div>
+</section>
+
+<section class="pfh-acc pfh-scope" data-view-panel="out" hidden>
+ <div class="pfh-acc__inner">
+<div style="max-width:560px">
+ <p class="pfh-acc__eyebrow">Mijn account</p>
+ <h1 class="pfh-acc__title">Welkom <em>terug</em></h1>
+ <p class="pfh-acc__lede">Log in om je bestellingen te volgen, of maak een account aan &mdash; het duurt een halve minuut.</p>
+</div>
+
+<div class="pfh-acc__card pfh-acc__auth">
+ <div class="pfh-acc__auth-aside">
+  <h2 class="pfh-acc__auth-title">Alles op <em>&eacute;&eacute;n plek</em></h2>
+  <ul class="pfh-acc__auth-points">
+   <li class="pfh-acc__auth-point"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Volg elke bestelling tot aan de deur</span></li>
+   <li class="pfh-acc__auth-point"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Bestel je favorieten in twee tikken opnieuw</span></li>
+   <li class="pfh-acc__auth-point"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Je adressen staan klaar bij het afrekenen</span></li>
+   <li class="pfh-acc__auth-point"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Facturen wanneer je ze nodig hebt</span></li>
+  </ul>
+ </div>
+
+ <div class="pfh-acc__auth-main">
+  <div class="pfh-acc__seg" role="tablist" aria-label="Inloggen of registreren" data-pfh-acc-seg>
+   <button type="button" class="pfh-acc__seg-btn" role="tab" id="seg-login" aria-controls="form-login" aria-selected="true" data-pfh-acc-form="login">Inloggen</button>
+   <button type="button" class="pfh-acc__seg-btn" role="tab" id="seg-register" aria-controls="form-register" aria-selected="false" tabindex="-1" data-pfh-acc-form="register">Registreren</button>
+  </div>
+
+  <form class="pfh-acc__form" id="form-login" role="tabpanel" aria-labelledby="seg-login">
+   <p class="pfh-acc__field"><label class="pfh-acc__label" for="l1">E-mailadres</label><input class="pfh-acc__input" id="l1" type="email" autocomplete="username" placeholder="naam@voorbeeld.nl" /></p>
+   <p class="pfh-acc__field"><label class="pfh-acc__label" for="l2">Wachtwoord</label>
+    <span class="pfh-acc__pass"><input class="pfh-acc__input" id="l2" type="password" autocomplete="current-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" /><button type="button" class="pfh-acc__peek" aria-label="Toon wachtwoord"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg></button></span></p>
+   <div class="pfh-acc__form-foot">
+    <label class="pfh-acc__remember"><input type="checkbox" /> Ingelogd blijven</label>
+    <a class="pfh-acc__link" href="#">Wachtwoord vergeten?</a>
+   </div>
+   <div><button type="submit" class="pfh-acc__btn" style="width:100%">Inloggen</button></div>
+  </form>
+
+  <form class="pfh-acc__form" id="form-register" role="tabpanel" aria-labelledby="seg-register" hidden>
+   <div class="pfh-acc__row">
+    <p class="pfh-acc__field"><label class="pfh-acc__label" for="r1">Voornaam</label><input class="pfh-acc__input" id="r1" type="text" autocomplete="given-name" /></p>
+    <p class="pfh-acc__field"><label class="pfh-acc__label" for="r2">Achternaam</label><input class="pfh-acc__input" id="r2" type="text" autocomplete="family-name" /></p>
+   </div>
+   <p class="pfh-acc__field"><label class="pfh-acc__label" for="r3">E-mailadres</label><input class="pfh-acc__input" id="r3" type="email" autocomplete="email" placeholder="naam@voorbeeld.nl" /></p>
+   <p class="pfh-acc__field"><label class="pfh-acc__label" for="r4">Wachtwoord</label>
+    <span class="pfh-acc__pass"><input class="pfh-acc__input" id="r4" type="password" autocomplete="new-password" /><button type="button" class="pfh-acc__peek" aria-label="Toon wachtwoord"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg></button></span>
+    <span class="pfh-acc__hint">Minimaal 8 tekens.</span></p>
+   <div><button type="submit" class="pfh-acc__btn" style="width:100%">Account aanmaken</button></div>
+   <p class="pfh-acc__hint">Door een account aan te maken ga je akkoord met onze <a class="pfh-acc__link" href="#">voorwaarden</a> en <a class="pfh-acc__link" href="#">privacyverklaring</a>.</p>
+  </form>
+ </div>
+</div></div>
+</section>
+
+<script>
+document.querySelectorAll('.demo button').forEach(function (b) {
+  b.addEventListener('click', function () {
+    document.querySelectorAll('.demo button').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+    document.querySelectorAll('[data-view-panel]').forEach(function (p) { p.hidden = p.getAttribute('data-view-panel') !== b.dataset.view; });
+  });
+});
+
+/* The behaviour the widget ships: tabs, the segmented switch, the orders. */
+document.querySelectorAll('[data-pfh-acc-tab]').forEach(function (tab) {
+  tab.addEventListener('click', function () {
+    var key = tab.getAttribute('data-pfh-acc-tab');
+    if (key === 'logout') { return; }
+    tab.closest('[data-pfh-acc-rail]').querySelectorAll('[data-pfh-acc-tab]').forEach(function (t) {
+      t.setAttribute('aria-selected', String(t === tab));
+      t.tabIndex = t === tab ? 0 : -1;
+    });
+    tab.closest('.pfh-acc').querySelectorAll('.pfh-acc__pane').forEach(function (p) {
+      p.hidden = p.id !== 'pane-' + key;
+    });
+  });
+});
+
+document.querySelectorAll('[data-pfh-acc-form]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var want = btn.getAttribute('data-pfh-acc-form');
+    btn.closest('[data-pfh-acc-seg]').querySelectorAll('[data-pfh-acc-form]').forEach(function (b) {
+      b.setAttribute('aria-selected', String(b === btn));
+      b.tabIndex = b === btn ? 0 : -1;
+    });
+    btn.closest('.pfh-acc__auth-main').querySelectorAll('.pfh-acc__form').forEach(function (f) {
+      f.hidden = f.id !== 'form-' + want;
+    });
+  });
+});
+
+document.querySelectorAll('.pfh-acc__order-head').forEach(function (head) {
+  head.addEventListener('click', function () {
+    var order = head.closest('.pfh-acc__order');
+    var open = order.classList.toggle('is-open');
+    head.setAttribute('aria-expanded', String(open));
+    order.querySelector('.pfh-acc__order-body').hidden = !open;
+  });
+});
+
+document.querySelectorAll('.pfh-acc__peek').forEach(function (eye) {
+  eye.addEventListener('click', function () {
+    var input = eye.parentNode.querySelector('input');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+});
+</script>
+</body></html>

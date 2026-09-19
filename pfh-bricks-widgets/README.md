@@ -1208,6 +1208,61 @@ what the shop page keeps using.
 
 ---
 
+## PFH My Account
+
+One element, two states, no page reloads.
+
+### A visitor
+
+A card in two halves: the shop's pastel on the left with what an account is
+actually for, and on the right the sign-in form with *Registreren* behind a
+switch beside it. Both forms are **WooCommerce's own** — the field names, the
+nonces and the buttons `WC_Form_Handler` looks for — so the shop's login rules,
+its rate limiting, its error messages and anything a plugin has hooked onto the
+register form all still apply. Nothing about signing in is reimplemented here;
+only its shape is.
+
+Registration disappears by itself when WooCommerce has it switched off, and the
+password field disappears when the shop generates its own. The register form
+asks for a first and last name, which WooCommerce's handler knows nothing
+about, so the plugin saves them on `woocommerce_created_customer`.
+
+### A customer
+
+A rail of tabs beside a panel: **Overzicht**, **Bestellingen**, **Adressen**,
+**Gegevens**, and a way out. Switching tabs changes nothing but which panel is
+visible, and writes `#acc-orders` into the address bar — so a refresh, or the
+redirect WooCommerce does after saving an address, comes back where the
+customer was. Arrow keys walk the rail the way a tablist should.
+
+The overview counts the orders, how many are moving, and what has been spent,
+in the three pastels from the reasons band.
+
+### Orders, and where the parcel is
+
+Each order shows its number, its date, a status pill in the colour that status
+deserves, and the total. Opening one draws a line of four steps — **Besteld,
+Betaald, Verzonden, Bezorgd** — with everything behind the parcel filled in and
+the step it is on ringed. A completed order has no step still in progress; a
+cancelled one says so instead of drawing a journey that stopped.
+
+A tracking number is read from WooCommerce Shipment Tracking, from the plain
+`_tracking_number` keys a hand-rolled setup uses, or from the
+`pfh_account_order_tracking` filter — whichever the shop has.
+
+**The contents are fetched when the order is first opened**, once, and kept
+afterwards: a customer with forty orders does not download forty of them to
+look at one. The endpoint checks `current_user_can( 'view_order' )` before it
+answers, because an order id is a small number in a form field and anyone can
+type a different one. The test suite asserts that somebody else's order comes
+back refused, with none of it in the reply.
+
+Below 992px the rail becomes a strip that scrolls; below 720px the tracking
+line runs down the side instead of across, and the order header wraps to two
+rows.
+
+---
+
 ## PFH Bottom Add To Cart
 
 The reminder at the foot of the page: the category, the product, what it costs

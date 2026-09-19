@@ -47,6 +47,7 @@ $elements = [
 	'PFH_Element_Features'       => [ 'class-pfh-element-features.php', 'pfh-features.css' ],
 	'PFH_Element_Instagram'      => [ 'class-pfh-element-instagram.php', 'pfh-instagram.css' ],
 	'PFH_Element_Bottomcart'     => [ 'class-pfh-element-bottomcart.php', 'pfh-bottomcart.css' ],
+	'PFH_Element_Account'        => [ 'class-pfh-element-account.php', 'pfh-account.css' ],
 	'PFH_Element_Cta'            => [ 'class-pfh-element-cta.php', 'pfh-cta.css' ],
 	'PFH_Element_Rating'         => [ 'class-pfh-element-rating.php', 'pfh-rating.css' ],
 	'PFH_Element_Archive'        => [ 'class-pfh-element-archive.php', 'pfh-archive.css' ],
