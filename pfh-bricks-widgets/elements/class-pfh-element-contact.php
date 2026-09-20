@@ -370,7 +370,7 @@ class PFH_Element_Contact extends \Bricks\Element {
 				'icon'      => 'phone',
 				'label'     => (string) $this->setting( 'phoneLabel', '' ),
 				'value'     => $phone,
-				'href'      => 'tel:' . self::diallable( $phone ),
+				'href'      => 'tel:' . PFH_Widgets_Helpers::diallable( $phone ),
 				'note'      => trim( (string) $this->setting( 'phoneNote', '' ) ),
 				'multiline' => false,
 			];
@@ -426,27 +426,6 @@ class PFH_Element_Contact extends \Bricks\Element {
 		return ( is_string( $returned ) && '' !== $returned ) ? $returned : $echoed;
 	}
 
-	/**
-	 * A number a phone can actually dial.
-	 *
-	 * "+31 (0)6 17 39 23 02" is how a Dutch number is written down, and the
-	 * bracketed nought is an instruction rather than a digit: it is the one
-	 * you leave out when you dial the +31. Keeping it produces a number that
-	 * looks right on the page and rings nowhere.
-	 *
-	 * @param string $phone As written.
-	 * @return string
-	 */
-	private static function diallable( $phone ) {
-		$phone = trim( $phone );
-
-		if ( 0 === strpos( $phone, '+' ) ) {
-			$phone = preg_replace( '/\(\s*0\s*\)/', '', $phone );
-		}
-
-		// Everything else a dialler cannot use, keeping a leading +.
-		return preg_replace( '/(?!^\+)[^0-9]/', '', $phone );
-	}
 
 	/**
 	 * The map, a picture, or nothing at all.

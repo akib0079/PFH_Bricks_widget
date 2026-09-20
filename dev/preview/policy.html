@@ -1,0 +1,1112 @@
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Products for Home - informatiepagina's</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap"><style>/**
+ * Products For Home – Bricks Widgets
+ * Shared tokens + primitives.
+ *
+ * Every value here is a fallback: the elements write the real values as
+ * inline custom properties, so the widgets still look right in the builder
+ * before any setting has been saved.
+ */
+
+.pfh-header,
+.pfh-footer,
+.pfh-hero,
+.pfh-portal,
+.pfh-scope {
+	/* Brand */
+	--pfh-font: Outfit, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+	--pfh-accent: #6f8566;
+	--pfh-accent-dark: #55684b;
+	--pfh-accent-soft: #a5be99;
+	--pfh-ink: #14181b;
+	--pfh-surface: #ffffff;
+	--pfh-muted: #f4f4f4;
+	--pfh-line: rgba(20, 24, 27, 0.1);
+
+	/* Layout */
+	--pfh-container: 1140px;
+	--pfh-gutter: var(--pfh-gutter-set, 24px);
+	/*
+	 * How far a full-bleed slider must inset to line its first card up with
+	 * the content column. Measured against the VIEWPORT rather than the
+	 * widget's parent, because a page builder often wraps the section in its
+	 * own narrower container — in which case a percentage would quietly align
+	 * to that wrapper instead of to the logo. --pfh-sbw is the scrollbar
+	 * width, published on :root by the slider script, because 100vw counts the
+	 * scrollbar and the content column does not.
+	 */
+	--pfh-edge: max(
+		var(--pfh-gutter),
+		calc((100vw - var(--pfh-sbw, 0px) - var(--pfh-container)) / 2)
+	);
+	--pfh-z: 100;
+
+	/* Motion */
+	--pfh-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+	--pfh-speed: 0.28s;
+
+	font-family: var(--pfh-font);
+	color: var(--pfh-ink);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* The root itself, not only its descendants — otherwise min-height and
+   width controls exclude padding and every section runs taller than set. */
+.pfh-scope,
+.pfh-scope *,
+.pfh-scope *::before,
+.pfh-scope *::after {
+	box-sizing: border-box;
+}
+
+/*
+ * Resets are wrapped in :where() so they contribute zero specificity — a
+ * single-class component rule like .pfh-footer__submit must always win over
+ * the reset, which a plain `.pfh-footer button` selector would not allow.
+ */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(img) {
+	max-width: 100%;
+	display: block;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(svg) {
+	display: block;
+	flex: none;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(ul) {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(a) {
+	color: inherit;
+	text-decoration: none;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(button) {
+	font: inherit;
+	color: inherit;
+	background: none;
+	border: 0;
+	margin: 0;
+	padding: 0;
+	cursor: pointer;
+}
+
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope) :where(p, h1, h2, h3, h4) {
+	margin: 0;
+}
+
+/*
+ * Focus rings are keyboard-only, and the base rule carries zero specificity so
+ * any component can restyle or opt out of it — a plain `.pfh-scope
+ * :focus-visible` out-specifies every single-class component rule, including
+ * the ones that deliberately say `outline: none`.
+ */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope)
+	:where(:focus-visible) {
+	outline: 2px solid var(--pfh-accent);
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
+/* A mouse click must never leave a ring behind. */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope)
+	:focus:not(:focus-visible) {
+	outline: none;
+}
+
+/*
+ * Defensive. Themes and plugins routinely style :focus on inputs and buttons
+ * with selectors a component class cannot out-specify, which is where the
+ * stray rings around the search field and the cart icon come from — they are
+ * not ours. Inside our own components a pointer click leaves nothing behind.
+ */
+:where(.pfh-header, .pfh-footer, .pfh-hero, .pfh-portal, .pfh-scope)
+	:is(a, button, input, select, textarea, summary, [tabindex]):focus:not(:focus-visible) {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+/*
+ * The scrollers carry tabindex so they can be paged from the keyboard, which
+ * also makes them focusable by click. Their ring is drawn inside, so it reads
+ * as the track and not as a border on the first card.
+ */
+:where(.pfh-scope) [data-pfh-viewport]:focus-visible {
+	outline-offset: -2px;
+}
+
+/* Screen reader only. */
+.pfh-sr-only {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Shared container. */
+.pfh-container {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* Buttons used inside the cart drawer. */
+.pfh-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 48px;
+	padding: 0 22px;
+	border-radius: 12px;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1;
+	text-align: center;
+	transition: background-color var(--pfh-speed) var(--pfh-ease), color var(--pfh-speed) var(--pfh-ease), opacity var(--pfh-speed) var(--pfh-ease);
+}
+
+.pfh-btn--solid {
+	background: var(--pfh-btn-bg, var(--pfh-accent));
+	color: var(--pfh-btn-color, #fff);
+}
+
+.pfh-btn--solid:hover {
+	opacity: 0.9;
+}
+
+.pfh-btn--ghost {
+	border: 1px solid var(--pfh-line);
+	color: var(--pfh-ink);
+}
+
+.pfh-btn--ghost:hover {
+	background: var(--pfh-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-scope * {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+	}
+}
+/**
+ * The policy and information pages: terms, shipping, returns, complaints,
+ * privacy — and anything else that is a document rather than a shop page.
+ *
+ * A legal document is read in two ways. Someone looking for one thing scans
+ * for it, so the sections are numbered, the contents panel is always within
+ * reach and every heading is a link. Someone reading it through wants a
+ * measure that does not tire them, so the column is narrow and the clause
+ * numbers sit out in the margin the way they do on paper — that gutter is
+ * the whole design, and everything else stays quiet behind it.
+ */
+
+.pfh-policy {
+	--pfh-pol-max: 1140px;
+	--pfh-pol-measure: var(--pfh-pol-measure-set, 760px);
+	--pfh-pol-aside: var(--pfh-pol-aside-set, 260px);
+	--pfh-pol-pt: var(--pfh-pol-pt-set, 56px);
+	--pfh-pol-pb: var(--pfh-pol-pb-set, 88px);
+	--pfh-pol-gutter-no: 46px;
+	--pfh-pol-radius: 16px;
+
+	--pfh-pol-ink: #22301c;
+	--pfh-pol-body: #43503f;
+	--pfh-pol-muted: #8d9589;
+	--pfh-pol-accent: #2b5f63;
+	--pfh-pol-line: #eaeaea;
+	--pfh-pol-band: #f6f8f5;
+	--pfh-pol-tint: #dfe9dc;
+	--pfh-pol-tint-ink: #46603f;
+
+	--pfh-pol-title: var(--pfh-pol-title-set, 42px);
+	--pfh-pol-head: var(--pfh-pol-head-set, 22px);
+	--pfh-pol-text: var(--pfh-pol-text-set, 16px);
+
+	display: block;
+	padding-block: var(--pfh-pol-pt) var(--pfh-pol-pb);
+	font-family: var(--pfh-font);
+	color: var(--pfh-pol-body);
+	font-size: 15px;
+	line-height: 1.7;
+}
+
+.pfh-policy[hidden],
+.pfh-policy [hidden] { display: none !important; }
+
+.pfh-policy__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-pol-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* The one serif note, as everywhere else in the shop. */
+.pfh-policy em,
+.pfh-policy i {
+	font-family: var(--pfh-pol-serif, "Playfair Display", Georgia, serif);
+	font-style: italic;
+	font-weight: 400;
+}
+
+/*
+ * A link takes the colour of whatever it sits in. Note the specificity: this
+ * is a class and a type, which outranks a lone class — so every rule below
+ * that colours a link carries .pfh-policy in front of it, or it loses to this
+ * one and the link comes out the colour of its own background.
+ */
+.pfh-policy a { color: inherit; text-decoration: none; }
+
+.pfh-policy a:focus-visible {
+	outline: 2px solid var(--pfh-pol-accent);
+	outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ *
+ * The opening
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__head {
+	max-width: 780px;
+	margin-bottom: 48px;
+}
+
+.pfh-policy__eyebrow {
+	margin: 0 0 14px;
+	color: var(--pfh-pol-muted);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: .18em;
+	text-transform: uppercase;
+}
+
+.pfh-policy .pfh-policy__title {
+	margin: 0;
+	color: var(--pfh-pol-ink);
+	font-size: var(--pfh-pol-title);
+	font-weight: 600;
+	line-height: 1.12;
+	letter-spacing: -.015em;
+	text-wrap: balance;
+}
+
+.pfh-policy__lede {
+	margin-top: 20px;
+	font-size: 17px;
+	line-height: 1.75;
+}
+
+.pfh-policy__lede p { margin: 0 0 14px; }
+.pfh-policy__lede p:last-child { margin-bottom: 0; }
+
+.pfh-policy__updated {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 24px;
+	padding: 7px 14px 7px 12px;
+	border-radius: 999px;
+	background: var(--pfh-pol-band);
+	color: var(--pfh-pol-muted);
+	font-size: 13px;
+	line-height: 1;
+}
+
+.pfh-policy__updated svg { width: 14px; height: 14px; }
+
+/* ------------------------------------------------------------------ *
+ * The page
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) var(--pfh-pol-aside);
+	align-items: start;
+	gap: 56px;
+}
+
+.pfh-policy__layout--wide { grid-template-columns: minmax(0, 1fr); }
+
+.pfh-policy__main {
+	min-width: 0;
+	max-width: var(--pfh-pol-measure);
+}
+
+/* ------------------------------------------------------------------ *
+ * The contents
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__toc {
+	position: sticky;
+	top: 24px;
+	padding: 24px;
+	border: 1px solid var(--pfh-pol-line);
+	border-radius: 14px;
+	background: #fff;
+}
+
+/*
+ * A <details> always draws its summary, and on a desktop the panel is open
+ * and cannot be folded — so the summary sat there as a second copy of the
+ * heading, marker and all. Below the breakpoint it is the thing you tap.
+ */
+.pfh-policy__toc > summary { display: none; }
+
+.pfh-policy .pfh-policy__toc-title {
+	margin: 0 0 14px;
+	color: var(--pfh-pol-ink);
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+}
+
+.pfh-policy__toc-list {
+	display: grid;
+	gap: 2px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-policy .pfh-policy__toc-link {
+	/*
+	 * Two lines at most. The label is already cut to length when the page is
+	 * built; this is what catches a heading that is short in characters and
+	 * wide in letters.
+	 */
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	padding: 7px 0 7px 14px;
+	border-left: 2px solid var(--pfh-pol-line);
+	color: var(--pfh-pol-body);
+	font-size: 14px;
+	line-height: 1.45;
+	transition: border-color var(--pfh-speed, .28s) var(--pfh-ease, ease), color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-policy__toc-link:hover { color: var(--pfh-pol-accent); }
+
+.pfh-policy__toc-link.is-here {
+	border-left-color: var(--pfh-pol-accent);
+	color: var(--pfh-pol-accent);
+	font-weight: 500;
+}
+
+.pfh-policy__toc-no {
+	margin-right: 7px;
+	color: var(--pfh-pol-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-policy__toc-link.is-here .pfh-policy__toc-no { color: inherit; }
+
+/* ------------------------------------------------------------------ *
+ * A section
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__sections {
+	display: grid;
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-policy__section {
+	padding-block: 36px;
+	border-top: 1px solid var(--pfh-pol-line);
+	scroll-margin-top: 24px;
+}
+
+.pfh-policy__section:first-child { padding-top: 0; border-top: 0; }
+
+/* A section given its own ground: the customer-service block at the foot of
+   a set of terms, or the whole of a page that is one short answer. */
+.pfh-policy__section--highlight {
+	margin-top: 36px;
+	padding: 32px;
+	border-top: 0;
+	border-radius: var(--pfh-pol-radius);
+	background: var(--pfh-pol-band);
+}
+
+.pfh-policy__section--highlight + .pfh-policy__section--highlight { margin-top: 20px; }
+.pfh-policy__section--highlight:first-child { margin-top: 0; }
+
+.pfh-policy__section-head {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	margin-bottom: 18px;
+}
+
+.pfh-policy__no {
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 30px;
+	height: 30px;
+	padding-inline: 8px;
+	border-radius: 9px;
+	background: var(--pfh-pol-tint);
+	color: var(--pfh-pol-tint-ink);
+	font-size: 13px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+}
+
+.pfh-policy .pfh-policy__section-title {
+	margin: 0;
+	padding-top: 2px;
+	color: var(--pfh-pol-ink);
+	font-size: var(--pfh-pol-head);
+	font-weight: 600;
+	line-height: 1.25;
+	letter-spacing: -.01em;
+	text-wrap: balance;
+}
+
+/* ------------------------------------------------------------------ *
+ * What the client types
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__body {
+	font-size: var(--pfh-pol-text);
+	line-height: 1.75;
+}
+
+.pfh-policy__body > *:first-child { margin-top: 0; }
+.pfh-policy__body > *:last-child { margin-bottom: 0; }
+
+.pfh-policy__body p { margin: 0 0 14px; }
+
+.pfh-policy__body h3,
+.pfh-policy__body h4 {
+	margin: 28px 0 10px;
+	color: var(--pfh-pol-ink);
+	font-size: 16.5px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.pfh-policy__body strong { color: var(--pfh-pol-ink); font-weight: 600; }
+
+.pfh-policy .pfh-policy__body a {
+	color: var(--pfh-pol-accent);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+	text-decoration-color: rgba(43, 95, 99, .35);
+	transition: text-decoration-color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-policy__body a:hover { text-decoration-color: currentColor; }
+
+/* Lists get the shop's own marker rather than a browser bullet. */
+.pfh-policy__body ul {
+	margin: 0 0 16px;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-policy__body ul li {
+	position: relative;
+	margin-bottom: 8px;
+	padding-left: 24px;
+}
+
+.pfh-policy__body ul li::before {
+	content: "";
+	position: absolute;
+	top: .62em;
+	left: 4px;
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--pfh-pol-tint);
+	box-shadow: inset 0 0 0 1.5px var(--pfh-pol-accent);
+}
+
+.pfh-policy__body ol {
+	margin: 0 0 16px;
+	padding: 0;
+	list-style: none;
+	counter-reset: pfh-pol-step;
+}
+
+.pfh-policy__body ol li {
+	position: relative;
+	margin-bottom: 10px;
+	padding-left: 34px;
+	counter-increment: pfh-pol-step;
+}
+
+.pfh-policy__body ol li::before {
+	content: counter(pfh-pol-step);
+	position: absolute;
+	top: .12em;
+	left: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: var(--pfh-pol-tint);
+	color: var(--pfh-pol-tint-ink);
+	font-size: 12px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+}
+
+.pfh-policy__body li > ul,
+.pfh-policy__body li > ol { margin-top: 8px; }
+
+/* A quote in the editor is how the client makes a "let op" box. */
+.pfh-policy__body blockquote {
+	margin: 20px 0;
+	padding: 16px 20px;
+	border-left: 3px solid var(--pfh-pol-accent);
+	border-radius: 0 12px 12px 0;
+	background: var(--pfh-pol-band);
+	color: var(--pfh-pol-ink);
+	font-size: 15.5px;
+}
+
+.pfh-policy__body blockquote p:last-child { margin-bottom: 0; }
+
+/* A table wide enough to push a phone sideways scrolls on its own instead. */
+.pfh-policy__scroller {
+	margin: 0 0 18px;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+.pfh-policy__body table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 15px;
+}
+
+.pfh-policy__body th,
+.pfh-policy__body td {
+	padding: 10px 14px;
+	border-bottom: 1px solid var(--pfh-pol-line);
+	text-align: left;
+	vertical-align: top;
+}
+
+.pfh-policy__body th { color: var(--pfh-pol-ink); font-weight: 600; }
+
+/* ---------- the clause number in the margin ---------- */
+
+/*
+ * "1.1", "6.6" — a set of terms numbers its clauses, and on paper those
+ * numbers hang in the margin rather than running into the sentence. Pulling
+ * them out is what makes a wall of clauses something you can find your way
+ * around; the sentences then all start on the same line.
+ */
+.pfh-policy__body .pfh-policy__clause {
+	display: grid;
+	grid-template-columns: var(--pfh-pol-gutter-no) minmax(0, 1fr);
+	margin-bottom: 12px;
+}
+
+.pfh-policy__clause-text { min-width: 0; }
+
+.pfh-policy__clause-no {
+	color: var(--pfh-pol-accent);
+	font-size: 13.5px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	line-height: inherit;
+	padding-top: .16em;
+}
+
+/* ------------------------------------------------------------------ *
+ * The extras a section can carry
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 4px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-policy .pfh-policy__chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 16px;
+	border: 1px solid var(--pfh-pol-line);
+	border-radius: 999px;
+	background: #fff;
+	color: var(--pfh-pol-ink);
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1;
+}
+
+.pfh-policy__chip svg { width: 14px; height: 14px; color: var(--pfh-pol-accent); }
+
+.pfh-policy .pfh-policy__cta {
+	display: inline-flex;
+	align-items: center;
+	gap: 9px;
+	margin-top: 18px;
+	padding: 13px 22px;
+	border-radius: 999px;
+	background: var(--pfh-pol-accent);
+	color: #fff;
+	font-size: 14.5px;
+	font-weight: 500;
+	line-height: 1;
+	transition: background-color var(--pfh-speed, .28s) var(--pfh-ease, ease), transform var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-policy__cta:hover { background: var(--pfh-pol-ink); }
+.pfh-policy__cta svg { width: 13px; height: 13px; transition: transform var(--pfh-speed, .28s) var(--pfh-ease, ease); }
+.pfh-policy__cta:hover svg { transform: translate(2px, -2px); }
+
+/* ---------- builder placeholder ---------- */
+
+.pfh-policy--empty {
+	padding: 40px;
+	border: 1px dashed rgba(20, 24, 27, .16);
+	border-radius: 12px;
+	color: #6b6b6b;
+	text-align: center;
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 1100px) {
+	.pfh-policy { --pfh-pol-aside: 220px; }
+	.pfh-policy__layout { gap: 40px; }
+}
+
+@media (max-width: 900px) {
+	.pfh-policy {
+		--pfh-pol-title: 32px;
+		--pfh-pol-head: 20px;
+		--pfh-pol-text: 15.5px;
+		--pfh-pol-pb: 64px;
+	}
+
+	/* One column, and the contents become something to open rather than a
+	   panel taking a third of a phone. */
+	.pfh-policy__layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+	.pfh-policy__main { max-width: none; }
+	.pfh-policy__head { margin-bottom: 32px; }
+
+	.pfh-policy__toc {
+		position: static;
+		order: -1;
+		margin-bottom: 32px;
+		padding: 0;
+		border-radius: 12px;
+	}
+
+	.pfh-policy__toc > summary {
+		display: block;
+		padding: 16px 18px;
+		color: var(--pfh-pol-ink);
+		font-size: 14px;
+		font-weight: 600;
+		list-style: none;
+		cursor: pointer;
+	}
+
+	.pfh-policy__toc > summary::-webkit-details-marker { display: none; }
+	.pfh-policy__toc > summary::after { content: "+"; float: right; font-weight: 400; }
+	.pfh-policy__toc[open] > summary::after { content: "\2013"; }
+	.pfh-policy__toc .pfh-policy__toc-title { display: none; }
+	.pfh-policy__toc-list { padding: 0 18px 18px; }
+}
+
+@media (max-width: 620px) {
+	.pfh-policy {
+		--pfh-pol-title: 27px;
+		--pfh-pol-gutter-no: 36px;
+	}
+
+	.pfh-policy__section { padding-block: 28px; }
+	.pfh-policy__section--highlight { padding: 24px 20px; }
+	.pfh-policy__section-head { gap: 11px; margin-bottom: 14px; }
+	.pfh-policy__no { min-width: 26px; height: 26px; border-radius: 8px; font-size: 12px; }
+	.pfh-policy__lede { font-size: 16px; }
+	.pfh-policy__cta { width: 100%; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-policy__cta,
+	.pfh-policy__cta svg,
+	.pfh-policy__toc-link { transition: none; }
+}
+
+body{margin:0;background:#fff}.pv-bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:8px;padding:14px 24px;border-bottom:1px solid #eaeaea;background:rgba(255,255,255,.92);backdrop-filter:blur(8px)}.pv-bar button{padding:9px 16px;border:1px solid #eaeaea;border-radius:999px;background:#fff;color:#43503f;font:500 13.5px/1 Outfit,sans-serif;cursor:pointer;transition:.2s}.pv-bar button:hover{border-color:#2b5f63;color:#2b5f63}.pv-bar button[aria-current="true"]{border-color:#2b5f63;background:#2b5f63;color:#fff}</style></head><body class="brx-body"><nav class="pv-bar"><button type="button" data-page="terms">Algemene voorwaarden</button><button type="button" data-page="shipping">Betalen en bezorgen</button><button type="button" data-page="returns">Retourbeleid</button><button type="button" data-page="complaints">Klachten</button><button type="button" data-page="privacy">Privacybeleid</button></nav><main id="pv-stage"></main><template data-page="terms"><section id="brxe-pl-terms" class="brxe-pfh-terms pfh-policy pfh-scope" style="--pfh-pol-max:1140px;--pfh-pol-measure-set:760px;--pfh-pol-aside-set:260px;--pfh-pol-pt-set:56px;--pfh-pol-pb-set:88px;--pfh-pol-title-set:42px;--pfh-pol-head-set:22px;--pfh-pol-text-set:16px;--pfh-pol-ink:#22301c;--pfh-pol-body:#43503f;--pfh-pol-muted:#8d9589;--pfh-pol-accent:#2b5f63;--pfh-pol-band:#f6f8f5;"><div class="pfh-policy__inner"><header class="pfh-policy__head"><p class="pfh-policy__eyebrow">Voorwaarden</p><h1 class="pfh-policy__title">Algemene Voorwaarden <em>Products for Home</em></h1><div class="pfh-policy__lede"><p>Deze algemene voorwaarden zijn van toepassing op alle aanbiedingen, bestellingen en overeenkomsten die via de webshop van Products for Home (hierna te noemen “wij” of “onze”) worden gesloten. Door een bestelling te plaatsen, ga je akkoord met deze voorwaarden.</p>
+</div></header><div class="pfh-policy__layout"><div class="pfh-policy__main" data-pfh-contents-body><div class="pfh-policy__sections"><section class="pfh-policy__section" id="algemeen"><div class="pfh-policy__section-head"><span class="pfh-policy__no">1</span><h2 class="pfh-policy__section-title">Algemeen</h2></div><div class="pfh-policy__body"><p class="pfh-policy__clause"><span class="pfh-policy__clause-no">1.1</span><span class="pfh-policy__clause-text">Deze algemene voorwaarden zijn van toepassing op alle aanbiedingen, bestellingen en overeenkomsten via onze webshop.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">1.2</span><span class="pfh-policy__clause-text">Wij behouden ons het recht voor om deze voorwaarden te allen tijde te wijzigen. Wijzigingen worden voorafgaand aan de wijziging op de website gepubliceerd.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">1.3</span><span class="pfh-policy__clause-text">Alle producten die wij aanbieden, zijn zorgvuldig geselecteerd en voldoen aan de Nederlandse wetgeving en Europese richtlijnen, met name op het gebied van voedselveiligheid en biologische certificering.</span></p>
+</div></section><section class="pfh-policy__section" id="productinformatie-en-prijzen"><div class="pfh-policy__section-head"><span class="pfh-policy__no">2</span><h2 class="pfh-policy__section-title">Productinformatie en prijzen</h2></div><div class="pfh-policy__body"><p class="pfh-policy__clause"><span class="pfh-policy__clause-no">2.1</span><span class="pfh-policy__clause-text">Wij doen er alles aan om de producten op de webshop zo duidelijk mogelijk te beschrijven, inclusief de prijzen, ingrediënten, herkomst en eventuele certificeringen (zoals biologisch).</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">2.2</span><span class="pfh-policy__clause-text">Alle prijzen zijn inclusief btw, tenzij anders aangegeven, en exclusief verzendkosten.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">2.3</span><span class="pfh-policy__clause-text">De prijzen en productbeschrijvingen op de website kunnen van tijd tot tijd worden aangepast. Wij behouden ons het recht voor om prijsfouten of wijzigingen van de prijzen door te voeren zonder voorafgaande kennisgeving.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">2.4</span><span class="pfh-policy__clause-text">Houd er rekening mee dat natuurproducten zoals honing, olijfolie en bijenwasproducten kunnen variëren in kleur, geur en textuur. Dit komt doordat ze afhankelijk zijn van de oogst en natuurlijke variaties. De kleur van het product kan daarom afwijken van de foto op de website.</span></p>
+</div></section><section class="pfh-policy__section" id="bestelling-en-betaling"><div class="pfh-policy__section-head"><span class="pfh-policy__no">3</span><h2 class="pfh-policy__section-title">Bestelling en betaling</h2></div><div class="pfh-policy__body"><p class="pfh-policy__clause"><span class="pfh-policy__clause-no">3.1</span><span class="pfh-policy__clause-text">Je kunt producten bestellen via onze webshop door het product aan je winkelmandje toe te voegen en de stappen voor de bestelling te doorlopen.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">3.2</span><span class="pfh-policy__clause-text">Betaling dient te geschieden via de beschikbare betaalmethoden op de webshop (iDEAL, Bancontact en PayPal).</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">3.3</span><span class="pfh-policy__clause-text">Het moment van betaling is het moment waarop de overeenkomst tot stand komt. Na ontvangst van betaling wordt de bestelling verwerkt.</span></p>
+</div></section><section class="pfh-policy__section" id="levering"><div class="pfh-policy__section-head"><span class="pfh-policy__no">4</span><h2 class="pfh-policy__section-title">Levering</h2></div><div class="pfh-policy__body"><p class="pfh-policy__clause"><span class="pfh-policy__clause-no">4.1</span><span class="pfh-policy__clause-text">Wij streven ernaar om de bestelling die voor 15:00 geplaatst word dezelfde werkdag na ontvangst van betaling te verzenden, tenzij anders vermeld op de productpagina.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">4.2</span><span class="pfh-policy__clause-text">Levering vindt plaats op het door jou opgegeven adres.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">4.3</span><span class="pfh-policy__clause-text">De levertijden zijn indicatief en kunnen door onvoorziene omstandigheden variëren. Wij kunnen niet aansprakelijk worden gesteld voor vertragingen buiten onze controle.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">4.4</span><span class="pfh-policy__clause-text">Wij leveren alleen binnen Nederland en België. Voor leveringen naar andere landen kunnen extra kosten en levertijden van toepassing zijn.</span></p>
+</div></section><section class="pfh-policy__section" id="herroepingsrecht"><div class="pfh-policy__section-head"><span class="pfh-policy__no">5</span><h2 class="pfh-policy__section-title">Herroepingsrecht</h2></div><div class="pfh-policy__body"><p class="pfh-policy__clause"><span class="pfh-policy__clause-no">5.1</span><span class="pfh-policy__clause-text">Als consument heb je het recht om je bestelling binnen 14 dagen na ontvangst zonder opgave van redenen te annuleren, conform de Wet Koop op Afstand.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">5.2</span><span class="pfh-policy__clause-text">Je kunt het herroepingsrecht uitoefenen door ons een duidelijke verklaring te sturen via e-mail.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">5.3</span><span class="pfh-policy__clause-text">Na annulering dien je de producten binnen 14 dagen naar ons terug te sturen. De kosten van de retourzending zijn voor jouw rekening, tenzij anders overeengekomen.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">5.4</span><span class="pfh-policy__clause-text">Voor producten die snel kunnen bederven (zoals honing, gia giamas, olijfolie en bijenwasproducten), geldt dat het herroepingsrecht niet van toepassing is, tenzij het product defect of beschadigd is bij levering. Dit geldt ook voor producten die om hygiënische redenen niet geretourneerd kunnen worden zodra de verpakking is geopend.</span></p>
+</div></section><section class="pfh-policy__section" id="retourneren-en-ruilen"><div class="pfh-policy__section-head"><span class="pfh-policy__no">6</span><h2 class="pfh-policy__section-title">Retourneren en ruilen</h2></div><div class="pfh-policy__body"><p class="pfh-policy__clause"><span class="pfh-policy__clause-no">6.1</span><span class="pfh-policy__clause-text">Mocht het product beschadigd of de verpakking meer beschadigd zijn dan nodig is om het product te proberen, dan kunnen we deze waardevermindering van het product aan u doorberekenen. Behandel het product dus met zorg en zorg ervoor dat deze bij een retour goed verpakt is.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">6.2</span><span class="pfh-policy__clause-text">Je dient ons binnen 3 dagen na ontvangst van de bestelling te informeren als het product kapot of beschadigd is geleverd. Na deze periode kunnen wij geen aansprakelijkheid meer nemen voor beschadigingen tijdens het transport.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">6.3</span><span class="pfh-policy__clause-text">Het retouradres en verdere instructies worden verstrekt na ontvangst van je herroepingsverzoek.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">6.4</span><span class="pfh-policy__clause-text">Wij zullen het verschuldigde orderbedrag binnen 14 dagen na aanmelding van uw retour terugstorten mits het product reeds in goede orde retour ontvangen is.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">6.5</span><span class="pfh-policy__clause-text">De kosten voor het retourneren van de producten zijn voor jouw eigen rekening, tenzij anders overeengekomen.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">6.6</span><span class="pfh-policy__clause-text">Bij klachten dient een consument zich allereerst te wenden tot de ondernemer. Indien de webwinkel is aangesloten bij WebwinkelKeur en bij klachten die niet in onderling overleg opgelost kunnen worden dient de consument zich te wenden tot WebwinkelKeur (<a href="https://www.webwinkelkeur.nl" target="_blank" rel="noopener noreferrer">www.webwinkelkeur.nl</a>), deze zal gratis bemiddelen. Controleer of deze webwinkel een lopend lidmaatschap heeft via <a href="https://www.webwinkelkeur.nl/leden/" target="_blank" rel="noopener noreferrer">www.webwinkelkeur.nl/leden</a>. Mocht er dan nog niet tot een oplossing gekomen worden, heeft de consument de mogelijkheid om zijn klacht te laten behandelen door de door WebwinkelKeur aangestelde onafhankelijke geschillencommissie, de uitspraak hiervan is bindend en zowel ondernemer als consument stemmen in met deze bindende uitspraak. Aan het voorleggen van een geschil aan deze geschillencommissie zijn kosten verbonden die door de consument betaalt dienen te worden aan de betreffende commissie.</span></p>
+</div></section><section class="pfh-policy__section" id="aansprakelijkheid"><div class="pfh-policy__section-head"><span class="pfh-policy__no">7</span><h2 class="pfh-policy__section-title">Aansprakelijkheid</h2></div><div class="pfh-policy__body"><p class="pfh-policy__clause"><span class="pfh-policy__clause-no">7.1</span><span class="pfh-policy__clause-text">Wij zijn niet aansprakelijk voor enige schade die voortvloeit uit het gebruik van de producten, tenzij deze schade het gevolg is van opzet of grove schuld van onze kant.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">7.2</span><span class="pfh-policy__clause-text">Onze aansprakelijkheid is in ieder geval beperkt tot het bedrag dat je hebt betaald voor het product.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">7.3</span><span class="pfh-policy__clause-text">Wij zijn niet verantwoordelijk voor mogelijke allergieën die je kunt hebben voor de ingrediënten in onze producten. Het is jouw verantwoordelijkheid om de productinformatie goed door te lezen en bij twijfel een arts te raadplegen.</span></p>
+</div></section><section class="pfh-policy__section" id="privacy-en-gegevensverwerking-avg"><div class="pfh-policy__section-head"><span class="pfh-policy__no">8</span><h2 class="pfh-policy__section-title">Privacy en Gegevensverwerking (AVG)</h2></div><div class="pfh-policy__body"><p class="pfh-policy__clause"><span class="pfh-policy__clause-no">8.1</span><span class="pfh-policy__clause-text">Wij verwerken je persoonsgegevens uitsluitend voor het verwerken van je bestelling en om je op de hoogte te houden van relevante aanbiedingen, tenzij je aangeeft geen marketinginformatie te ontvangen.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">8.2</span><span class="pfh-policy__clause-text">Wij nemen passende technische en organisatorische maatregelen om je persoonsgegevens te beschermen tegen verlies of ongeoorloofde toegang.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">8.3</span><span class="pfh-policy__clause-text">Wij verzamelen ook gegevens om je uit te nodigen een beoordeling achter te laten van de producten die je hebt gekocht. Dit gebeurt via een beoordelingsformulier, dat je ontvangt na de levering van je bestelling. Door een bestelling te plaatsen, geef je toestemming voor het ontvangen van deze uitnodiging.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">8.4</span><span class="pfh-policy__clause-text">Voor meer informatie over hoe wij je persoonsgegevens verwerken, verwijzen wij je naar ons <a href="/privacybeleid/">privacybeleid</a>.</span></p>
+</div></section><section class="pfh-policy__section" id="intellectuele-eigendom"><div class="pfh-policy__section-head"><span class="pfh-policy__no">9</span><h2 class="pfh-policy__section-title">Intellectuele Eigendom</h2></div><div class="pfh-policy__body"><p class="pfh-policy__clause"><span class="pfh-policy__clause-no">9.1</span><span class="pfh-policy__clause-text">Alle rechten met betrekking tot de inhoud van onze website, zoals teksten, afbeeldingen, logo’s en merken, zijn eigendom van Products for Home of de desbetreffende rechthebbenden.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">9.2</span><span class="pfh-policy__clause-text">Het is verboden om zonder toestemming van Products for Home de inhoud van de website te gebruiken, te reproduceren of te distribueren.</span></p>
+</div></section><section class="pfh-policy__section" id="toepasselijk-recht-en-geschillen"><div class="pfh-policy__section-head"><span class="pfh-policy__no">10</span><h2 class="pfh-policy__section-title">Toepasselijk recht en geschillen</h2></div><div class="pfh-policy__body"><p class="pfh-policy__clause"><span class="pfh-policy__clause-no">10.1</span><span class="pfh-policy__clause-text">Op alle overeenkomsten en transacties via onze webshop is Nederlands recht van toepassing.</span></p>
+<p class="pfh-policy__clause"><span class="pfh-policy__clause-no">10.2</span><span class="pfh-policy__clause-text">Geschillen zullen worden voorgelegd aan de bevoegde rechter in Nederland, tenzij een andere juridische regeling van toepassing is op de consument.</span></p>
+</div></section><section class="pfh-policy__section pfh-policy__section--highlight" id="klantenservice"><div class="pfh-policy__section-head"><span class="pfh-policy__no">11</span><h2 class="pfh-policy__section-title">Klantenservice</h2></div><div class="pfh-policy__body"><p>Voor vragen, klachten of opmerkingen kun je contact met ons opnemen via:</p>
+</div><ul class="pfh-policy__chips"><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="m4 7.5 7.1 5a1.6 1.6 0 0 0 1.8 0l7.1-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="mailto:klantenservice@productsforhome.nl">klantenservice@productsforhome.nl</a></li><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M6.5 3.5h3l1.5 3.8-2 1.4a12 12 0 0 0 5.3 5.3l1.4-2 3.8 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="tel:0617392302">0617392302</a></li><li class="pfh-policy__chip">Alphen aan den Rijn</li></ul></section></div></div><details class="pfh-policy__toc" open data-pfh-contents="pfh-policy"><summary>Op deze pagina</summary><p class="pfh-policy__toc-title">Op deze pagina</p><ul class="pfh-policy__toc-list"><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#algemeen" title="Algemeen"><span class="pfh-policy__toc-no">1.</span>Algemeen</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#productinformatie-en-prijzen" title="Productinformatie en prijzen"><span class="pfh-policy__toc-no">2.</span>Productinformatie en prijzen</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#bestelling-en-betaling" title="Bestelling en betaling"><span class="pfh-policy__toc-no">3.</span>Bestelling en betaling</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#levering" title="Levering"><span class="pfh-policy__toc-no">4.</span>Levering</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#herroepingsrecht" title="Herroepingsrecht"><span class="pfh-policy__toc-no">5.</span>Herroepingsrecht</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#retourneren-en-ruilen" title="Retourneren en ruilen"><span class="pfh-policy__toc-no">6.</span>Retourneren en ruilen</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#aansprakelijkheid" title="Aansprakelijkheid"><span class="pfh-policy__toc-no">7.</span>Aansprakelijkheid</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#privacy-en-gegevensverwerking-avg" title="Privacy en Gegevensverwerking (AVG)"><span class="pfh-policy__toc-no">8.</span>Privacy en Gegevensverwerking (AVG)</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#intellectuele-eigendom" title="Intellectuele Eigendom"><span class="pfh-policy__toc-no">9.</span>Intellectuele Eigendom</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#toepasselijk-recht-en-geschillen" title="Toepasselijk recht en geschillen"><span class="pfh-policy__toc-no">10.</span>Toepasselijk recht en geschillen</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#klantenservice" title="Klantenservice"><span class="pfh-policy__toc-no">11.</span>Klantenservice</a></li></ul></details></div></div></section></template><template data-page="shipping"><section id="brxe-pl-shipping" class="brxe-pfh-shipping pfh-policy pfh-scope" style="--pfh-pol-max:1140px;--pfh-pol-measure-set:760px;--pfh-pol-aside-set:260px;--pfh-pol-pt-set:56px;--pfh-pol-pb-set:88px;--pfh-pol-title-set:42px;--pfh-pol-head-set:22px;--pfh-pol-text-set:16px;--pfh-pol-ink:#22301c;--pfh-pol-body:#43503f;--pfh-pol-muted:#8d9589;--pfh-pol-accent:#2b5f63;--pfh-pol-band:#f6f8f5;"><div class="pfh-policy__inner"><header class="pfh-policy__head"><p class="pfh-policy__eyebrow">Bestellen</p><h1 class="pfh-policy__title">Betalen en <em>bezorgen</em></h1><div class="pfh-policy__lede"><p>Na iedere bestelling ontvang je direct een bevestiging per e-mail. In deze e-mail vind je het ordernummer, de bestelde artikelen, de verzendkosten en het totaalbedrag.</p>
+</div></header><div class="pfh-policy__layout"><div class="pfh-policy__main" data-pfh-contents-body><div class="pfh-policy__sections"><section class="pfh-policy__section" id="betaalmethode"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Betaalmethode</h2></div><div class="pfh-policy__body"><p>Bij Products for Home kun je veilig betalen met:</p>
+</div><ul class="pfh-policy__chips"><li class="pfh-policy__chip">iDEAL</li><li class="pfh-policy__chip">PayPal</li><li class="pfh-policy__chip">Klarna</li><li class="pfh-policy__chip">Bancontact</li></ul></section><section class="pfh-policy__section" id="betalen-via-bol"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Betalen via bol</h2></div><div class="pfh-policy__body"><p>Daarnaast nemen wij deel aan een pilot in samenwerking met Bol. Hierbij kun je inloggen met je bol-account en kiezen voor:</p>
+<ul>
+<li>Direct betalen via onze webshop</li>
+<li>Achteraf betalen via bol</li>
+</ul>
+</div></section><section class="pfh-policy__section" id="is-je-betaling-mislukt"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Is je betaling mislukt?</h2></div><div class="pfh-policy__body"><p>Het kan voorkomen dat er iets misgaat tijdens het betalen, bijvoorbeeld door een foutmelding. Twijfel je of de betaling goed is doorgekomen?</p>
+<ol>
+<li>Controleer eerst je bankafschriften om te zien of het bedrag is afgeschreven.</li>
+<li>Is het bedrag afgeschreven maar heb je geen bevestiging ontvangen? Neem dan gerust contact met ons op — wij kijken het graag voor je na.</li>
+</ol>
+<p>Weet je zeker dat de betaling niet is gelukt? Dan is je bestelling helaas niet geplaatst. Je kunt de bestelling dan opnieuw plaatsen en opnieuw betalen.</p>
+</div></section><section class="pfh-policy__section" id="verzendwijze-en-kosten"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Verzendwijze en kosten</h2></div><div class="pfh-policy__body"><p>Products for Home verzendt alle bestellingen met DHL.</p>
+<h3>Nederland</h3>
+<ul>
+<li>Bezorging aan huis of servicepunt — € 5,99</li>
+<li>Gratis verzending vanaf € 60,-</li>
+</ul>
+<h3>Waddeneilanden</h3>
+<ul>
+<li>Bezorging aan huis of servicepunt — € 5,99 + € 6,66 onder € 60</li>
+<li>Bezorging aan huis of servicepunt — € 6,65 vanaf € 60</li>
+<li>Gratis verzending vanaf € 100,-</li>
+</ul>
+<h3>België</h3>
+<ul>
+<li>Bezorging aan huis of servicepunt — € 8,30</li>
+<li>Gratis verzending vanaf € 70,-</li>
+</ul>
+</div></section><section class="pfh-policy__section" id="levertijden"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Levertijden</h2></div><div class="pfh-policy__body"><p>Wij doen er alles aan om jouw bestelling zo snel mogelijk te verzenden.</p>
+<ul>
+<li>Bestellingen die vóór 15:00 uur worden geplaatst, worden dezelfde werkdag verzonden.</li>
+<li>Gemiddelde levertijd Nederland: 1 à 2 werkdagen</li>
+<li>Gemiddelde levertijd België: 2 à 3 werkdagen</li>
+</ul>
+<blockquote>
+<p><strong>Let op:</strong> wij zijn afhankelijk van de bezorgdienst. Products for Home is niet aansprakelijk voor eventuele vertragingen bij de vervoerder.</p>
+</blockquote>
+<p>In uitzonderlijke gevallen behouden wij ons het recht voor een bestelling te annuleren en het betaalde bedrag terug te storten.</p>
+</div></section><section class="pfh-policy__section" id="nabestellingen"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Nabestellingen</h2></div><div class="pfh-policy__body"><p>Bevat je bestelling een artikel dat op nabestelling staat? Dan wordt de volledige bestelling verzonden zodra alle artikelen op voorraad zijn.</p>
+</div></section><section class="pfh-policy__section pfh-policy__section--highlight" id="vragen-over-je-bestelling"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Vragen over je bestelling?</h2></div><div class="pfh-policy__body"><p>Neem gerust contact met ons op — wij kijken het graag voor je na.</p>
+</div><ul class="pfh-policy__chips"><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="m4 7.5 7.1 5a1.6 1.6 0 0 0 1.8 0l7.1-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="mailto:klantenservice@productsforhome.nl">klantenservice@productsforhome.nl</a></li><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M6.5 3.5h3l1.5 3.8-2 1.4a12 12 0 0 0 5.3 5.3l1.4-2 3.8 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="tel:0617392302">0617392302</a></li></ul></section></div></div><details class="pfh-policy__toc" open data-pfh-contents="pfh-policy"><summary>Op deze pagina</summary><p class="pfh-policy__toc-title">Op deze pagina</p><ul class="pfh-policy__toc-list"><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#betaalmethode" title="Betaalmethode">Betaalmethode</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#betalen-via-bol" title="Betalen via bol">Betalen via bol</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#is-je-betaling-mislukt" title="Is je betaling mislukt?">Is je betaling mislukt?</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#verzendwijze-en-kosten" title="Verzendwijze en kosten">Verzendwijze en kosten</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#levertijden" title="Levertijden">Levertijden</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#nabestellingen" title="Nabestellingen">Nabestellingen</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#vragen-over-je-bestelling" title="Vragen over je bestelling?">Vragen over je bestelling?</a></li></ul></details></div></div></section></template><template data-page="returns"><section id="brxe-pl-returns" class="brxe-pfh-returns pfh-policy pfh-scope" style="--pfh-pol-max:1140px;--pfh-pol-measure-set:760px;--pfh-pol-aside-set:260px;--pfh-pol-pt-set:56px;--pfh-pol-pb-set:88px;--pfh-pol-title-set:42px;--pfh-pol-head-set:22px;--pfh-pol-text-set:16px;--pfh-pol-ink:#22301c;--pfh-pol-body:#43503f;--pfh-pol-muted:#8d9589;--pfh-pol-accent:#2b5f63;--pfh-pol-band:#f6f8f5;"><div class="pfh-policy__inner"><header class="pfh-policy__head"><p class="pfh-policy__eyebrow">Retourneren</p><h1 class="pfh-policy__title">Retourbeleid <em>Products for Home</em></h1><div class="pfh-policy__lede"><p>Je hebt het recht om je bestelling tot 14 dagen na ontvangst zonder opgave van reden te annuleren. Hieronder lees je hoe dat werkt, welke uitzonderingen er zijn en wat je doet als er iets mis is met je bestelling.</p>
+</div></header><div class="pfh-policy__layout"><div class="pfh-policy__main" data-pfh-contents-body><div class="pfh-policy__sections"><section class="pfh-policy__section" id="herroepingsrecht"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Herroepingsrecht</h2></div><div class="pfh-policy__body"><p>Je hebt het recht om je bestelling tot 14 dagen na ontvangst zonder opgave van reden te annuleren. Let op: producten waarvan de verzegeling is verbroken kunnen niet worden geretourneerd — lees hieronder over de uitzonderingen.</p>
+<p>Na annulering heb je nogmaals 14 dagen de tijd om je product retour te sturen.</p>
+</div><a class="pfh-policy__cta" href="https://productsforhome.tracewise.nl/" target="_blank" rel="noopener noreferrer">Retour starten<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M7 17 17 7m0 0H8m9 0v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></section><section class="pfh-policy__section" id="uitzonderingen-op-het-herroepingsrecht"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Uitzonderingen op het herroepingsrecht</h2></div><div class="pfh-policy__body"><p>Voor bepaalde producten geldt dat deze niet geretourneerd kunnen worden. Dit geldt in het bijzonder voor:</p>
+<ul>
+<li>Voedingsmiddelen en dranken waarvan de verzegeling is verbroken</li>
+<li>Producten die om hygiënische of gezondheidsredenen niet geschikt zijn om te worden teruggezonden en waarvan de verzegeling is verbroken</li>
+</ul>
+<p>Deze producten zijn uitgesloten van het herroepingsrecht conform de geldende wetgeving.</p>
+</div></section><section class="pfh-policy__section" id="retourkosten"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Retourkosten</h2></div><div class="pfh-policy__body"><p>De kosten voor het retourneren van je bestelling zijn voor eigen rekening.</p>
+</div></section><section class="pfh-policy__section" id="voorwaarden-voor-retourneren"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Voorwaarden voor retourneren</h2></div><div class="pfh-policy__body"><p>Wanneer je gebruikmaakt van je herroepingsrecht, vragen wij je het product:</p>
+<ul>
+<li>Compleet te retourneren, inclusief alle geleverde toebehoren</li>
+<li>Indien redelijkerwijs mogelijk in de originele staat</li>
+<li>In de originele verpakking</li>
+</ul>
+<blockquote>
+<p>Ga zorgvuldig om met het product en de verpakking. Indien het product of de verpakking meer beschadigd is dan nodig om het artikel te beoordelen, kunnen wij de waardevermindering in rekening brengen.</p>
+</blockquote>
+</div></section><section class="pfh-policy__section" id="niet-afgehaalde-of-geweigerde-pakketten"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Niet afgehaalde of geweigerde pakketten</h2></div><div class="pfh-policy__body"><p>Indien een bestelling niet wordt afgehaald bij een pakketpunt of wordt geweigerd bij levering, wordt deze automatisch naar ons geretourneerd.</p>
+<p>In dat geval behouden wij ons het recht voor om de gemaakte verzend- en retourkosten in mindering te brengen op het terug te betalen bedrag. Het resterende bedrag wordt na ontvangst van de retourzending aan je terugbetaald.</p>
+</div></section><section class="pfh-policy__section" id="terugbetaling"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Terugbetaling</h2></div><div class="pfh-policy__body"><p>Na ontvangst en controle van de retourzending ontvang je het aankoopbedrag exclusief retourverzendkosten terug. Wij verwerken de terugbetaling binnen 14 dagen na aanmelding van de retour.</p>
+<p>Wij mogen echter wachten met terugbetaling totdat wij het product hebben ontvangen of totdat je hebt aangetoond dat het product is teruggestuurd. De terugbetaling gebeurt via dezelfde betaalmethode als waarmee de bestelling is geplaatst.</p>
+</div></section><section class="pfh-policy__section" id="retourvoorwaarden"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Retourvoorwaarden</h2></div><div class="pfh-policy__body"><ul>
+<li>Retouren dienen binnen 14 dagen na ontvangst te worden aangemeld</li>
+<li>Na aanmelding heb je nogmaals 14 dagen om het product te retourneren</li>
+<li>Retourkosten zijn voor eigen rekening</li>
+<li>Verzendrisico van de retourzending ligt bij de klant</li>
+<li>Retourzendingen worden alleen geaccepteerd indien deze in originele staat zijn</li>
+</ul>
+<p>Beschadigde of gebruikte artikelen kunnen worden geweigerd of er kan waardevermindering worden toegepast. Wij behouden ons het recht voor om retourzendingen te weigeren of kosten in rekening te brengen indien niet aan bovenstaande voorwaarden wordt voldaan.</p>
+</div></section><section class="pfh-policy__section" id="verkeerd-of-incompleet-geleverd"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Verkeerd of incompleet geleverd</h2></div><div class="pfh-policy__body"><p>Klopt je bestelling niet? Neem dan zo snel mogelijk contact met ons op en vermeld daarbij je naam, je bestelnummer en de betreffende artikelen. Wij zorgen voor een passende oplossing.</p>
+</div><ul class="pfh-policy__chips"><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="m4 7.5 7.1 5a1.6 1.6 0 0 0 1.8 0l7.1-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="mailto:klantenservice@productsforhome.nl">klantenservice@productsforhome.nl</a></li></ul></section><section class="pfh-policy__section" id="ruilen"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Ruilen</h2></div><div class="pfh-policy__body"><p>Het is niet mogelijk om artikelen direct te ruilen. Wil je een ander product ontvangen? Plaats dan eenvoudig een nieuwe bestelling en retourneer het ongewenste artikel.</p>
+</div></section><section class="pfh-policy__section" id="defect-ontvangen-product"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Defect ontvangen product</h2></div><div class="pfh-policy__body"><p>Heb je een defect product ontvangen? Neem dan zo snel mogelijk contact met ons op en vermeld:</p>
+<ul>
+<li>Je bestelnummer</li>
+<li>Een omschrijving van het defect</li>
+<li>Duidelijk fotobewijs</li>
+</ul>
+</div><ul class="pfh-policy__chips"><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="m4 7.5 7.1 5a1.6 1.6 0 0 0 1.8 0l7.1-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="mailto:klantenservice@productsforhome.nl">klantenservice@productsforhome.nl</a></li></ul></section><section class="pfh-policy__section" id="voorwaarden-defectmelding"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Voorwaarden defectmelding</h2></div><div class="pfh-policy__body"><p>Wij adviseren om defecten binnen 3 dagen na ontvangst te melden, zodat wij je snel kunnen helpen. De regeling geldt voor:</p>
+<ul>
+<li>Transportschade</li>
+<li>Fabricagefouten</li>
+</ul>
+<p>Schade door eigen gebruik valt hier niet onder.</p>
+</div></section></div></div><details class="pfh-policy__toc" open data-pfh-contents="pfh-policy"><summary>Op deze pagina</summary><p class="pfh-policy__toc-title">Op deze pagina</p><ul class="pfh-policy__toc-list"><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#herroepingsrecht" title="Herroepingsrecht">Herroepingsrecht</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#uitzonderingen-op-het-herroepingsrecht" title="Uitzonderingen op het herroepingsrecht">Uitzonderingen op het herroepingsrecht</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#retourkosten" title="Retourkosten">Retourkosten</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#voorwaarden-voor-retourneren" title="Voorwaarden voor retourneren">Voorwaarden voor retourneren</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#niet-afgehaalde-of-geweigerde-pakketten" title="Niet afgehaalde of geweigerde pakketten">Niet afgehaalde of geweigerde pakketten</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#terugbetaling" title="Terugbetaling">Terugbetaling</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#retourvoorwaarden" title="Retourvoorwaarden">Retourvoorwaarden</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#verkeerd-of-incompleet-geleverd" title="Verkeerd of incompleet geleverd">Verkeerd of incompleet geleverd</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#ruilen" title="Ruilen">Ruilen</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#defect-ontvangen-product" title="Defect ontvangen product">Defect ontvangen product</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#voorwaarden-defectmelding" title="Voorwaarden defectmelding">Voorwaarden defectmelding</a></li></ul></details></div></div></section></template><template data-page="complaints"><section id="brxe-pl-complaints" class="brxe-pfh-complaints pfh-policy pfh-scope" style="--pfh-pol-max:1140px;--pfh-pol-measure-set:760px;--pfh-pol-aside-set:260px;--pfh-pol-pt-set:56px;--pfh-pol-pb-set:88px;--pfh-pol-title-set:42px;--pfh-pol-head-set:22px;--pfh-pol-text-set:16px;--pfh-pol-ink:#22301c;--pfh-pol-body:#43503f;--pfh-pol-muted:#8d9589;--pfh-pol-accent:#2b5f63;--pfh-pol-band:#f6f8f5;"><div class="pfh-policy__inner"><header class="pfh-policy__head"><p class="pfh-policy__eyebrow">Klantenservice</p><h1 class="pfh-policy__title">Een <em>klacht</em> doorgeven</h1><div class="pfh-policy__lede"><p>Het kan altijd voorkomen dat er iets niet helemaal gaat zoals gepland. We raden u aan om klachten eerst bij ons kenbaar te maken door te mailen naar klantenservice@productsforhome.nl.</p>
+</div></header><div class="pfh-policy__layout"><div class="pfh-policy__main" data-pfh-contents-body><div class="pfh-policy__sections"><section class="pfh-policy__section pfh-policy__section--highlight" id="laat-het-ons-eerst-weten"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Laat het ons eerst weten</h2></div><div class="pfh-policy__body"><p>Mail ons met je bestelnummer en een korte omschrijving van wat er niet klopt. Wij kijken het na en komen zo snel mogelijk bij je terug met een oplossing.</p>
+</div><ul class="pfh-policy__chips"><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="m4 7.5 7.1 5a1.6 1.6 0 0 0 1.8 0l7.1-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="mailto:klantenservice@productsforhome.nl">klantenservice@productsforhome.nl</a></li><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M6.5 3.5h3l1.5 3.8-2 1.4a12 12 0 0 0 5.3 5.3l1.4-2 3.8 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="tel:0617392302">0617392302</a></li></ul><a class="pfh-policy__cta" href="mailto:klantenservice@productsforhome.nl">Mail de klantenservice<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M7 17 17 7m0 0H8m9 0v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></section><section class="pfh-policy__section" id="komen-we-er-samen-niet-uit"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Komen we er samen niet uit?</h2></div><div class="pfh-policy__body"><p>Leidt dit niet tot een oplossing, dan is het mogelijk om uw geschil aan te melden voor bemiddeling via WebwinkelKeur. Die bemiddeling is gratis.</p>
+</div><a class="pfh-policy__cta" href="https://www.webwinkelkeur.nl/kennisbank/consumenten/geschil" target="_blank" rel="noopener noreferrer">Geschil aanmelden bij WebwinkelKeur<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M7 17 17 7m0 0H8m9 0v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></section><section class="pfh-policy__section" id="wat-er-daarna-gebeurt"><div class="pfh-policy__section-head"><h2 class="pfh-policy__section-title">Wat er daarna gebeurt</h2></div><div class="pfh-policy__body"><p>Komen we er ook met bemiddeling niet uit, dan kan de klacht worden voorgelegd aan de onafhankelijke geschillencommissie die door WebwinkelKeur is aangesteld. Die uitspraak is bindend voor zowel ons als voor jou. Aan het voorleggen van een geschil aan deze commissie zijn kosten verbonden, die door de consument aan de betreffende commissie betaald dienen te worden.</p>
+<p>Je kunt via <a href="https://www.webwinkelkeur.nl/leden/" target="_blank" rel="noopener noreferrer">www.webwinkelkeur.nl/leden</a> controleren of onze webwinkel een lopend lidmaatschap heeft.</p>
+</div></section></div></div><details class="pfh-policy__toc" open data-pfh-contents="pfh-policy"><summary>Op deze pagina</summary><p class="pfh-policy__toc-title">Op deze pagina</p><ul class="pfh-policy__toc-list"><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#laat-het-ons-eerst-weten" title="Laat het ons eerst weten">Laat het ons eerst weten</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#komen-we-er-samen-niet-uit" title="Komen we er samen niet uit?">Komen we er samen niet uit?</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#wat-er-daarna-gebeurt" title="Wat er daarna gebeurt">Wat er daarna gebeurt</a></li></ul></details></div></div></section></template><template data-page="privacy"><section id="brxe-pl-privacy" class="brxe-pfh-privacy pfh-policy pfh-scope" style="--pfh-pol-max:1140px;--pfh-pol-measure-set:760px;--pfh-pol-aside-set:260px;--pfh-pol-pt-set:56px;--pfh-pol-pb-set:88px;--pfh-pol-title-set:42px;--pfh-pol-head-set:22px;--pfh-pol-text-set:16px;--pfh-pol-ink:#22301c;--pfh-pol-body:#43503f;--pfh-pol-muted:#8d9589;--pfh-pol-accent:#2b5f63;--pfh-pol-band:#f6f8f5;"><div class="pfh-policy__inner"><header class="pfh-policy__head"><p class="pfh-policy__eyebrow">Privacy</p><h1 class="pfh-policy__title">Privacybeleid <em>Products for Home</em></h1><div class="pfh-policy__lede"><p>Products for Home verwerkt persoonsgegevens van iedereen die bij ons bestelt of contact met ons opneemt. In dit privacybeleid lees je welke gegevens dat zijn, waarom wij ze nodig hebben, hoe lang wij ze bewaren en welke rechten je daarbij hebt.</p>
+</div></header><div class="pfh-policy__layout"><div class="pfh-policy__main" data-pfh-contents-body><div class="pfh-policy__sections"><section class="pfh-policy__section" id="wie-verwerkt-je-gegevens"><div class="pfh-policy__section-head"><span class="pfh-policy__no">1</span><h2 class="pfh-policy__section-title">Wie verwerkt je gegevens</h2></div><div class="pfh-policy__body"><p>Products for Home is verantwoordelijk voor de verwerking van je persoonsgegevens zoals beschreven in dit privacybeleid. Je kunt ons bereiken via onderstaande gegevens.</p>
+<ul>
+<li>Products for Home, Nikkelweg 22, 2401 MM Alphen aan den Rijn</li>
+<li>KVK 78571936</li>
+<li>BTW NL003349641B31</li>
+</ul>
+</div><ul class="pfh-policy__chips"><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="m4 7.5 7.1 5a1.6 1.6 0 0 0 1.8 0l7.1-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="mailto:klantenservice@productsforhome.nl">klantenservice@productsforhome.nl</a></li><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M6.5 3.5h3l1.5 3.8-2 1.4a12 12 0 0 0 5.3 5.3l1.4-2 3.8 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="tel:0617392302">0617392302</a></li></ul></section><section class="pfh-policy__section" id="welke-gegevens-wij-verwerken"><div class="pfh-policy__section-head"><span class="pfh-policy__no">2</span><h2 class="pfh-policy__section-title">Welke gegevens wij verwerken</h2></div><div class="pfh-policy__body"><p>Wij verwerken alleen de gegevens die wij nodig hebben om je bestelling uit te voeren en om je te kunnen helpen:</p>
+<ul>
+<li>Naam, adres, woonplaats en land</li>
+<li>E-mailadres en telefoonnummer</li>
+<li>Gegevens over je bestelling, je betaling en je bezorging</li>
+<li>De inhoud van je berichten aan onze klantenservice</li>
+<li>Gegevens van je account, als je er een aanmaakt</li>
+<li>Technische gegevens van je bezoek aan de website, zoals je IP-adres en de pagina’s die je bekijkt</li>
+</ul>
+<blockquote>
+<p>Je betaalgegevens komen nooit bij ons binnen. Die gaan rechtstreeks naar de betaaldienst waarmee je betaalt.</p>
+</blockquote>
+</div></section><section class="pfh-policy__section" id="waarvoor-wij-je-gegevens-gebruiken"><div class="pfh-policy__section-head"><span class="pfh-policy__no">3</span><h2 class="pfh-policy__section-title">Waarvoor wij je gegevens gebruiken</h2></div><div class="pfh-policy__body"><p>Wij gebruiken je gegevens voor de volgende doelen:</p>
+<ul>
+<li>Het uitvoeren, bezorgen en factureren van je bestelling</li>
+<li>Het afhandelen van je betaling</li>
+<li>Het beantwoorden van je vragen en het afhandelen van retouren en klachten</li>
+<li>Het versturen van een uitnodiging om een beoordeling achter te laten over de producten die je hebt gekocht</li>
+<li>Het versturen van onze nieuwsbrief, als je daar toestemming voor hebt gegeven</li>
+<li>Het voldoen aan onze wettelijke verplichtingen, zoals de fiscale bewaarplicht</li>
+<li>Het verbeteren en beveiligen van onze webshop</li>
+</ul>
+</div></section><section class="pfh-policy__section" id="op-welke-grond-wij-dat-doen"><div class="pfh-policy__section-head"><span class="pfh-policy__no">4</span><h2 class="pfh-policy__section-title">Op welke grond wij dat doen</h2></div><div class="pfh-policy__body"><p>De AVG vraagt ons te benoemen waarop een verwerking berust. Voor ons zijn dat er vier:</p>
+<ul>
+<li><strong>De overeenkomst</strong> — zonder je naam en adres kunnen wij je bestelling niet bezorgen.</li>
+<li><strong>Een wettelijke plicht</strong> — onze administratie moeten wij bewaren.</li>
+<li><strong>Een gerechtvaardigd belang</strong> — bijvoorbeeld het tegengaan van misbruik van de webshop.</li>
+<li><strong>Je toestemming</strong> — voor de nieuwsbrief en voor cookies die niet noodzakelijk zijn. Die toestemming kun je altijd weer intrekken.</li>
+</ul>
+</div></section><section class="pfh-policy__section" id="met-wie-wij-je-gegevens-delen"><div class="pfh-policy__section-head"><span class="pfh-policy__no">5</span><h2 class="pfh-policy__section-title">Met wie wij je gegevens delen</h2></div><div class="pfh-policy__body"><p>Wij verkopen je gegevens niet. Wij delen ze alleen met partijen die nodig zijn om je bestelling uit te voeren, en niet meer dan daarvoor nodig is:</p>
+<ul>
+<li>De bezorgdienst die je pakket bij je bezorgt</li>
+<li>De betaaldienst waarmee je betaalt</li>
+<li>Het platform waarmee wij je uitnodigen een beoordeling achter te laten</li>
+<li>Het portaal waarmee je een retour aanmeldt</li>
+<li>Onze hosting- en e-mailpartij, en onze boekhouding</li>
+</ul>
+<p>Met partijen die namens ons gegevens verwerken sluiten wij een verwerkersovereenkomst. Als de wet ons daartoe verplicht, kunnen wij gegevens ook aan een overheidsinstantie moeten verstrekken.</p>
+</div></section><section class="pfh-policy__section" id="hoe-lang-wij-je-gegevens-bewaren"><div class="pfh-policy__section-head"><span class="pfh-policy__no">6</span><h2 class="pfh-policy__section-title">Hoe lang wij je gegevens bewaren</h2></div><div class="pfh-policy__body"><p>Wij bewaren je gegevens niet langer dan nodig is voor het doel waarvoor wij ze hebben gekregen.</p>
+<ul>
+<li>Gegevens die bij onze administratie horen, zoals facturen: zeven jaar, omdat de Belastingdienst dat van ons vraagt.</li>
+<li>De gegevens van je account: zolang je het account houdt.</li>
+<li>Berichten aan de klantenservice: tot je vraag is afgehandeld en de bijbehorende garantie- en retourtermijn voorbij is.</li>
+<li>Je inschrijving op de nieuwsbrief: tot je je afmeldt.</li>
+</ul>
+</div></section><section class="pfh-policy__section" id="cookies"><div class="pfh-policy__section-head"><span class="pfh-policy__no">7</span><h2 class="pfh-policy__section-title">Cookies</h2></div><div class="pfh-policy__body"><p>Onze webshop gebruikt cookies. Noodzakelijke cookies zorgen ervoor dat de webshop werkt — je winkelmandje onthouden, bijvoorbeeld — en die kunnen niet worden uitgezet. Voor cookies die je bezoek meten of die voor marketing worden gebruikt vragen wij eerst je toestemming. Die keuze kun je altijd weer aanpassen.</p>
+<p>Je kunt cookies ook zelf verwijderen of blokkeren via de instellingen van je browser. Sommige onderdelen van de webshop werken dan mogelijk niet meer goed.</p>
+</div></section><section class="pfh-policy__section" id="hoe-wij-je-gegevens-beveiligen"><div class="pfh-policy__section-head"><span class="pfh-policy__no">8</span><h2 class="pfh-policy__section-title">Hoe wij je gegevens beveiligen</h2></div><div class="pfh-policy__body"><p>Wij nemen passende technische en organisatorische maatregelen om je gegevens te beschermen tegen verlies en tegen ongeoorloofde toegang. Onze webshop verstuurt gegevens over een beveiligde verbinding, en alleen medewerkers die dat voor hun werk nodig hebben kunnen bij je gegevens.</p>
+<p>Heb je het idee dat je gegevens toch niet goed beveiligd zijn, of zijn er aanwijzingen van misbruik? Neem dan contact op met onze klantenservice.</p>
+</div></section><section class="pfh-policy__section" id="je-rechten"><div class="pfh-policy__section-head"><span class="pfh-policy__no">9</span><h2 class="pfh-policy__section-title">Je rechten</h2></div><div class="pfh-policy__body"><p>Je hebt het recht om:</p>
+<ul>
+<li>Je gegevens in te zien</li>
+<li>Je gegevens te laten corrigeren of aanvullen</li>
+<li>Je gegevens te laten verwijderen</li>
+<li>De verwerking te laten beperken</li>
+<li>Bezwaar te maken tegen de verwerking</li>
+<li>Je gegevens in een gangbaar bestand mee te krijgen</li>
+<li>Een gegeven toestemming weer in te trekken</li>
+</ul>
+<p>Stuur je verzoek naar onze klantenservice. Wij reageren binnen vier weken. Om er zeker van te zijn dat het verzoek van jou komt, kunnen wij je vragen je te legitimeren.</p>
+</div><ul class="pfh-policy__chips"><li class="pfh-policy__chip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="m4 7.5 7.1 5a1.6 1.6 0 0 0 1.8 0l7.1-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><a href="mailto:klantenservice@productsforhome.nl">klantenservice@productsforhome.nl</a></li></ul></section><section class="pfh-policy__section pfh-policy__section--highlight" id="een-klacht-over-privacy"><div class="pfh-policy__section-head"><span class="pfh-policy__no">10</span><h2 class="pfh-policy__section-title">Een klacht over privacy</h2></div><div class="pfh-policy__body"><p>Ben je het niet eens met hoe wij met je gegevens omgaan, laat het ons dan eerst weten — dan lossen wij het graag samen op. Je hebt daarnaast altijd het recht een klacht in te dienen bij de Autoriteit Persoonsgegevens.</p>
+</div><a class="pfh-policy__cta" href="https://autoriteitpersoonsgegevens.nl/" target="_blank" rel="noopener noreferrer">Naar de Autoriteit Persoonsgegevens<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M7 17 17 7m0 0H8m9 0v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></section></div></div><details class="pfh-policy__toc" open data-pfh-contents="pfh-policy"><summary>Op deze pagina</summary><p class="pfh-policy__toc-title">Op deze pagina</p><ul class="pfh-policy__toc-list"><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#wie-verwerkt-je-gegevens" title="Wie verwerkt je gegevens"><span class="pfh-policy__toc-no">1.</span>Wie verwerkt je gegevens</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#welke-gegevens-wij-verwerken" title="Welke gegevens wij verwerken"><span class="pfh-policy__toc-no">2.</span>Welke gegevens wij verwerken</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#waarvoor-wij-je-gegevens-gebruiken" title="Waarvoor wij je gegevens gebruiken"><span class="pfh-policy__toc-no">3.</span>Waarvoor wij je gegevens gebruiken</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#op-welke-grond-wij-dat-doen" title="Op welke grond wij dat doen"><span class="pfh-policy__toc-no">4.</span>Op welke grond wij dat doen</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#met-wie-wij-je-gegevens-delen" title="Met wie wij je gegevens delen"><span class="pfh-policy__toc-no">5.</span>Met wie wij je gegevens delen</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#hoe-lang-wij-je-gegevens-bewaren" title="Hoe lang wij je gegevens bewaren"><span class="pfh-policy__toc-no">6.</span>Hoe lang wij je gegevens bewaren</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#cookies" title="Cookies"><span class="pfh-policy__toc-no">7.</span>Cookies</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#hoe-wij-je-gegevens-beveiligen" title="Hoe wij je gegevens beveiligen"><span class="pfh-policy__toc-no">8.</span>Hoe wij je gegevens beveiligen</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#je-rechten" title="Je rechten"><span class="pfh-policy__toc-no">9.</span>Je rechten</a></li><li class="pfh-policy__toc-item"><a class="pfh-policy__toc-link" href="#een-klacht-over-privacy" title="Een klacht over privacy"><span class="pfh-policy__toc-no">10.</span>Een klacht over privacy</a></li></ul></details></div></div></section></template><script>/**
+ * A contents panel that knows which section is being read.
+ *
+ * Written once and driven by data attributes, because more than one long page
+ * needs it: a panel marks `data-pfh-contents` with the block's own BEM prefix,
+ * the piece being read marks `data-pfh-contents-body`, and the links inside
+ * the panel point at ids in it. Everything the panel does, the page already
+ * does without it — the links are real links to real headings — so nothing
+ * here is load-bearing.
+ */
+( function () {
+	'use strict';
+
+	function qsa( selector, scope ) {
+		return Array.prototype.slice.call( ( scope || document ).querySelectorAll( selector ) );
+	}
+
+	function reduced() {
+		return !! ( window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches );
+	}
+
+	function wire( toc ) {
+		var prefix = toc.getAttribute( 'data-pfh-contents' );
+		var root = toc.closest( '.' + prefix );
+		var body = root ? root.querySelector( '[data-pfh-contents-body]' ) : null;
+
+		if ( ! prefix || ! body ) {
+			return;
+		}
+
+		var pairs = qsa( '.' + prefix + '__toc-link', toc )
+			.map( function ( link ) {
+				var id = decodeURIComponent( ( link.getAttribute( 'href' ) || '' ).replace( /^#/, '' ) );
+
+				return { link: link, target: id ? document.getElementById( id ) : null };
+			} )
+			.filter( function ( pair ) {
+				return !! pair.target;
+			} );
+
+		if ( ! pairs.length ) {
+			return;
+		}
+
+		// Smooth, unless that was asked not to be.
+		if ( ! reduced() ) {
+			pairs.forEach( function ( pair ) {
+				pair.link.addEventListener( 'click', function ( event ) {
+					event.preventDefault();
+					pair.target.scrollIntoView( { behavior: 'smooth', block: 'start' } );
+
+					// The address bar should still say where the reader is.
+					if ( window.history && history.replaceState ) {
+						try {
+							history.replaceState( null, '', pair.link.getAttribute( 'href' ) );
+						} catch ( e ) {} // eslint-disable-line no-empty
+					}
+
+					pair.target.setAttribute( 'tabindex', '-1' );
+					pair.target.focus( { preventScroll: true } );
+				} );
+			} );
+		}
+
+		var ticking = false;
+
+		function mark() {
+			ticking = false;
+
+			var here = pairs[0];
+
+			pairs.forEach( function ( pair ) {
+				// The last section whose top has passed the reading line.
+				if ( pair.target.getBoundingClientRect().top <= 120 ) {
+					here = pair;
+				}
+			} );
+
+			/*
+			 * The last section is often short and has a good deal of page
+			 * under it, so its top never reaches the reading line and the
+			 * panel would never mark it. Once the end is on screen, it is
+			 * the section being read whatever the arithmetic says.
+			 */
+			if ( body.getBoundingClientRect().bottom <= window.innerHeight ) {
+				here = pairs[ pairs.length - 1 ];
+			}
+
+			pairs.forEach( function ( pair ) {
+				pair.link.classList.toggle( 'is-here', pair === here );
+			} );
+		}
+
+		function onScroll() {
+			if ( ticking ) {
+				return;
+			}
+
+			ticking = true;
+			window.requestAnimationFrame( mark );
+		}
+
+		window.addEventListener( 'scroll', onScroll, { passive: true } );
+		mark();
+
+		/*
+		 * On a phone the panel is a <details> the reader opens; on a desktop
+		 * it is always open. Folding it shut below the breakpoint keeps the
+		 * document itself at the top of a small screen.
+		 */
+		if ( 'DETAILS' === toc.tagName ) {
+			var small = window.matchMedia( '(max-width: 900px)' );
+
+			var fit = function () {
+				toc.open = ! small.matches;
+			};
+
+			if ( small.addEventListener ) {
+				small.addEventListener( 'change', fit );
+			}
+
+			fit();
+		}
+	}
+
+	function boot() {
+		qsa( '[data-pfh-contents]' ).forEach( function ( toc ) {
+			if ( toc.hasAttribute( 'data-pfh-contents-ready' ) ) {
+				return;
+			}
+
+			toc.setAttribute( 'data-pfh-contents-ready', '' );
+			wire( toc );
+		} );
+	}
+
+	if ( 'loading' === document.readyState ) {
+		document.addEventListener( 'DOMContentLoaded', boot );
+	} else {
+		boot();
+	}
+
+	document.addEventListener( 'bricks/ajax/end', boot );
+} )();
+</script><script>(function(){var stage=document.getElementById("pv-stage");var buttons=[].slice.call(document.querySelectorAll(".pv-bar button"));function show(key){var tpl=document.querySelector('template[data-page="'+key+'"]');if(!tpl){return;}stage.innerHTML="";stage.appendChild(tpl.content.cloneNode(true));buttons.forEach(function(b){b.setAttribute("aria-current",String(b.dataset.page===key));});window.scrollTo(0,0);document.dispatchEvent(new Event("bricks/ajax/end"));if(history.replaceState){history.replaceState(null,"","#"+key);}}buttons.forEach(function(b){b.addEventListener("click",function(){show(b.dataset.page);});});show((location.hash||"").replace("#","")||"terms");})();</script></body></html>

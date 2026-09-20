@@ -1,0 +1,567 @@
+/**
+ * The policy and information pages: terms, shipping, returns, complaints,
+ * privacy — and anything else that is a document rather than a shop page.
+ *
+ * A legal document is read in two ways. Someone looking for one thing scans
+ * for it, so the sections are numbered, the contents panel is always within
+ * reach and every heading is a link. Someone reading it through wants a
+ * measure that does not tire them, so the column is narrow and the clause
+ * numbers sit out in the margin the way they do on paper — that gutter is
+ * the whole design, and everything else stays quiet behind it.
+ */
+
+.pfh-policy {
+	--pfh-pol-max: 1140px;
+	--pfh-pol-measure: var(--pfh-pol-measure-set, 760px);
+	--pfh-pol-aside: var(--pfh-pol-aside-set, 260px);
+	--pfh-pol-pt: var(--pfh-pol-pt-set, 56px);
+	--pfh-pol-pb: var(--pfh-pol-pb-set, 88px);
+	--pfh-pol-gutter-no: 46px;
+	--pfh-pol-radius: 16px;
+
+	--pfh-pol-ink: #22301c;
+	--pfh-pol-body: #43503f;
+	--pfh-pol-muted: #8d9589;
+	--pfh-pol-accent: #2b5f63;
+	--pfh-pol-line: #eaeaea;
+	--pfh-pol-band: #f6f8f5;
+	--pfh-pol-tint: #dfe9dc;
+	--pfh-pol-tint-ink: #46603f;
+
+	--pfh-pol-title: var(--pfh-pol-title-set, 42px);
+	--pfh-pol-head: var(--pfh-pol-head-set, 22px);
+	--pfh-pol-text: var(--pfh-pol-text-set, 16px);
+
+	display: block;
+	padding-block: var(--pfh-pol-pt) var(--pfh-pol-pb);
+	font-family: var(--pfh-font);
+	color: var(--pfh-pol-body);
+	font-size: 15px;
+	line-height: 1.7;
+}
+
+.pfh-policy[hidden],
+.pfh-policy [hidden] { display: none !important; }
+
+.pfh-policy__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-pol-max) + (var(--pfh-gutter) * 2));
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* The one serif note, as everywhere else in the shop. */
+.pfh-policy em,
+.pfh-policy i {
+	font-family: var(--pfh-pol-serif, "Playfair Display", Georgia, serif);
+	font-style: italic;
+	font-weight: 400;
+}
+
+/*
+ * A link takes the colour of whatever it sits in. Note the specificity: this
+ * is a class and a type, which outranks a lone class — so every rule below
+ * that colours a link carries .pfh-policy in front of it, or it loses to this
+ * one and the link comes out the colour of its own background.
+ */
+.pfh-policy a { color: inherit; text-decoration: none; }
+
+.pfh-policy a:focus-visible {
+	outline: 2px solid var(--pfh-pol-accent);
+	outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ *
+ * The opening
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__head {
+	max-width: 780px;
+	margin-bottom: 48px;
+}
+
+.pfh-policy__eyebrow {
+	margin: 0 0 14px;
+	color: var(--pfh-pol-muted);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: .18em;
+	text-transform: uppercase;
+}
+
+.pfh-policy .pfh-policy__title {
+	margin: 0;
+	color: var(--pfh-pol-ink);
+	font-size: var(--pfh-pol-title);
+	font-weight: 600;
+	line-height: 1.12;
+	letter-spacing: -.015em;
+	text-wrap: balance;
+}
+
+.pfh-policy__lede {
+	margin-top: 20px;
+	font-size: 17px;
+	line-height: 1.75;
+}
+
+.pfh-policy__lede p { margin: 0 0 14px; }
+.pfh-policy__lede p:last-child { margin-bottom: 0; }
+
+.pfh-policy__updated {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 24px;
+	padding: 7px 14px 7px 12px;
+	border-radius: 999px;
+	background: var(--pfh-pol-band);
+	color: var(--pfh-pol-muted);
+	font-size: 13px;
+	line-height: 1;
+}
+
+.pfh-policy__updated svg { width: 14px; height: 14px; }
+
+/* ------------------------------------------------------------------ *
+ * The page
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) var(--pfh-pol-aside);
+	align-items: start;
+	gap: 56px;
+}
+
+.pfh-policy__layout--wide { grid-template-columns: minmax(0, 1fr); }
+
+.pfh-policy__main {
+	min-width: 0;
+	max-width: var(--pfh-pol-measure);
+}
+
+/* ------------------------------------------------------------------ *
+ * The contents
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__toc {
+	position: sticky;
+	top: 24px;
+	padding: 24px;
+	border: 1px solid var(--pfh-pol-line);
+	border-radius: 14px;
+	background: #fff;
+}
+
+/*
+ * A <details> always draws its summary, and on a desktop the panel is open
+ * and cannot be folded — so the summary sat there as a second copy of the
+ * heading, marker and all. Below the breakpoint it is the thing you tap.
+ */
+.pfh-policy__toc > summary { display: none; }
+
+.pfh-policy .pfh-policy__toc-title {
+	margin: 0 0 14px;
+	color: var(--pfh-pol-ink);
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+}
+
+.pfh-policy__toc-list {
+	display: grid;
+	gap: 2px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-policy .pfh-policy__toc-link {
+	/*
+	 * Two lines at most. The label is already cut to length when the page is
+	 * built; this is what catches a heading that is short in characters and
+	 * wide in letters.
+	 */
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	padding: 7px 0 7px 14px;
+	border-left: 2px solid var(--pfh-pol-line);
+	color: var(--pfh-pol-body);
+	font-size: 14px;
+	line-height: 1.45;
+	transition: border-color var(--pfh-speed, .28s) var(--pfh-ease, ease), color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-policy__toc-link:hover { color: var(--pfh-pol-accent); }
+
+.pfh-policy__toc-link.is-here {
+	border-left-color: var(--pfh-pol-accent);
+	color: var(--pfh-pol-accent);
+	font-weight: 500;
+}
+
+.pfh-policy__toc-no {
+	margin-right: 7px;
+	color: var(--pfh-pol-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.pfh-policy__toc-link.is-here .pfh-policy__toc-no { color: inherit; }
+
+/* ------------------------------------------------------------------ *
+ * A section
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__sections {
+	display: grid;
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-policy__section {
+	padding-block: 36px;
+	border-top: 1px solid var(--pfh-pol-line);
+	scroll-margin-top: 24px;
+}
+
+.pfh-policy__section:first-child { padding-top: 0; border-top: 0; }
+
+/* A section given its own ground: the customer-service block at the foot of
+   a set of terms, or the whole of a page that is one short answer. */
+.pfh-policy__section--highlight {
+	margin-top: 36px;
+	padding: 32px;
+	border-top: 0;
+	border-radius: var(--pfh-pol-radius);
+	background: var(--pfh-pol-band);
+}
+
+.pfh-policy__section--highlight + .pfh-policy__section--highlight { margin-top: 20px; }
+.pfh-policy__section--highlight:first-child { margin-top: 0; }
+
+.pfh-policy__section-head {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	margin-bottom: 18px;
+}
+
+.pfh-policy__no {
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 30px;
+	height: 30px;
+	padding-inline: 8px;
+	border-radius: 9px;
+	background: var(--pfh-pol-tint);
+	color: var(--pfh-pol-tint-ink);
+	font-size: 13px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+}
+
+.pfh-policy .pfh-policy__section-title {
+	margin: 0;
+	padding-top: 2px;
+	color: var(--pfh-pol-ink);
+	font-size: var(--pfh-pol-head);
+	font-weight: 600;
+	line-height: 1.25;
+	letter-spacing: -.01em;
+	text-wrap: balance;
+}
+
+/* ------------------------------------------------------------------ *
+ * What the client types
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__body {
+	font-size: var(--pfh-pol-text);
+	line-height: 1.75;
+}
+
+.pfh-policy__body > *:first-child { margin-top: 0; }
+.pfh-policy__body > *:last-child { margin-bottom: 0; }
+
+.pfh-policy__body p { margin: 0 0 14px; }
+
+.pfh-policy__body h3,
+.pfh-policy__body h4 {
+	margin: 28px 0 10px;
+	color: var(--pfh-pol-ink);
+	font-size: 16.5px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.pfh-policy__body strong { color: var(--pfh-pol-ink); font-weight: 600; }
+
+.pfh-policy .pfh-policy__body a {
+	color: var(--pfh-pol-accent);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+	text-decoration-color: rgba(43, 95, 99, .35);
+	transition: text-decoration-color var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-policy__body a:hover { text-decoration-color: currentColor; }
+
+/* Lists get the shop's own marker rather than a browser bullet. */
+.pfh-policy__body ul {
+	margin: 0 0 16px;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-policy__body ul li {
+	position: relative;
+	margin-bottom: 8px;
+	padding-left: 24px;
+}
+
+.pfh-policy__body ul li::before {
+	content: "";
+	position: absolute;
+	top: .62em;
+	left: 4px;
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--pfh-pol-tint);
+	box-shadow: inset 0 0 0 1.5px var(--pfh-pol-accent);
+}
+
+.pfh-policy__body ol {
+	margin: 0 0 16px;
+	padding: 0;
+	list-style: none;
+	counter-reset: pfh-pol-step;
+}
+
+.pfh-policy__body ol li {
+	position: relative;
+	margin-bottom: 10px;
+	padding-left: 34px;
+	counter-increment: pfh-pol-step;
+}
+
+.pfh-policy__body ol li::before {
+	content: counter(pfh-pol-step);
+	position: absolute;
+	top: .12em;
+	left: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: var(--pfh-pol-tint);
+	color: var(--pfh-pol-tint-ink);
+	font-size: 12px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+}
+
+.pfh-policy__body li > ul,
+.pfh-policy__body li > ol { margin-top: 8px; }
+
+/* A quote in the editor is how the client makes a "let op" box. */
+.pfh-policy__body blockquote {
+	margin: 20px 0;
+	padding: 16px 20px;
+	border-left: 3px solid var(--pfh-pol-accent);
+	border-radius: 0 12px 12px 0;
+	background: var(--pfh-pol-band);
+	color: var(--pfh-pol-ink);
+	font-size: 15.5px;
+}
+
+.pfh-policy__body blockquote p:last-child { margin-bottom: 0; }
+
+/* A table wide enough to push a phone sideways scrolls on its own instead. */
+.pfh-policy__scroller {
+	margin: 0 0 18px;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+.pfh-policy__body table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 15px;
+}
+
+.pfh-policy__body th,
+.pfh-policy__body td {
+	padding: 10px 14px;
+	border-bottom: 1px solid var(--pfh-pol-line);
+	text-align: left;
+	vertical-align: top;
+}
+
+.pfh-policy__body th { color: var(--pfh-pol-ink); font-weight: 600; }
+
+/* ---------- the clause number in the margin ---------- */
+
+/*
+ * "1.1", "6.6" — a set of terms numbers its clauses, and on paper those
+ * numbers hang in the margin rather than running into the sentence. Pulling
+ * them out is what makes a wall of clauses something you can find your way
+ * around; the sentences then all start on the same line.
+ */
+.pfh-policy__body .pfh-policy__clause {
+	display: grid;
+	grid-template-columns: var(--pfh-pol-gutter-no) minmax(0, 1fr);
+	margin-bottom: 12px;
+}
+
+.pfh-policy__clause-text { min-width: 0; }
+
+.pfh-policy__clause-no {
+	color: var(--pfh-pol-accent);
+	font-size: 13.5px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	line-height: inherit;
+	padding-top: .16em;
+}
+
+/* ------------------------------------------------------------------ *
+ * The extras a section can carry
+ * ------------------------------------------------------------------ */
+
+.pfh-policy__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 4px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-policy .pfh-policy__chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 16px;
+	border: 1px solid var(--pfh-pol-line);
+	border-radius: 999px;
+	background: #fff;
+	color: var(--pfh-pol-ink);
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1;
+}
+
+.pfh-policy__chip svg { width: 14px; height: 14px; color: var(--pfh-pol-accent); }
+
+.pfh-policy .pfh-policy__cta {
+	display: inline-flex;
+	align-items: center;
+	gap: 9px;
+	margin-top: 18px;
+	padding: 13px 22px;
+	border-radius: 999px;
+	background: var(--pfh-pol-accent);
+	color: #fff;
+	font-size: 14.5px;
+	font-weight: 500;
+	line-height: 1;
+	transition: background-color var(--pfh-speed, .28s) var(--pfh-ease, ease), transform var(--pfh-speed, .28s) var(--pfh-ease, ease);
+}
+
+.pfh-policy__cta:hover { background: var(--pfh-pol-ink); }
+.pfh-policy__cta svg { width: 13px; height: 13px; transition: transform var(--pfh-speed, .28s) var(--pfh-ease, ease); }
+.pfh-policy__cta:hover svg { transform: translate(2px, -2px); }
+
+/* ---------- builder placeholder ---------- */
+
+.pfh-policy--empty {
+	padding: 40px;
+	border: 1px dashed rgba(20, 24, 27, .16);
+	border-radius: 12px;
+	color: #6b6b6b;
+	text-align: center;
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 1100px) {
+	.pfh-policy { --pfh-pol-aside: 220px; }
+	.pfh-policy__layout { gap: 40px; }
+}
+
+@media (max-width: 900px) {
+	.pfh-policy {
+		--pfh-pol-title: 32px;
+		--pfh-pol-head: 20px;
+		--pfh-pol-text: 15.5px;
+		--pfh-pol-pb: 64px;
+	}
+
+	/* One column, and the contents become something to open rather than a
+	   panel taking a third of a phone. */
+	.pfh-policy__layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+	.pfh-policy__main { max-width: none; }
+	.pfh-policy__head { margin-bottom: 32px; }
+
+	.pfh-policy__toc {
+		position: static;
+		order: -1;
+		margin-bottom: 32px;
+		padding: 0;
+		border-radius: 12px;
+	}
+
+	.pfh-policy__toc > summary {
+		display: block;
+		padding: 16px 18px;
+		color: var(--pfh-pol-ink);
+		font-size: 14px;
+		font-weight: 600;
+		list-style: none;
+		cursor: pointer;
+	}
+
+	.pfh-policy__toc > summary::-webkit-details-marker { display: none; }
+	.pfh-policy__toc > summary::after { content: "+"; float: right; font-weight: 400; }
+	.pfh-policy__toc[open] > summary::after { content: "\2013"; }
+	.pfh-policy__toc .pfh-policy__toc-title { display: none; }
+	.pfh-policy__toc-list { padding: 0 18px 18px; }
+}
+
+@media (max-width: 620px) {
+	.pfh-policy {
+		--pfh-pol-title: 27px;
+		--pfh-pol-gutter-no: 36px;
+	}
+
+	.pfh-policy__section { padding-block: 28px; }
+	.pfh-policy__section--highlight { padding: 24px 20px; }
+	.pfh-policy__section-head { gap: 11px; margin-bottom: 14px; }
+	.pfh-policy__no { min-width: 26px; height: 26px; border-radius: 8px; font-size: 12px; }
+	.pfh-policy__lede { font-size: 16px; }
+	.pfh-policy__cta { width: 100%; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-policy__cta,
+	.pfh-policy__cta svg,
+	.pfh-policy__toc-link { transition: none; }
+}

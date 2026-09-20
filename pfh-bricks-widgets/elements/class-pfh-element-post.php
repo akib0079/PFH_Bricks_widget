@@ -373,44 +373,11 @@ class PFH_Element_Post extends \Bricks\Element {
 				(int) $item['level'],
 				esc_attr( $item['id'] ),
 				esc_attr( $item['text'] ),
-				esc_html( self::shorten( $item['text'] ) )
+				esc_html( PFH_Widgets_Helpers::shorten( $item['text'] ) )
 			);
 		}
 
 		echo '</ul></details>';
-	}
-
-	/**
-	 * A heading, cut to something the eye can take in at a glance.
-	 *
-	 * The panel is a narrow column beside the article, and headings are
-	 * sentences: one of them filled four lines of it. The stylesheet clamps
-	 * the height as well, but a clamp is only a clamp in a browser that
-	 * honours it — one that does not cuts the third line in half rather than
-	 * leaving it out. So the text itself is cut, at a word, and the whole
-	 * heading stays in the link's title for anyone who wants it.
-	 *
-	 * @param string $text  Heading.
-	 * @param int    $limit How many characters fit on the two lines.
-	 * @return string
-	 */
-	private static function shorten( $text, $limit = 58 ) {
-		$text = trim( (string) $text );
-		$mb   = function_exists( 'mb_substr' ) && function_exists( 'mb_strlen' );
-
-		if ( ( $mb ? mb_strlen( $text ) : strlen( $text ) ) <= $limit ) {
-			return $text;
-		}
-
-		$cut   = $mb ? mb_substr( $text, 0, $limit ) : substr( $text, 0, $limit );
-		$space = $mb && function_exists( 'mb_strrpos' ) ? mb_strrpos( $cut, ' ' ) : strrpos( $cut, ' ' );
-
-		// Back to the last whole word — unless that would leave almost nothing.
-		if ( $space && $space > $limit * 0.55 ) {
-			$cut = $mb ? mb_substr( $cut, 0, $space ) : substr( $cut, 0, $space );
-		}
-
-		return rtrim( $cut, " \t\n\r\0\x0B,.;:-" ) . '…';
 	}
 
 	/**

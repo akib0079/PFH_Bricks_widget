@@ -126,6 +126,33 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-blog.php',
 				'class' => 'PFH_Element_Blog',
 			],
+			'pfh-policy' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-policy.php',
+				'class' => 'PFH_Element_Policy',
+			],
+			// The five below are that element with the shop's own words in
+			// them; each file requires the parent, so load order is its own
+			// problem and not this list's.
+			'pfh-terms' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-terms.php',
+				'class' => 'PFH_Element_Terms',
+			],
+			'pfh-shipping' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-shipping.php',
+				'class' => 'PFH_Element_Shipping',
+			],
+			'pfh-returns' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-returns.php',
+				'class' => 'PFH_Element_Returns',
+			],
+			'pfh-complaints' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-complaints.php',
+				'class' => 'PFH_Element_Complaints',
+			],
+			'pfh-privacy' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-privacy.php',
+				'class' => 'PFH_Element_Privacy',
+			],
 			'pfh-about' => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-about.php',
 				'class' => 'PFH_Element_About',

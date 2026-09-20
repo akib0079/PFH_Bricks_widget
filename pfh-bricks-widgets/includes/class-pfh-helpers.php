@@ -600,4 +600,58 @@ class PFH_Widgets_Helpers {
 	public static function has_woocommerce() {
 		return class_exists( 'WooCommerce' ) && function_exists( 'WC' );
 	}
+
+	/**
+	 * A heading, cut to something the eye can take in at a glance.
+	 *
+	 * Used by every contents panel in the plugin. Headings are sentences and
+	 * the panel is a narrow column beside the page: one of them filled four
+	 * lines of it. The label is cut at a word; whoever calls this keeps the
+	 * whole heading in the link's title, so nothing is lost.
+	 *
+	 * @param string $text  Heading.
+	 * @param int    $limit How many characters fit on the panel's two lines.
+	 * @return string
+	 */
+	public static function shorten( $text, $limit = 58 ) {
+		$text = trim( (string) $text );
+		$mb   = function_exists( 'mb_substr' ) && function_exists( 'mb_strlen' );
+
+		if ( ( $mb ? mb_strlen( $text ) : strlen( $text ) ) <= $limit ) {
+			return $text;
+		}
+
+		$cut   = $mb ? mb_substr( $text, 0, $limit ) : substr( $text, 0, $limit );
+		$space = $mb && function_exists( 'mb_strrpos' ) ? mb_strrpos( $cut, ' ' ) : strrpos( $cut, ' ' );
+
+		// Back to the last whole word — unless that would leave almost nothing.
+		if ( $space && $space > $limit * 0.55 ) {
+			$cut = $mb ? mb_substr( $cut, 0, $space ) : substr( $cut, 0, $space );
+		}
+
+		return rtrim( $cut, " \t\n\r\0\x0B,.;:-" ) . '…';
+	}
+
+	/**
+	 * A phone number a dialler can actually use.
+	 *
+	 * "+31 (0)6 17 39 23 02" is how the number is written and
+	 * "+31617392302" is how it is dialled: the trunk zero in brackets is
+	 * there for someone calling from inside the country and makes the
+	 * international form undiallable. It only comes out of a number that
+	 * starts with a +, because in "06 17 39 23 02" the zero is the number.
+	 *
+	 * @param string $phone As written.
+	 * @return string
+	 */
+	public static function diallable( $phone ) {
+		$phone = trim( (string) $phone );
+
+		if ( 0 === strpos( $phone, '+' ) ) {
+			$phone = preg_replace( '/\(\s*0\s*\)/', '', $phone );
+		}
+
+		// Everything else a dialler cannot use, keeping a leading +.
+		return preg_replace( '/(?!^\+)[^0-9]/', '', $phone );
+	}
 }

@@ -18,6 +18,7 @@ require $dir . 'includes/trait-pfh-element-defaults.php';
 require $dir . 'includes/trait-pfh-design-revision.php';
 require $dir . 'includes/trait-pfh-product-card.php';
 require $dir . 'includes/trait-pfh-product-price.php';
+require $dir . 'includes/class-pfh-policy.php';
 require $dir . 'elements/class-pfh-element-header.php';
 require $dir . 'elements/class-pfh-element-footer.php';
 require $dir . 'elements/class-pfh-element-hero.php';

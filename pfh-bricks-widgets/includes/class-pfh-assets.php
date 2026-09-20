@@ -216,6 +216,21 @@ class PFH_Widgets_Assets {
 		wp_localize_script( 'pfh-blog', 'pfhWidgets', self::endpoint() );
 
 		wp_register_style(
+			'pfh-policy',
+			PFH_WIDGETS_URL . 'assets/css/pfh-policy.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_script(
+			'pfh-contents',
+			PFH_WIDGETS_URL . 'assets/js/pfh-contents.js',
+			[],
+			PFH_WIDGETS_VERSION,
+			true
+		);
+
+		wp_register_style(
 			'pfh-about',
 			PFH_WIDGETS_URL . 'assets/css/pfh-about.css',
 			[ 'pfh-base' ],
@@ -665,6 +680,15 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-blog' );
 		wp_enqueue_script( 'pfh-blog' );
+	}
+
+	/**
+	 * Enqueue everything a policy or information page needs.
+	 */
+	public static function policy() {
+		self::base();
+		wp_enqueue_style( 'pfh-policy' );
+		wp_enqueue_script( 'pfh-contents' );
 	}
 
 	/**

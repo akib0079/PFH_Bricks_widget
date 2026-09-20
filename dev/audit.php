@@ -25,6 +25,7 @@ require $dir . 'includes/trait-pfh-element-defaults.php';
 require $dir . 'includes/trait-pfh-design-revision.php';
 require $dir . 'includes/trait-pfh-product-card.php';
 require $dir . 'includes/trait-pfh-product-price.php';
+require $dir . 'includes/class-pfh-policy.php';
 require $dir . 'includes/class-pfh-archive.php';
 
 $elements = [
@@ -50,6 +51,12 @@ $elements = [
 	'PFH_Element_Account'        => [ 'class-pfh-element-account.php', 'pfh-account.css' ],
 	'PFH_Element_Blog'           => [ 'class-pfh-element-blog.php', 'pfh-blog.css' ],
 	'PFH_Element_Post'           => [ 'class-pfh-element-post.php', 'pfh-post.css' ],
+	'PFH_Element_Policy'         => [ 'class-pfh-element-policy.php', 'pfh-policy.css' ],
+	'PFH_Element_Terms'          => [ 'class-pfh-element-terms.php', 'pfh-policy.css' ],
+	'PFH_Element_Shipping'       => [ 'class-pfh-element-shipping.php', 'pfh-policy.css' ],
+	'PFH_Element_Returns'        => [ 'class-pfh-element-returns.php', 'pfh-policy.css' ],
+	'PFH_Element_Complaints'     => [ 'class-pfh-element-complaints.php', 'pfh-policy.css' ],
+	'PFH_Element_Privacy'        => [ 'class-pfh-element-privacy.php', 'pfh-policy.css' ],
 	'PFH_Element_About'          => [ 'class-pfh-element-about.php', 'pfh-about.css' ],
 	'PFH_Element_Contact'        => [ 'class-pfh-element-contact.php', 'pfh-contact.css' ],
 	'PFH_Element_Cta'            => [ 'class-pfh-element-cta.php', 'pfh-cta.css' ],
