@@ -123,6 +123,13 @@ class PFH_Element_Post extends \Bricks\Element {
 		$this->controls['relatedTitle'] = $this->text( 'related', esc_html__( 'Heading', 'pfh-widgets' ), 'Lees ook' );
 		$this->controls['relatedCount'] = $this->number( 'related', esc_html__( 'How many', 'pfh-widgets' ), 3, 2, 4 );
 
+		$this->controls['relatedMore'] = $this->text(
+			'related',
+			esc_html__( 'Link under each card', 'pfh-widgets' ),
+			'Lees verder',
+			[ 'description' => esc_html__( 'The cards are the blog\'s own, so this is the same link the blog page shows.', 'pfh-widgets' ) ]
+		);
+
 		/* ---- style ---- */
 
 		$this->controls['ink']      = $this->colour( 'style', esc_html__( 'Headings', 'pfh-widgets' ), '#22301c' );
@@ -362,14 +369,48 @@ class PFH_Element_Post extends \Bricks\Element {
 
 		foreach ( $toc as $item ) {
 			printf(
-				'<li class="pfh-post__toc-item pfh-post__toc-item--%d"><a class="pfh-post__toc-link" href="#%s">%s</a></li>',
+				'<li class="pfh-post__toc-item pfh-post__toc-item--%d"><a class="pfh-post__toc-link" href="#%s" title="%s">%s</a></li>',
 				(int) $item['level'],
 				esc_attr( $item['id'] ),
-				esc_html( $item['text'] )
+				esc_attr( $item['text'] ),
+				esc_html( self::shorten( $item['text'] ) )
 			);
 		}
 
 		echo '</ul></details>';
+	}
+
+	/**
+	 * A heading, cut to something the eye can take in at a glance.
+	 *
+	 * The panel is a narrow column beside the article, and headings are
+	 * sentences: one of them filled four lines of it. The stylesheet clamps
+	 * the height as well, but a clamp is only a clamp in a browser that
+	 * honours it — one that does not cuts the third line in half rather than
+	 * leaving it out. So the text itself is cut, at a word, and the whole
+	 * heading stays in the link's title for anyone who wants it.
+	 *
+	 * @param string $text  Heading.
+	 * @param int    $limit How many characters fit on the two lines.
+	 * @return string
+	 */
+	private static function shorten( $text, $limit = 58 ) {
+		$text = trim( (string) $text );
+		$mb   = function_exists( 'mb_substr' ) && function_exists( 'mb_strlen' );
+
+		if ( ( $mb ? mb_strlen( $text ) : strlen( $text ) ) <= $limit ) {
+			return $text;
+		}
+
+		$cut   = $mb ? mb_substr( $text, 0, $limit ) : substr( $text, 0, $limit );
+		$space = $mb && function_exists( 'mb_strrpos' ) ? mb_strrpos( $cut, ' ' ) : strrpos( $cut, ' ' );
+
+		// Back to the last whole word — unless that would leave almost nothing.
+		if ( $space && $space > $limit * 0.55 ) {
+			$cut = $mb ? mb_substr( $cut, 0, $space ) : substr( $cut, 0, $space );
+		}
+
+		return rtrim( $cut, " \t\n\r\0\x0B,.;:-" ) . '…';
 	}
 
 	/**
@@ -492,21 +533,27 @@ class PFH_Element_Post extends \Bricks\Element {
 		}
 
 		/*
-		 * The blog's own card, so the row under an article and the blog index
-		 * are the same thing rather than two that look alike today.
+		 * The blog's own card with the blog's own defaults — not a trimmed
+		 * version of it. Asking for fewer words and no link gave a card that
+		 * was recognisably the same shape but plainly not the same card, which
+		 * is the worst of both.
 		 */
 		$options = PFH_Widgets_Blog::options(
 			[
-				'words'      => 16,
-				'more_label' => '',
+				'more_label' => (string) $this->setting( 'relatedMore', '' ),
 				'read_label' => (string) $this->setting( 'readLabel', '' ),
 			]
 		);
 
 		echo '<div class="pfh-post__related">';
 		printf( '<h2 class="pfh-post__related-title">%s</h2>', esc_html( (string) $this->setting( 'relatedTitle', '' ) ) );
+		/*
+		 * -cols-set, not -cols: the inline value is the starting number, and
+		 * the blog's own breakpoints still get to cut it down to two and then
+		 * to one. An inline --pfh-bl-cols would have beaten them both.
+		 */
 		printf(
-			'<ul class="pfh-blog__grid" style="--pfh-bl-cols:%d">%s</ul>',
+			'<ul class="pfh-blog__grid pfh-blog-cards" style="--pfh-bl-cols-set:%d">%s</ul>',
 			count( $posts ),
 			PFH_Widgets_Blog::cards( $posts, $options ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built there.
 		);

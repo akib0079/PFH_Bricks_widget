@@ -6,7 +6,16 @@
  * out: the same radius, the same quiet meta line, the same restraint.
  */
 
-.pfh-blog {
+/*
+ * The card's own settings sit on a class of their own, because the blog page
+ * is not the only place the card is drawn: the article page ends with a row
+ * of them. Left on .pfh-blog, the colours never reached that row and its
+ * column count never heard the phone breakpoint — three cards stayed three
+ * cards across, 109px each. Anything that draws a blog card carries
+ * .pfh-blog-cards; the blog page carries both.
+ */
+.pfh-blog,
+.pfh-blog-cards {
 	--pfh-bl-max: 1140px;
 	--pfh-bl-pt: var(--pfh-bl-pt-set, 72px);
 	--pfh-bl-pb: var(--pfh-bl-pb-set, 72px);
@@ -27,12 +36,15 @@
 	--pfh-bl-card: var(--pfh-bl-card-set, 20px);
 	--pfh-bl-ratio: 3 / 2;
 
-	display: block;
-	padding-block: var(--pfh-bl-pt) var(--pfh-bl-pb);
 	font-family: var(--pfh-font);
 	color: var(--pfh-bl-body);
 	font-size: 15px;
 	line-height: 1.7;
+}
+
+.pfh-blog {
+	display: block;
+	padding-block: var(--pfh-bl-pt) var(--pfh-bl-pb);
 }
 
 .pfh-blog[hidden],
@@ -173,6 +185,7 @@
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
+	flex: 1;
 	min-width: 0;
 }
 
@@ -232,7 +245,8 @@
 	vertical-align: middle;
 }
 
-.pfh-blog .pfh-blog__card-title {
+.pfh-blog .pfh-blog__card-title,
+.pfh-blog-cards .pfh-blog__card-title {
 	margin: 8px 0 0;
 	color: var(--pfh-bl-ink);
 	font-size: var(--pfh-bl-card);
@@ -257,11 +271,20 @@
 	line-height: 1.65;
 }
 
+/*
+ * A row of cards is read as one object, so the link has to sit in the same
+ * place on each of them. Titles run to one line or to three, which used to
+ * leave the three links at three different heights; the auto margin spends
+ * whatever height the card was stretched to and lands them all on the floor
+ * of the row. The padding keeps the 14px gap under the excerpt on the
+ * tallest card, where there is no spare height to spend.
+ */
 .pfh-blog__more {
 	display: inline-flex;
 	align-items: center;
 	gap: 7px;
-	margin-top: 14px;
+	margin-top: auto;
+	padding-top: 14px;
 	color: var(--pfh-bl-accent);
 	font-size: 14px;
 	font-weight: 500;
@@ -375,7 +398,8 @@
 /* ---------- responsive ---------- */
 
 @media (max-width: 991px) {
-	.pfh-blog {
+	.pfh-blog,
+	.pfh-blog-cards {
 		--pfh-bl-title: 32px;
 		--pfh-bl-cols: 2;
 		--pfh-bl-gap: 24px;
@@ -397,7 +421,8 @@
 @media (max-width: 620px) {
 	/* One column: two cards across a phone leaves neither a readable
 	   headline. */
-	.pfh-blog { --pfh-bl-cols: 1; --pfh-bl-title: 27px; }
+	.pfh-blog,
+	.pfh-blog-cards { --pfh-bl-cols: 1; --pfh-bl-title: 27px; }
 	.pfh-blog__head { margin-bottom: 28px; }
 	.pfh-blog__foot { margin-top: 32px; }
 }

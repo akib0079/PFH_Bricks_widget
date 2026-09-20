@@ -124,6 +124,33 @@ ok( 'every link points at a heading that exists', ( function () use ( $html ) {
 ok( 'an id the author gave is kept', false !== strpos( $html, 'id="eigen-id"' ) );
 ok( 'two headings that read the same get different ids', false !== strpos( $html, 'id="eerste-kop"' ) && false !== strpos( $html, 'id="eerste-kop-2"' ) );
 
+/*
+ * A heading is a sentence and the panel is a narrow column beside the
+ * article: one long heading filled four lines of it. The label is cut at a
+ * word, the whole heading stays in the link's title, and the article's own
+ * heading is of course untouched.
+ */
+$long_text = 'Waarom extra vierge olijfolie de beste keuze is: tips voor het online kopen van olijfolie';
+$long      = wp_insert_post(
+	[
+		'post_type'    => 'post',
+		'post_status'  => 'publish',
+		'post_title'   => 'PFH lange koppen',
+		'post_content' => '<h2>' . $long_text . '</h2><p>Tekst.</p><h2>Een korte kop</h2><p>Tekst.</p>',
+	]
+);
+$long_page = article( $long );
+
+preg_match_all( '/<a class="pfh-post__toc-link"[^>]*>(.*?)<\/a>/s', $long_page, $labels );
+$first = isset( $labels[1][0] ) ? html_entity_decode( $labels[1][0], ENT_QUOTES, 'UTF-8' ) : '';
+
+ok( 'a heading too long for the panel is cut down', '' !== $first && mb_strlen( $first ) <= 60, $first );
+ok( '  at a word, ending in an ellipsis', '…' === mb_substr( $first, -1 ) && false === strpos( $first, ' …' ), $first );
+ok( '  with the whole heading kept in the link\'s title', false !== strpos( $long_page, 'title="' . esc_attr( $long_text ) . '"' ) );
+ok( '  and the article\'s own heading left as written', false !== strpos( $long_page, '>' . $long_text . '</h2>' ) );
+ok( 'a heading that already fits is left alone', isset( $labels[1][1] ) && 'Een korte kop' === $labels[1][1], $labels[1][1] ?? 'no second line' );
+wp_delete_post( $long, true );
+
 $shallow = article( $article, [ 'tocDepth' => 'h2' ] );
 ok( 'it can list the main headings only', 3 === substr_count( $shallow, 'pfh-post__toc-link' ), substr_count( $shallow, 'pfh-post__toc-link' ) . ' lines' );
 
@@ -181,6 +208,13 @@ $related = PFH_Widgets_Post_Body::related( get_post( $article ), 3 );
 ok( 'related articles are found', count( $related ) > 0 );
 ok( '  never the one being read', ! in_array( (int) $article, wp_list_pluck( $related, 'ID' ), true ) );
 ok( 'they are drawn as the blog\'s own cards', false !== strpos( $html, 'pfh-blog__card' ) );
+ok( '  carrying the blog\'s own settings, so the two cannot drift apart', false !== strpos( $html, 'class="pfh-blog__grid pfh-blog-cards"' ) );
+/*
+ * The inline value is the starting column count. Written as --pfh-bl-cols it
+ * would have beaten the blog's own breakpoints, and a phone would have got
+ * three cards side by side at 109px each.
+ */
+ok( '  with a column count the breakpoints can still cut down', false !== strpos( $html, '--pfh-bl-cols-set:' ) && false === strpos( $html, '--pfh-bl-cols:' ) );
 
 echo "\n── every part can go ──\n";
 foreach ( [
