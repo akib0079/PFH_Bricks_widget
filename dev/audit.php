@@ -49,6 +49,7 @@ $elements = [
 	'PFH_Element_Bottomcart'     => [ 'class-pfh-element-bottomcart.php', 'pfh-bottomcart.css' ],
 	'PFH_Element_Account'        => [ 'class-pfh-element-account.php', 'pfh-account.css' ],
 	'PFH_Element_Blog'           => [ 'class-pfh-element-blog.php', 'pfh-blog.css' ],
+	'PFH_Element_Post'           => [ 'class-pfh-element-post.php', 'pfh-post.css' ],
 	'PFH_Element_About'          => [ 'class-pfh-element-about.php', 'pfh-about.css' ],
 	'PFH_Element_Contact'        => [ 'class-pfh-element-contact.php', 'pfh-contact.css' ],
 	'PFH_Element_Cta'            => [ 'class-pfh-element-cta.php', 'pfh-cta.css' ],

@@ -183,6 +183,22 @@ class PFH_Widgets_Assets {
 		);
 
 		wp_register_style(
+			'pfh-post',
+			PFH_WIDGETS_URL . 'assets/css/pfh-post.css',
+			// The related row under an article is the blog's own card.
+			[ 'pfh-base', 'pfh-blog' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_script(
+			'pfh-post',
+			PFH_WIDGETS_URL . 'assets/js/pfh-post.js',
+			[],
+			PFH_WIDGETS_VERSION,
+			true
+		);
+
+		wp_register_style(
 			'pfh-blog',
 			PFH_WIDGETS_URL . 'assets/css/pfh-blog.css',
 			[ 'pfh-base' ],
@@ -630,6 +646,16 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-product-tabs' );
 		wp_enqueue_script( 'pfh-product-tabs' );
+	}
+
+	/**
+	 * Enqueue everything an article needs.
+	 */
+	public static function post() {
+		self::base();
+		wp_enqueue_style( 'pfh-blog' );
+		wp_enqueue_style( 'pfh-post' );
+		wp_enqueue_script( 'pfh-post' );
 	}
 
 	/**

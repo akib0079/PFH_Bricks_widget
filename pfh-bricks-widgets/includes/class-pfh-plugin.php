@@ -118,6 +118,10 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-product-usp.php',
 				'class' => 'PFH_Element_Product_Usp',
 			],
+			'pfh-post' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-post.php',
+				'class' => 'PFH_Element_Post',
+			],
 			'pfh-blog' => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-blog.php',
 				'class' => 'PFH_Element_Blog',

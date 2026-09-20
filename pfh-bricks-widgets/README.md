@@ -1208,6 +1208,46 @@ what the shop page keeps using.
 
 ---
 
+## PFH Article
+
+The whole of a blog post, in one element: the crumbs, the head, the picture,
+the article, a contents panel, the sharing row, the author, what to read next,
+and a row of related articles. Every part switchable.
+
+### The article
+
+Most of the work is here, because it is the point of the page: whatever the
+client types into WordPress has to come out looking considered without them
+thinking about it. A type scale for the headings, a measure that stays
+readable at 720px, an opening paragraph set slightly larger, quotes in the
+italic serif behind a rule, lists with the accent on their markers, code, and
+tables that get their own box to scroll in rather than widening the page.
+
+### The contents
+
+Built from the article's **own headings** — h2, or h2 and h3 — each given an id
+so the links work with no scripting at all. An id the author already gave a
+heading is kept, because something may link to it, and two headings that read
+the same get different ids. Fewer than two headings and the panel is left out,
+and the article takes the full width.
+
+With scripting it marks the section being read, and once the end of the article
+is on screen it marks the last one — a short final section otherwise never
+reaches the reading line and could never be marked at all. On a phone the panel
+folds into something to open.
+
+### Around it
+
+A progress bar measured against the article rather than the page, so the share
+row and the related articles do not count as "still reading". Sharing to
+WhatsApp, Facebook, LinkedIn and X, plus a copy-link button that falls back to
+the old select-and-copy where the clipboard API is unavailable. The previous
+and next articles by date. And a row of related articles drawn with **the
+blog's own card**, so the row under an article and the blog index cannot drift
+apart.
+
+---
+
 ## PFH Blog
 
 An opening, an optional lead article given the room it deserves, and a grid of

@@ -69,7 +69,16 @@ function paint( $class, $with_controls, array $settings = [], $id = 'fdprobe' ) 
  * has nothing to do with defaults.
  */
 function normalise( $html ) {
-	return preg_replace( '/data-pfh-recent="[^"]*"/', 'data-pfh-recent=""', $html );
+	$html = preg_replace( '/data-pfh-recent="[^"]*"/', 'data-pfh-recent=""', $html );
+
+	/*
+	 * WordPress marks the first large image of a REQUEST with
+	 * fetchpriority="high", once. Painting the same element twice to compare
+	 * them therefore gives the first one an attribute the second cannot have.
+	 * It is an artefact of measuring, not of defaults — and the attribute is
+	 * wanted, since the article's picture is the thing the page is waiting on.
+	 */
+	return str_replace( ' fetchpriority="high"', '', $html );
 }
 
 echo "── the front end renders what the builder renders ──\n";

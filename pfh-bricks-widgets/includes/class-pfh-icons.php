@@ -106,6 +106,7 @@ class PFH_Widgets_Icons {
 			'mail'      => '<rect x="3" y="5.5" width="18" height="13" rx="2.5" ' . $stroke . '/>' . '<path d="m4 7.5 7.1 5a1.6 1.6 0 0 0 1.8 0l7.1-5" ' . $stroke . '/>',
 			'pin'       => '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z" ' . $stroke . '/>' . '<circle cx="12" cy="10" r="2.6" ' . $stroke . '/>',
 			'clock'     => '<circle cx="12" cy="12" r="8.5" ' . $stroke . '/>' . '<path d="M12 7.5V12l3 1.8" ' . $stroke . '/>',
+			'link'      => '<path d="M10 13.5a4 4 0 0 0 5.7.4l2.8-2.8a4 4 0 0 0-5.7-5.7l-1.6 1.6" ' . $stroke . '/>' . '<path d="M14 10.5a4 4 0 0 0-5.7-.4l-2.8 2.8a4 4 0 0 0 5.7 5.7l1.6-1.6" ' . $stroke . '/>',
 			'grid'      => '<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" ' . $stroke . '/>',
 			'eye'       => '<path d="M2.5 12S6 5.75 12 5.75 21.5 12 21.5 12 18 18.25 12 18.25 2.5 12 2.5 12Z" ' . $stroke . '/>' . '<circle cx="12" cy="12" r="3" ' . $stroke . '/>',
 			'eye-off'   => '<path d="M4 4 20 20" ' . $stroke . '/>' . '<path d="M9.9 5.9A9.6 9.6 0 0 1 12 5.75c6 0 9.5 6.25 9.5 6.25a17 17 0 0 1-3.2 3.9M6.6 7.6A17 17 0 0 0 2.5 12S6 18.25 12 18.25c1 0 1.9-.17 2.7-.45" ' . $stroke . '/>',
