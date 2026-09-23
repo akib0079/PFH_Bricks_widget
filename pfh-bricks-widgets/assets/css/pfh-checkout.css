@@ -1,0 +1,270 @@
+/**
+ * Beside the checkout: the reasons to trust the shop, and what customers say.
+ *
+ * FunnelKit draws the checkout and keeps its own styling, set in its Bricks
+ * panel. These two sit in the column next to it, so they are deliberately
+ * quiet: the form is the page's job, and this column only has to be read in
+ * the second someone hesitates. Both are transparent, so they take whatever
+ * ground the column has.
+ */
+
+.pfh-cktrust,
+.pfh-ckrev {
+	--pfh-ck-ink: #22301c;
+	--pfh-ck-body: #5c6657;
+	--pfh-ck-muted: #8d9589;
+	--pfh-ck-accent: #2b5f63;
+	--pfh-ck-name: var(--pfh-ck-accent);
+	--pfh-ck-icon: var(--pfh-ck-accent);
+	--pfh-ck-icon-bg: #e4eeec;
+	--pfh-ck-star: #e8a23a;
+	--pfh-ck-card: #ffffff;
+	--pfh-ck-line: #e6eae4;
+	--pfh-ck-title: 18px;
+
+	display: block;
+	font-family: var(--pfh-font);
+	color: var(--pfh-ck-body);
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.pfh-cktrust .pfh-cktrust__title,
+.pfh-ckrev .pfh-ckrev__title {
+	margin: 0 0 18px;
+	color: var(--pfh-ck-ink);
+	font-family: inherit;
+	font-size: var(--pfh-ck-title);
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: -.01em;
+	text-wrap: balance;
+}
+
+/* ------------------------------------------------------------------ *
+ * The reasons
+ * ------------------------------------------------------------------ */
+
+.pfh-cktrust__list {
+	display: grid;
+	gap: 18px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-cktrust__row {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+}
+
+.pfh-cktrust__icon {
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 42px;
+	height: 42px;
+	border-radius: 12px;
+	background: var(--pfh-ck-icon-bg);
+	color: var(--pfh-ck-icon);
+}
+
+.pfh-cktrust__icon svg { width: 22px; height: 22px; }
+.pfh-cktrust__icon img { width: 24px; height: 24px; object-fit: contain; }
+
+.pfh-cktrust__copy {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+	padding-top: 2px;
+}
+
+.pfh-cktrust__row-title {
+	color: var(--pfh-ck-ink);
+	font-size: 14.5px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.pfh-cktrust__text {
+	color: var(--pfh-ck-body);
+	font-size: 13.5px;
+	line-height: 1.45;
+}
+
+/* ------------------------------------------------------------------ *
+ * The reviews
+ * ------------------------------------------------------------------ */
+
+.pfh-ckrev__head { margin-bottom: 14px; }
+.pfh-ckrev__head .pfh-ckrev__title { margin-bottom: 8px; }
+
+.pfh-ckrev .pfh-ckrev__score {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	color: var(--pfh-ck-body);
+	font-size: 13px;
+	line-height: 1.3;
+	text-decoration: none;
+}
+
+.pfh-ckrev__score-text { color: var(--pfh-ck-ink); font-weight: 500; }
+
+.pfh-ckrev__source {
+	color: var(--pfh-ck-muted);
+	text-decoration: underline;
+	text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+	text-underline-offset: 2px;
+}
+
+.pfh-ckrev .pfh-ckrev__score:hover .pfh-ckrev__source { color: var(--pfh-ck-accent); text-decoration-color: currentColor; }
+
+.pfh-ckrev .pfh-ckrev__score:focus-visible {
+	outline: 2px solid var(--pfh-ck-accent);
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
+/*
+ * Stars drawn twice: a faint row, and a coloured row over it clipped to the
+ * rating — so 4.5 is four and a half, not a rounded five.
+ */
+.pfh-ckrev__stars {
+	position: relative;
+	display: inline-flex;
+	flex: none;
+	line-height: 0;
+}
+
+.pfh-ckrev__stars-base,
+.pfh-ckrev__stars-fill {
+	display: inline-flex;
+	gap: 2px;
+}
+
+.pfh-ckrev__stars-base { color: color-mix(in srgb, var(--pfh-ck-star) 25%, #e9e9e6); }
+
+.pfh-ckrev__stars-fill {
+	position: absolute;
+	inset: 0 auto 0 0;
+	overflow: hidden;
+	color: var(--pfh-ck-star);
+	white-space: nowrap;
+}
+
+.pfh-ckrev__stars svg { flex: none; width: 15px; height: 15px; }
+.pfh-ckrev__card .pfh-ckrev__stars svg { width: 16px; height: 16px; }
+
+/*
+ * Every card sits in the same grid cell, so the stage is as tall as the
+ * longest review and the column never jumps as they turn over.
+ */
+.pfh-ckrev__stage {
+	display: grid;
+}
+
+.pfh-ckrev__card {
+	grid-area: 1 / 1;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin: 0;
+	padding: 22px 24px;
+	border: 1px solid var(--pfh-ck-line);
+	border-radius: 16px;
+	background: var(--pfh-ck-card);
+	box-shadow: 0 1px 2px rgba(34, 48, 28, .04), 0 10px 24px -14px rgba(34, 48, 28, .18);
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(6px);
+	transition: opacity .45s var(--pfh-ease, ease), transform .45s var(--pfh-ease, ease), visibility 0s linear .45s;
+}
+
+.pfh-ckrev__card.is-active {
+	opacity: 1;
+	visibility: visible;
+	transform: none;
+	transition: opacity .45s var(--pfh-ease, ease), transform .45s var(--pfh-ease, ease), visibility 0s;
+}
+
+.pfh-ckrev__text {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	color: var(--pfh-ck-body);
+	font-size: 14.5px;
+	line-height: 1.6;
+	quotes: "\201C" "\201D";
+}
+
+.pfh-ckrev__text p { margin: 0; }
+.pfh-ckrev__text p::before { content: open-quote; }
+.pfh-ckrev__text p::after { content: close-quote; }
+
+.pfh-ckrev__by {
+	display: grid;
+	gap: 2px;
+	margin-top: auto;
+}
+
+.pfh-ckrev__name {
+	color: var(--pfh-ck-name);
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.pfh-ckrev__meta {
+	color: var(--pfh-ck-muted);
+	font-size: 12.5px;
+	line-height: 1.4;
+}
+
+.pfh-ckrev__dots {
+	display: flex;
+	justify-content: center;
+	gap: 6px;
+	margin-top: 14px;
+}
+
+.pfh-ckrev__dot {
+	width: 7px;
+	height: 7px;
+	padding: 0;
+	border: 0;
+	border-radius: 99px;
+	background: color-mix(in srgb, var(--pfh-ck-accent) 22%, transparent);
+	cursor: pointer;
+	transition: width .3s var(--pfh-ease, ease), background-color .3s ease;
+}
+
+.pfh-ckrev__dot.is-active {
+	width: 20px;
+	background: var(--pfh-ck-accent);
+}
+
+.pfh-ckrev__dot:focus-visible {
+	outline: 2px solid var(--pfh-ck-accent);
+	outline-offset: 3px;
+}
+
+/* ---------- builder placeholders ---------- */
+
+.pfh-cktrust--empty,
+.pfh-ckrev--empty {
+	padding: 24px;
+	border: 1px dashed rgba(34, 48, 28, .25);
+	border-radius: 12px;
+	color: rgba(34, 48, 28, .7);
+	text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-ckrev__card,
+	.pfh-ckrev__card.is-active,
+	.pfh-ckrev__dot { transition: none; transform: none; }
+}

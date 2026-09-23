@@ -126,6 +126,14 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-blog.php',
 				'class' => 'PFH_Element_Blog',
 			],
+			'pfh-checkout-trust' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-checkout-trust.php',
+				'class' => 'PFH_Element_Checkout_Trust',
+			],
+			'pfh-checkout-reviews' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-checkout-reviews.php',
+				'class' => 'PFH_Element_Checkout_Reviews',
+			],
 			'pfh-policy' => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-policy.php',
 				'class' => 'PFH_Element_Policy',

@@ -216,6 +216,21 @@ class PFH_Widgets_Assets {
 		wp_localize_script( 'pfh-blog', 'pfhWidgets', self::endpoint() );
 
 		wp_register_style(
+			'pfh-checkout',
+			PFH_WIDGETS_URL . 'assets/css/pfh-checkout.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_script(
+			'pfh-checkout',
+			PFH_WIDGETS_URL . 'assets/js/pfh-checkout.js',
+			[],
+			PFH_WIDGETS_VERSION,
+			true
+		);
+
+		wp_register_style(
 			'pfh-policy',
 			PFH_WIDGETS_URL . 'assets/css/pfh-policy.css',
 			[ 'pfh-base' ],
@@ -680,6 +695,15 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-blog' );
 		wp_enqueue_script( 'pfh-blog' );
+	}
+
+	/**
+	 * Enqueue what the elements beside a checkout need.
+	 */
+	public static function checkout() {
+		self::base();
+		wp_enqueue_style( 'pfh-checkout' );
+		wp_enqueue_script( 'pfh-checkout' );
 	}
 
 	/**
