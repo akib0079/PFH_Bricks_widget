@@ -51,6 +51,10 @@ class PFH_Widgets_Account {
 			wp_send_json_error( [ 'message' => __( 'That order could not be opened.', 'pfh-widgets' ) ], 403 );
 		}
 
+		if ( ! class_exists( 'PFH_Element_Account' ) && ! class_exists( '\Bricks\Element' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Account details are temporarily unavailable.', 'pfh-widgets' ) ], 503 );
+		}
+
 		if ( ! class_exists( 'PFH_Element_Account' ) && defined( 'PFH_WIDGETS_DIR' ) ) {
 			require_once PFH_WIDGETS_DIR . 'elements/class-pfh-element-account.php';
 		}

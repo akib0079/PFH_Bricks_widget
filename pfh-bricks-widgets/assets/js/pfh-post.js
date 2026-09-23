@@ -154,22 +154,107 @@
 		window.addEventListener( 'scroll', onScroll, { passive: true } );
 		mark();
 
-		/*
-		 * On a phone the panel is a <details> the reader opens; on a desktop
-		 * it is always open. Folding it shut below the breakpoint keeps the
-		 * article at the top of a small screen.
-		 */
-		var small = window.matchMedia( '(max-width: 900px)' );
+		// The contents always begins folded so it never competes with the
+		// article. Native <details> keeps it usable without JavaScript.
+		toc.open = false;
+	}
 
-		function fit() {
-			toc.open = ! small.matches;
+	/* ------------------------------------------------------------------
+	 * Popular product shelf
+	 * --------------------------------------------------------------- */
+
+	function products( root ) {
+		qsa( '[data-pfh-post-products]', root ).forEach( function ( track ) {
+			var section = track.closest( '.pfh-post__products' );
+			var buttons = qsa( '[data-pfh-post-products-direction]', section || root );
+
+			if ( ! buttons.length ) {
+				return;
+			}
+
+			function update() {
+				var max = Math.max( 0, track.scrollWidth - track.clientWidth );
+				var left = Math.max( 0, track.scrollLeft );
+
+				buttons.forEach( function ( button ) {
+					var previous = 'prev' === button.getAttribute( 'data-pfh-post-products-direction' );
+
+					button.disabled = previous ? left <= 2 : left >= max - 2;
+				} );
+			}
+
+			buttons.forEach( function ( button ) {
+				button.addEventListener( 'click', function () {
+					var direction = 'prev' === button.getAttribute( 'data-pfh-post-products-direction' ) ? -1 : 1;
+					var amount = Math.max( 220, track.clientWidth * .75 );
+
+					track.scrollBy( {
+						left: amount * direction,
+						behavior: reduced() ? 'auto' : 'smooth'
+					} );
+				} );
+			} );
+
+			track.addEventListener( 'scroll', update, { passive: true } );
+			window.addEventListener( 'resize', update, { passive: true } );
+			update();
+		} );
+	}
+
+	/* ------------------------------------------------------------------
+	 * Search shortcut
+	 * --------------------------------------------------------------- */
+
+	function visibleHeaderSearch() {
+		var buttons = qsa( '.pfh-header [data-pfh-open="search"]' );
+
+		for ( var i = 0; i < buttons.length; i++ ) {
+			if ( buttons[ i ].offsetParent !== null ) {
+				return buttons[ i ];
+			}
 		}
 
-		if ( small.addEventListener ) {
-			small.addEventListener( 'change', fit );
+		return buttons.length ? buttons[ 0 ] : null;
+	}
+
+	function openSearch() {
+		var button = visibleHeaderSearch();
+
+		if ( ! button ) {
+			return false;
 		}
 
-		fit();
+		button.click();
+
+		return true;
+	}
+
+	function search( root ) {
+		qsa( '[data-pfh-post-search]', root ).forEach( function ( trigger ) {
+			trigger.addEventListener( 'click', function ( event ) {
+				if ( openSearch() ) {
+					event.preventDefault();
+				}
+			} );
+		} );
+
+		if ( document.documentElement.hasAttribute( 'data-pfh-post-search-key' ) ) {
+			return;
+		}
+
+		document.documentElement.setAttribute( 'data-pfh-post-search-key', '' );
+		document.addEventListener( 'keydown', function ( event ) {
+			var target = event.target;
+			var editing = target && ( /^(INPUT|TEXTAREA|SELECT)$/.test( target.tagName ) || target.isContentEditable );
+
+			if ( editing || 'k' !== String( event.key ).toLowerCase() || ( ! event.metaKey && ! event.ctrlKey ) ) {
+				return;
+			}
+
+			if ( openSearch() ) {
+				event.preventDefault();
+			}
+		} );
 	}
 
 	/* ------------------------------------------------------------------
@@ -229,6 +314,8 @@
 
 			progress( root );
 			contents( root );
+			products( root );
+			search( root );
 			copy( root );
 		} );
 	}

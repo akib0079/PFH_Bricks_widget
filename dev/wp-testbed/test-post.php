@@ -107,6 +107,7 @@ wp_delete_post( $nobody, true );
 
 echo "\n── the contents ──\n";
 ok( 'it is built from the article\'s own headings', false !== strpos( $html, 'pfh-post__toc' ) );
+ok( 'it begins folded on every viewport', false !== strpos( $html, '<details class="pfh-post__toc" data-pfh-post-toc>' ) && false === strpos( $html, 'data-pfh-post-toc open' ) );
 ok( 'one line per heading', 4 === substr_count( $html, 'pfh-post__toc-link' ), substr_count( $html, 'pfh-post__toc-link' ) . ' lines' );
 ok( 'a sub-heading is marked as one', false !== strpos( $html, 'pfh-post__toc-item--3' ) );
 ok( 'every link points at a heading that exists', ( function () use ( $html ) {
@@ -151,13 +152,27 @@ ok( '  and the article\'s own heading left as written', false !== strpos( $long_
 ok( 'a heading that already fits is left alone', isset( $labels[1][1] ) && 'Een korte kop' === $labels[1][1], $labels[1][1] ?? 'no second line' );
 wp_delete_post( $long, true );
 
+echo "\n── the organised sidebar ──\n";
+ok( 'the article is the left column', false !== strpos( $html, 'class="pfh-post__main"' ) );
+ok( 'the tools are grouped in their own right rail', false !== strpos( $html, 'class="pfh-post__sidebar"' ) );
+ok( 'the hero belongs to the article flow', false === strpos( $html, '</header><figure class="pfh-post__hero"' ) );
+ok( 'search opens the shared header popup when enhanced', false !== strpos( $html, 'data-pfh-post-search' ) );
+ok( '  and keeps an ordinary search URL without scripts', false !== strpos( $html, '/?s=' ) );
+ok( '  with its keyboard shortcut exposed', false !== strpos( $html, 'aria-keyshortcuts="Meta+K Control+K"' ) && false !== strpos( $html, 'Cmd K' ) );
+ok( 'the promises use editable repeater rows', 8 === substr_count( $html, 'pfh-post__promise-icon' ), substr_count( $html, 'pfh-post__promise-icon' ) . ' rows' );
+ok( 'the shop call to action uses its supplied image', false !== strpos( $html, 'generated-image-6-1024x1024.webp' ) );
+ok( '  and leads to the shop', false !== strpos( $html, 'pfh-post__cta-button' ) );
+ok( 'live products fill the popular products shelf', false !== strpos( $html, 'data-pfh-post-products' ) && false !== strpos( $html, 'pfh-post__product-card' ) );
+
 $shallow = article( $article, [ 'tocDepth' => 'h2' ] );
 ok( 'it can list the main headings only', 3 === substr_count( $shallow, 'pfh-post__toc-link' ), substr_count( $shallow, 'pfh-post__toc-link' ) . ' lines' );
 
 $thin = wp_insert_post( [ 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'PFH kort', 'post_content' => '<p>Geen koppen.</p>' ] );
 $thin_page = article( $thin );
 ok( 'an article with no headings gets no contents', false === strpos( $thin_page, 'pfh-post__toc' ) );
-ok( '  and the article takes the full width', false !== strpos( $thin_page, 'pfh-post__layout--wide' ) );
+ok( '  while its other sidebar tools remain', false !== strpos( $thin_page, 'pfh-post__sidebar' ) && false === strpos( $thin_page, 'pfh-post__layout--wide' ) );
+$wide_page = article( $thin, [ 'showSearch' => false, 'showProducts' => false, 'showPromises' => false, 'showCta' => false ] );
+ok( 'the article takes the full width when every sidebar module is disabled', false !== strpos( $wide_page, 'pfh-post__layout--wide' ) && false === strpos( $wide_page, 'pfh-post__sidebar' ) );
 ok( 'the contents can be switched off entirely', false === strpos( article( $article, [ 'showToc' => false ] ), 'pfh-post__toc' ) );
 wp_delete_post( $thin, true );
 
@@ -221,6 +236,10 @@ foreach ( [
 	'showCrumbs'  => 'pfh-post__crumbs',
 	'showTag'     => 'pfh-post__tag',
 	'showHero'    => 'pfh-post__hero',
+	'showSearch'  => 'pfh-post__search',
+	'showProducts' => 'pfh-post__products',
+	'showPromises' => 'pfh-post__promises',
+	'showCta'     => 'pfh-post__cta',
 	'showShare'   => 'pfh-post__share',
 	'showNav'     => 'pfh-post__nav',
 	'showRelated' => 'pfh-post__related',

@@ -22,6 +22,9 @@ class PFH_Element_Post extends \Bricks\Element {
 
 	use PFH_Element_Defaults;
 
+	/** @var string|null Stable id for controls and aria relationships. */
+	private $uid = null;
+
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-post';
 	public $icon         = 'ti-align-left';
@@ -41,13 +44,17 @@ class PFH_Element_Post extends \Bricks\Element {
 
 	public function set_control_groups() {
 		foreach ( [
-			'source'  => esc_html__( 'Article', 'pfh-widgets' ),
-			'head'    => esc_html__( 'Head', 'pfh-widgets' ),
-			'toc'     => esc_html__( 'Contents', 'pfh-widgets' ),
-			'below'   => esc_html__( 'Under the article', 'pfh-widgets' ),
-			'related' => esc_html__( 'Read next', 'pfh-widgets' ),
-			'style'   => esc_html__( 'Style', 'pfh-widgets' ),
-			'layout'  => esc_html__( 'Layout', 'pfh-widgets' ),
+			'source'   => esc_html__( 'Article', 'pfh-widgets' ),
+			'head'     => esc_html__( 'Head', 'pfh-widgets' ),
+			'toc'      => esc_html__( 'Contents', 'pfh-widgets' ),
+			'search'   => esc_html__( 'Search', 'pfh-widgets' ),
+			'products' => esc_html__( 'Popular products', 'pfh-widgets' ),
+			'promises' => esc_html__( 'Promises', 'pfh-widgets' ),
+			'cta'      => esc_html__( 'Shop call to action', 'pfh-widgets' ),
+			'below'    => esc_html__( 'Under the article', 'pfh-widgets' ),
+			'related'  => esc_html__( 'Read next', 'pfh-widgets' ),
+			'style'    => esc_html__( 'Global style', 'pfh-widgets' ),
+			'layout'   => esc_html__( 'Layout', 'pfh-widgets' ),
 		] as $key => $title ) {
 			$this->control_groups[ $key ] = [ 'title' => $title, 'tab' => 'content' ];
 		}
@@ -106,6 +113,140 @@ class PFH_Element_Post extends \Bricks\Element {
 			'description' => esc_html__( 'Built from the article\'s own headings. With fewer than two it is left out.', 'pfh-widgets' ),
 		];
 
+		/* ---- search ---- */
+
+		$this->controls['showSearch'] = $this->switch_field( 'search', esc_html__( 'Show search shortcut', 'pfh-widgets' ) );
+		$this->controls['searchLabel'] = $this->text( 'search', esc_html__( 'Label', 'pfh-widgets' ), 'Zoek producten en verhalen' );
+		$this->controls['searchShortcut'] = $this->text( 'search', esc_html__( 'Keyboard shortcut label', 'pfh-widgets' ), 'Cmd K' );
+		$this->controls['searchBg'] = $this->colour( 'search', esc_html__( 'Background', 'pfh-widgets' ), '#ffffff' );
+		$this->controls['searchInk'] = $this->colour( 'search', esc_html__( 'Text', 'pfh-widgets' ), '#7f897b' );
+		$this->controls['searchBorder'] = $this->colour( 'search', esc_html__( 'Border', 'pfh-widgets' ), '#e4e8e1' );
+		$this->controls['searchRadius'] = $this->number( 'search', esc_html__( 'Corner radius (px)', 'pfh-widgets' ), 14, 0, 40 );
+
+		/* ---- products ---- */
+
+		$this->controls['showProducts'] = $this->switch_field( 'products', esc_html__( 'Show products', 'pfh-widgets' ) );
+		$this->controls['productsTitle'] = $this->text( 'products', esc_html__( 'Heading', 'pfh-widgets' ), 'Populaire producten' );
+		$this->controls['productsSource'] = [
+			'tab'     => 'content',
+			'group'   => 'products',
+			'label'   => esc_html__( 'Products to show', 'pfh-widgets' ),
+			'type'    => 'select',
+			'inline'  => true,
+			'default' => 'best',
+			'options' => [
+				'best'     => esc_html__( 'Best selling', 'pfh-widgets' ),
+				'recent'   => esc_html__( 'Newest', 'pfh-widgets' ),
+				'onsale'   => esc_html__( 'On sale', 'pfh-widgets' ),
+				'featured' => esc_html__( 'Featured', 'pfh-widgets' ),
+				'category' => esc_html__( 'Product category', 'pfh-widgets' ),
+				'ids'      => esc_html__( 'Specific products', 'pfh-widgets' ),
+			],
+		];
+		$this->controls['productsCategory'] = [
+			'tab'         => 'content',
+			'group'       => 'products',
+			'label'       => esc_html__( 'Category', 'pfh-widgets' ),
+			'type'        => 'select',
+			'searchable'  => true,
+			'options'     => PFH_Widgets_Helpers::product_cat_options(),
+			'placeholder' => esc_html__( 'Select a category', 'pfh-widgets' ),
+			'required'    => [ 'productsSource', '=', 'category' ],
+		];
+		$this->controls['productIds'] = $this->text(
+			'products',
+			esc_html__( 'Product IDs', 'pfh-widgets' ),
+			'',
+			[
+				'placeholder' => '128, 94, 71',
+				'description' => esc_html__( 'Comma separated. The slider keeps this order.', 'pfh-widgets' ),
+				'required'    => [ 'productsSource', '=', 'ids' ],
+			]
+		);
+		$this->controls['productsCount'] = $this->number( 'products', esc_html__( 'Number of products', 'pfh-widgets' ), 6, 2, 12 );
+		$this->controls['productsArrows'] = $this->switch_field( 'products', esc_html__( 'Show slider arrows', 'pfh-widgets' ) );
+		$this->controls['bestsellerLabel'] = $this->text( 'products', esc_html__( 'Bestseller badge', 'pfh-widgets' ), 'Bestseller' );
+		$this->controls['newLabel'] = $this->text( 'products', esc_html__( 'New badge', 'pfh-widgets' ), 'Nieuw' );
+		$this->controls['saleLabel'] = $this->text( 'products', esc_html__( 'Sale badge', 'pfh-widgets' ), 'Sale' );
+		$this->controls['productBg'] = $this->colour( 'products', esc_html__( 'Card background', 'pfh-widgets' ), '#ffffff' );
+		$this->controls['productMediaBg'] = $this->colour( 'products', esc_html__( 'Picture background', 'pfh-widgets' ), '#f6f1e7' );
+		$this->controls['productBorder'] = $this->colour( 'products', esc_html__( 'Card border', 'pfh-widgets' ), '#e3cbbd' );
+		$this->controls['productRadius'] = $this->number( 'products', esc_html__( 'Card radius (px)', 'pfh-widgets' ), 16, 0, 40 );
+
+		/* ---- promises ---- */
+
+		$this->controls['showPromises'] = $this->switch_field( 'promises', esc_html__( 'Show promises', 'pfh-widgets' ) );
+		$this->controls['promisesTitle'] = $this->text( 'promises', esc_html__( 'Heading', 'pfh-widgets' ), 'Onze beloftes' );
+		$this->controls['promises'] = [
+			'tab'           => 'content',
+			'group'         => 'promises',
+			'label'         => esc_html__( 'Items', 'pfh-widgets' ),
+			'type'          => 'repeater',
+			'titleProperty' => 'text',
+			'default'       => $this->default_promises(),
+			'fields'        => [
+				'text' => [ 'label' => esc_html__( 'Text', 'pfh-widgets' ), 'type' => 'text' ],
+				'icon' => [
+					'label'   => esc_html__( 'Icon', 'pfh-widgets' ),
+					'type'    => 'select',
+					'default' => 'check',
+					'options' => [
+						'star'     => esc_html__( 'Star', 'pfh-widgets' ),
+						'quality'  => esc_html__( 'Quality', 'pfh-widgets' ),
+						'delivery' => esc_html__( 'Delivery', 'pfh-widgets' ),
+						'returns'  => esc_html__( 'Returns', 'pfh-widgets' ),
+						'check'    => esc_html__( 'Check', 'pfh-widgets' ),
+					],
+				],
+				'compact' => [
+					'label'       => esc_html__( 'Compact payment row', 'pfh-widgets' ),
+					'type'        => 'checkbox',
+					'default'     => false,
+					'description' => esc_html__( 'Removes the separator and uses the compact spacing shown for payment methods.', 'pfh-widgets' ),
+				],
+			],
+		];
+		$this->controls['promisesBg'] = $this->colour( 'promises', esc_html__( 'Background', 'pfh-widgets' ), '#f6f6f6' );
+		$this->controls['promisesInk'] = $this->colour( 'promises', esc_html__( 'Text', 'pfh-widgets' ), '#596b54' );
+		$this->controls['promisesIcon'] = $this->colour( 'promises', esc_html__( 'Icons', 'pfh-widgets' ), '#83a07c' );
+		$this->controls['promisesRadius'] = $this->number( 'promises', esc_html__( 'Corner radius (px)', 'pfh-widgets' ), 24, 0, 48 );
+
+		/* ---- call to action ---- */
+
+		$this->controls['showCta'] = $this->switch_field( 'cta', esc_html__( 'Show shop call to action', 'pfh-widgets' ) );
+		$this->controls['ctaEyebrow'] = $this->text( 'cta', esc_html__( 'Eyebrow', 'pfh-widgets' ), 'Ontdek de shop' );
+		$this->controls['ctaTitle'] = $this->text( 'cta', esc_html__( 'Heading', 'pfh-widgets' ), 'Meer moois voor thuis' );
+		$this->controls['ctaText'] = [
+			'tab'     => 'content',
+			'group'   => 'cta',
+			'label'   => esc_html__( 'Text', 'pfh-widgets' ),
+			'type'    => 'textarea',
+			'default' => 'Van Griekse honing tot olijfolie. Ontdek zorgvuldig geselecteerde producten met een bijzonder verhaal.',
+		];
+		$this->controls['ctaButton'] = $this->text( 'cta', esc_html__( 'Button label', 'pfh-widgets' ), 'Shop meer' );
+		$this->controls['ctaLink'] = [
+			'tab'   => 'content',
+			'group' => 'cta',
+			'label' => esc_html__( 'Button link', 'pfh-widgets' ),
+			'type'  => 'link',
+		];
+		$this->controls['ctaImage'] = [
+			'tab'     => 'content',
+			'group'   => 'cta',
+			'label'   => esc_html__( 'Background image', 'pfh-widgets' ),
+			'type'    => 'image',
+			'default' => [
+				'url' => 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/generated-image-6-1024x1024.webp',
+			],
+		];
+		$this->controls['ctaOverlayTop'] = $this->colour( 'cta', esc_html__( 'Overlay at top', 'pfh-widgets' ), 'rgba(34,48,28,.94)' );
+		$this->controls['ctaOverlayBottom'] = $this->colour( 'cta', esc_html__( 'Overlay at bottom', 'pfh-widgets' ), 'rgba(34,48,28,.12)' );
+		$this->controls['ctaInk'] = $this->colour( 'cta', esc_html__( 'Text', 'pfh-widgets' ), '#ffffff' );
+		$this->controls['ctaButtonBg'] = $this->colour( 'cta', esc_html__( 'Button background', 'pfh-widgets' ), '#ffffff' );
+		$this->controls['ctaButtonInk'] = $this->colour( 'cta', esc_html__( 'Button text', 'pfh-widgets' ), '#22301c' );
+		$this->controls['ctaHeight'] = $this->number( 'cta', esc_html__( 'Minimum height (px)', 'pfh-widgets' ), 390, 240, 620 );
+		$this->controls['ctaRadius'] = $this->number( 'cta', esc_html__( 'Corner radius (px)', 'pfh-widgets' ), 18, 0, 48 );
+
 		/* ---- under the article ---- */
 
 		$this->controls['showShare']  = $this->switch_field( 'below', esc_html__( 'Sharing', 'pfh-widgets' ) );
@@ -140,17 +281,39 @@ class PFH_Element_Post extends \Bricks\Element {
 		$this->controls['tagBg']    = $this->colour( 'style', esc_html__( 'Category pill', 'pfh-widgets' ), '#dfe9dc' );
 		$this->controls['tagInk']   = $this->colour( 'style', esc_html__( 'Category pill text', 'pfh-widgets' ), '#46603f' );
 
-		$this->controls['titleSize'] = $this->number( 'style', esc_html__( 'Title size (px)', 'pfh-widgets' ), 44, 24, 72 );
+		$this->controls['titleSize'] = $this->number( 'style', esc_html__( 'Title size (px)', 'pfh-widgets' ), 42, 24, 64 );
+		$this->controls['titleSizeMobile'] = $this->number( 'style', esc_html__( 'Title size on mobile (px)', 'pfh-widgets' ), 32, 22, 46 );
 		$this->controls['textSize']  = $this->number( 'style', esc_html__( 'Article text size (px)', 'pfh-widgets' ), 17, 14, 22 );
+		$this->controls['sidebarTitleSize'] = $this->number( 'style', esc_html__( 'Sidebar heading size (px)', 'pfh-widgets' ), 18, 14, 28 );
 		$this->controls['radius']    = $this->number( 'style', esc_html__( 'Picture radius (px)', 'pfh-widgets' ), 16, 0, 40 );
 
 		/* ---- layout ---- */
 
-		$this->controls['maxWidth'] = $this->number( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 1140, 600, 1600 );
-		$this->controls['measure']  = $this->number( 'layout', esc_html__( 'Article width (px)', 'pfh-widgets' ), 720, 480, 900 );
-		$this->controls['asideWidth'] = $this->number( 'layout', esc_html__( 'Contents width (px)', 'pfh-widgets' ), 260, 180, 360 );
-		$this->controls['padTop']   = $this->number( 'layout', esc_html__( 'Space above (px)', 'pfh-widgets' ), 40, 0, 200 );
+		$this->controls['maxWidth'] = $this->number( 'layout', esc_html__( 'Container width (px)', 'pfh-widgets' ), 1240, 600, 1600 );
+		$this->controls['measure']  = $this->number( 'layout', esc_html__( 'Article width (px)', 'pfh-widgets' ), 880, 480, 980 );
+		$this->controls['asideWidth'] = $this->number( 'layout', esc_html__( 'Sidebar width (px)', 'pfh-widgets' ), 320, 220, 420 );
+		$this->controls['columnGap'] = $this->number( 'layout', esc_html__( 'Space between columns (px)', 'pfh-widgets' ), 64, 16, 120 );
+		$this->controls['moduleGap'] = $this->number( 'layout', esc_html__( 'Space between sidebar sections (px)', 'pfh-widgets' ), 24, 8, 64 );
+		$this->controls['padTop']   = $this->number( 'layout', esc_html__( 'Space above (px)', 'pfh-widgets' ), 30, 0, 200 );
 		$this->controls['padBottom'] = $this->number( 'layout', esc_html__( 'Space below (px)', 'pfh-widgets' ), 88, 0, 200 );
+	}
+
+	/**
+	 * Default promise rows matching the approved storefront card.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function default_promises() {
+		return [
+			[ 'text' => '5 sterren op WebwinkelKeur', 'icon' => 'star', 'compact' => false ],
+			[ 'text' => 'De beste kwaliteit die er is', 'icon' => 'quality', 'compact' => false ],
+			[ 'text' => 'Gratis verzending vanaf € 59', 'icon' => 'delivery', 'compact' => false ],
+			[ 'text' => 'Retourneren binnen 30 dagen', 'icon' => 'returns', 'compact' => false ],
+			[ 'text' => 'iDEAL/WERO', 'icon' => 'check', 'compact' => true ],
+			[ 'text' => 'Bancontact', 'icon' => 'check', 'compact' => true ],
+			[ 'text' => 'PayPal', 'icon' => 'check', 'compact' => true ],
+			[ 'text' => 'Creditcard', 'icon' => 'check', 'compact' => true ],
+		];
 	}
 
 	/* ---- control helpers ---- */
@@ -169,6 +332,19 @@ class PFH_Element_Post extends \Bricks\Element {
 
 	private function number( $group, $label, $default, $min, $max ) {
 		return [ 'tab' => 'content', 'group' => $group, 'label' => $label, 'type' => 'number', 'min' => $min, 'max' => $max, 'inline' => true, 'default' => $default ];
+	}
+
+	/**
+	 * Stable id for this element instance.
+	 *
+	 * @return string
+	 */
+	private function uid() {
+		if ( null === $this->uid ) {
+			$this->uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfh-post-' );
+		}
+
+		return $this->uid;
 	}
 
 	/* ---------------------------------------------------------------------
@@ -193,6 +369,10 @@ class PFH_Element_Post extends \Bricks\Element {
 			$this->switched_on( 'showToc' ),
 			'h2' === $this->setting( 'tocDepth', 'h2h3' ) ? [ 'h2' ] : [ 'h2', 'h3' ]
 		);
+		$products = $this->switched_on( 'showProducts' ) ? $this->product_cards() : [];
+		$promises = $this->switched_on( 'showPromises' ) ? $this->promise_items() : [];
+		$show_cta = $this->switched_on( 'showCta' );
+		$sidebar  = $this->switched_on( 'showSearch' ) || ! empty( $article['toc'] ) || ! empty( $products ) || ! empty( $promises ) || $show_cta;
 
 		$this->set_attribute( '_root', 'class', [ 'pfh-post', 'pfh-scope' ] );
 		$this->set_attribute( '_root', 'style', $this->build_vars() );
@@ -207,10 +387,11 @@ class PFH_Element_Post extends \Bricks\Element {
 
 		$this->render_crumbs( $post );
 		$this->render_head( $post );
-		$this->render_hero( $post );
 
-		printf( '<div class="pfh-post__layout%s">', $article['toc'] ? '' : ' pfh-post__layout--wide' );
+		printf( '<div class="pfh-post__layout%s">', $sidebar ? '' : ' pfh-post__layout--wide' );
 		echo '<div class="pfh-post__main">';
+
+		$this->render_hero( $post );
 
 		printf( '<div class="pfh-post__body" data-pfh-post-body>%s</div>', $article['html'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the_content, already filtered.
 
@@ -220,8 +401,18 @@ class PFH_Element_Post extends \Bricks\Element {
 
 		echo '</div>';
 
-		if ( $article['toc'] ) {
-			$this->render_toc( $article['toc'] );
+		if ( $sidebar ) {
+			echo '<aside class="pfh-post__sidebar" aria-label="' . esc_attr__( 'Artikelhulpmiddelen en aanbevolen producten', 'pfh-widgets' ) . '">';
+			$this->render_search();
+
+			if ( $article['toc'] ) {
+				$this->render_toc( $article['toc'] );
+			}
+
+			$this->render_products( $products );
+			$this->render_promises( $promises );
+			$this->render_cta( $show_cta );
+			echo '</aside>';
 		}
 
 		echo '</div>';
@@ -360,10 +551,9 @@ class PFH_Element_Post extends \Bricks\Element {
 	private function render_toc( array $toc ) {
 		$title = trim( (string) $this->setting( 'tocTitle', '' ) );
 
-		// A <details> so a phone can fold it away; open, so a desktop sees it.
+		// Kept folded on every viewport so it never competes with the article.
 		printf(
-			'<details class="pfh-post__toc" open data-pfh-post-toc><summary>%s</summary><p class="pfh-post__toc-title">%s</p><ul class="pfh-post__toc-list">',
-			esc_html( $title ),
+			'<details class="pfh-post__toc" data-pfh-post-toc><summary>%s</summary><ul class="pfh-post__toc-list">',
 			esc_html( $title )
 		);
 
@@ -378,6 +568,123 @@ class PFH_Element_Post extends \Bricks\Element {
 		}
 
 		echo '</ul></details>';
+	}
+
+	/**
+	 * Search shortcut. The article script opens the search panel supplied by
+	 * the PFH header and lets the ordinary search URL work when JavaScript or
+	 * that header is not present.
+	 */
+	private function render_search() {
+		if ( ! $this->switched_on( 'showSearch' ) ) {
+			return;
+		}
+
+		$label    = PFH_Widgets_Helpers::dd( (string) $this->setting( 'searchLabel', '' ) );
+		$shortcut = trim( (string) $this->setting( 'searchShortcut', '' ) );
+
+		echo '<a class="pfh-post__search" href="' . esc_url( home_url( '/?s=' ) ) . '" data-pfh-post-search role="button" aria-haspopup="dialog" aria-keyshortcuts="Meta+K Control+K">';
+		echo PFH_Widgets_Icons::get( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+		echo '<span class="pfh-post__search-label">' . esc_html( $label ) . '</span>';
+
+		if ( '' !== $shortcut ) {
+			echo '<kbd class="pfh-post__search-shortcut" aria-hidden="true">' . esc_html( $shortcut ) . '</kbd>';
+		}
+
+		echo '</a>';
+	}
+
+	/**
+	 * @param array<int, WC_Product> $products Products.
+	 */
+	private function render_products( array $products ) {
+		if ( ! $products ) {
+			return;
+		}
+
+		$title      = PFH_Widgets_Helpers::dd( (string) $this->setting( 'productsTitle', '' ) );
+		$track_id   = 'pfh-post-products-' . $this->uid();
+		$heading_id = $track_id . '-title';
+
+		echo '<section class="pfh-post__products" aria-labelledby="' . esc_attr( $heading_id ) . '">';
+		echo '<div class="pfh-post__module-head">';
+		echo '<h2 id="' . esc_attr( $heading_id ) . '">' . esc_html( $title ) . '</h2>';
+
+		if ( $this->switched_on( 'productsArrows' ) && count( $products ) > 1 ) {
+			echo '<div class="pfh-post__slider-controls">';
+			printf(
+				'<button type="button" class="pfh-post__slider-button" data-pfh-post-products-direction="prev" aria-controls="%s" aria-label="%s">%s</button>',
+				esc_attr( $track_id ),
+				esc_attr__( 'Vorige producten', 'pfh-widgets' ),
+				PFH_Widgets_Icons::get( 'nav-left' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+			);
+			printf(
+				'<button type="button" class="pfh-post__slider-button" data-pfh-post-products-direction="next" aria-controls="%s" aria-label="%s">%s</button>',
+				esc_attr( $track_id ),
+				esc_attr__( 'Volgende producten', 'pfh-widgets' ),
+				PFH_Widgets_Icons::get( 'nav-right' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+			);
+			echo '</div>';
+		}
+
+		echo '</div>';
+		printf( '<div class="pfh-post__product-track" id="%s" data-pfh-post-products tabindex="0" aria-label="%s">', esc_attr( $track_id ), esc_attr( $title ) );
+
+		foreach ( $products as $product ) {
+			$this->render_product_card( $product );
+		}
+
+		echo '</div></section>';
+	}
+
+	/**
+	 * @param array<int, array<string, mixed>> $promises Promise rows.
+	 */
+	private function render_promises( array $promises ) {
+		if ( ! $promises ) {
+			return;
+		}
+
+		$title      = PFH_Widgets_Helpers::dd( (string) $this->setting( 'promisesTitle', '' ) );
+		$heading_id = 'pfh-post-promises-' . $this->uid();
+
+		echo '<section class="pfh-post__promises" aria-labelledby="' . esc_attr( $heading_id ) . '">';
+		echo '<h2 id="' . esc_attr( $heading_id ) . '">' . esc_html( $title ) . '</h2><ul>';
+
+		foreach ( $promises as $row ) {
+			$classes = ! empty( $row['compact'] ) ? ' class="is-compact"' : '';
+			echo '<li' . $classes . '><span class="pfh-post__promise-icon">' . $this->promise_icon( (string) $row['icon'] ) . '</span><span>' . esc_html( $row['text'] ) . '</span></li>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- icon is from the registry.
+		}
+
+		echo '</ul></section>';
+	}
+
+	/**
+	 * @param bool $show Whether the module is enabled.
+	 */
+	private function render_cta( $show ) {
+		if ( ! $show ) {
+			return;
+		}
+
+		$default_image = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/generated-image-6-1024x1024.webp';
+		$image         = PFH_Widgets_Helpers::image_url( $this->setting( 'ctaImage' ), 'large' );
+		$image         = $image ? $image : $default_image;
+		$shop          = function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'shop' ) : '';
+		$link          = PFH_Widgets_Helpers::link( $this->setting( 'ctaLink' ), $shop ? $shop : home_url( '/shop/' ) );
+		$heading_id    = 'pfh-post-cta-' . $this->uid();
+		$style         = '--pfh-po-cta-image:url("' . esc_url_raw( $image ) . '")';
+
+		echo '<section class="pfh-post__cta" aria-labelledby="' . esc_attr( $heading_id ) . '" style="' . esc_attr( $style ) . '">';
+		echo '<p class="pfh-post__cta-eyebrow">' . esc_html( PFH_Widgets_Helpers::dd( (string) $this->setting( 'ctaEyebrow', '' ) ) ) . '</p>';
+		echo '<h2 id="' . esc_attr( $heading_id ) . '">' . esc_html( PFH_Widgets_Helpers::dd( (string) $this->setting( 'ctaTitle', '' ) ) ) . '</h2>';
+		echo '<p class="pfh-post__cta-text">' . esc_html( PFH_Widgets_Helpers::dd( (string) $this->setting( 'ctaText', '' ) ) ) . '</p>';
+
+		if ( '' !== trim( (string) $this->setting( 'ctaButton', '' ) ) && '' !== $link['href'] ) {
+			echo '<a class="pfh-post__cta-button"' . PFH_Widgets_Helpers::link_attrs( $link ) . '><span>' . esc_html( PFH_Widgets_Helpers::dd( (string) $this->setting( 'ctaButton', '' ) ) ) . '</span>' . PFH_Widgets_Icons::get( 'arrow' ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes attributes and icon is static.
+		}
+
+		echo '</section>';
 	}
 
 	/**
@@ -528,6 +835,252 @@ class PFH_Element_Post extends \Bricks\Element {
 	}
 
 	/* ---------------------------------------------------------------------
+	 * Sidebar data
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * Clean the editable promises before rendering.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function promise_items() {
+		$rows = (array) $this->setting( 'promises', $this->default_promises() );
+		$out  = [];
+
+		foreach ( $rows as $row ) {
+			$text = isset( $row['text'] ) ? trim( PFH_Widgets_Helpers::dd( (string) $row['text'] ) ) : '';
+
+			if ( '' === $text ) {
+				continue;
+			}
+
+			$out[] = [
+				'text'    => $text,
+				'icon'    => isset( $row['icon'] ) ? sanitize_key( (string) $row['icon'] ) : 'check',
+				'compact' => ! empty( $row['compact'] ),
+			];
+		}
+
+		return $out;
+	}
+
+	/**
+	 * @param string $name Editor icon key.
+	 * @return string
+	 */
+	private function promise_icon( $name ) {
+		$icons = [
+			'star'     => 'star',
+			'quality'  => 'usp-natural',
+			'delivery' => 'usp-delivery',
+			'returns'  => 'box-check',
+			'check'    => 'check',
+		];
+
+		return PFH_Widgets_Icons::get( isset( $icons[ $name ] ) ? $icons[ $name ] : 'check' );
+	}
+
+	/**
+	 * Products selected by the article sidebar controls.
+	 *
+	 * @return array<int, WC_Product>
+	 */
+	private function product_cards() {
+		if ( ! PFH_Widgets_Helpers::has_woocommerce() || ! function_exists( 'wc_get_product' ) ) {
+			return [];
+		}
+
+		$query    = new WP_Query( $this->product_query_args() );
+		$products = [];
+
+		foreach ( $query->posts as $product_post ) {
+			$product = wc_get_product( $product_post );
+
+			if ( ! $product || ! is_callable( [ $product, 'is_visible' ] ) || ! $product->is_visible() ) {
+				continue;
+			}
+
+			$products[] = $product;
+		}
+
+		wp_reset_postdata();
+
+		return $products;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function product_query_args() {
+		$source = (string) $this->setting( 'productsSource', 'best' );
+		$limit  = max( 2, min( 12, (int) $this->setting( 'productsCount', 6 ) ) );
+		$args   = [
+			'post_type'           => 'product',
+			'post_status'         => 'publish',
+			'posts_per_page'      => $limit,
+			'no_found_rows'       => true,
+			'ignore_sticky_posts' => true,
+			'orderby'             => 'meta_value_num',
+			'order'               => 'DESC',
+			'meta_key'            => 'total_sales', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+		];
+
+		if ( taxonomy_exists( 'product_visibility' ) ) {
+			$args['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+				[
+					'taxonomy' => 'product_visibility',
+					'field'    => 'name',
+					'terms'    => [ 'exclude-from-catalog', 'outofstock' ],
+					'operator' => 'NOT IN',
+				],
+			];
+		}
+
+		switch ( $source ) {
+			case 'recent':
+				unset( $args['meta_key'] );
+				$args['orderby'] = 'date';
+				break;
+
+			case 'onsale':
+				$ids              = function_exists( 'wc_get_product_ids_on_sale' ) ? array_map( 'absint', wc_get_product_ids_on_sale() ) : [];
+				$args['post__in'] = $ids ? $ids : [ 0 ];
+				$args['orderby']  = 'post__in';
+				unset( $args['meta_key'], $args['order'] );
+				break;
+
+			case 'featured':
+				unset( $args['meta_key'] );
+				$args['orderby'] = 'menu_order title';
+				$args['order']   = 'ASC';
+				$args['tax_query'][] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+					'taxonomy' => 'product_visibility',
+					'field'    => 'name',
+					'terms'    => 'featured',
+				];
+				break;
+
+			case 'category':
+				$categories = PFH_Widgets_Helpers::category_ids( $this->setting( 'productsCategory' ) );
+
+				if ( $categories ) {
+					$args['tax_query'][] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+						'taxonomy'         => 'product_cat',
+						'field'            => 'term_id',
+						'terms'            => $categories,
+						'include_children' => true,
+					];
+				} else {
+					$args['post__in'] = [ 0 ];
+				}
+				break;
+
+			case 'ids':
+				$ids              = $this->product_ids( $this->setting( 'productIds', '' ) );
+				$args['post__in'] = $ids ? $ids : [ 0 ];
+				$args['orderby']  = 'post__in';
+				unset( $args['meta_key'], $args['order'] );
+				break;
+		}
+
+		/**
+		 * Filter products shown beside an article.
+		 *
+		 * @param array  $args   WP_Query arguments.
+		 * @param string $source Selected source.
+		 */
+		return apply_filters( 'pfh_widgets_post_products_args', $args, $source );
+	}
+
+	/**
+	 * @param mixed $value Comma separated ids.
+	 * @return int[]
+	 */
+	private function product_ids( $value ) {
+		$ids = array_map( 'absint', array_map( 'trim', explode( ',', (string) $value ) ) );
+
+		return array_values( array_filter( $ids ) );
+	}
+
+	/**
+	 * @param WC_Product $product Product.
+	 */
+	private function render_product_card( $product ) {
+		$title = (string) $product->get_name();
+		$link  = (string) $product->get_permalink();
+		$brand = $this->product_brand( (int) $product->get_id() );
+		$badge = $this->product_badge( $product );
+		$image = $product->get_image(
+			'woocommerce_thumbnail',
+			[
+				'loading'  => 'lazy',
+				'decoding' => 'async',
+				'alt'      => $title,
+			]
+		);
+
+		echo '<article class="pfh-post__product-card">';
+		echo '<a class="pfh-post__product-link" href="' . esc_url( $link ) . '" aria-label="' . esc_attr( $title ) . '">';
+		echo '<span class="pfh-post__product-media">';
+
+		if ( '' !== $badge ) {
+			echo '<span class="pfh-post__product-badge">' . esc_html( $badge ) . '</span>';
+		}
+
+		echo wp_kses_post( $image ) . '</span><span class="pfh-post__product-body">';
+
+		if ( '' !== $brand ) {
+			echo '<span class="pfh-post__product-brand">' . esc_html( $brand ) . '</span>';
+		}
+
+		echo '<span class="pfh-post__product-title">' . esc_html( $title ) . '</span>';
+		echo '<span class="pfh-post__product-price">' . wp_kses_post( $product->get_price_html() ) . '</span>';
+		echo '</span></a></article>';
+	}
+
+	/**
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	private function product_badge( $product ) {
+		if ( $product->is_on_sale() ) {
+			return trim( (string) $this->setting( 'saleLabel', '' ) );
+		}
+
+		$source = (string) $this->setting( 'productsSource', 'best' );
+
+		if ( 'recent' === $source ) {
+			return trim( (string) $this->setting( 'newLabel', '' ) );
+		}
+
+		return 'best' === $source ? trim( (string) $this->setting( 'bestsellerLabel', '' ) ) : '';
+	}
+
+	/**
+	 * Prefer a store brand taxonomy and fall back to the product category.
+	 *
+	 * @param int $product_id Product id.
+	 * @return string
+	 */
+	private function product_brand( $product_id ) {
+		foreach ( [ 'product_brand', 'pwb-brand', 'pa_merk', 'product_cat' ] as $taxonomy ) {
+			if ( ! taxonomy_exists( $taxonomy ) ) {
+				continue;
+			}
+
+			$terms = get_the_terms( $product_id, $taxonomy );
+
+			if ( $terms && ! is_wp_error( $terms ) ) {
+				$term = reset( $terms );
+
+				return $term instanceof WP_Term ? (string) $term->name : '';
+			}
+		}
+
+		return '';
+	}
+
+	/* ---------------------------------------------------------------------
 	 * Which article
 	 * ------------------------------------------------------------------ */
 
@@ -562,14 +1115,18 @@ class PFH_Element_Post extends \Bricks\Element {
 	private function build_vars() {
 		return PFH_Widgets_Helpers::css_vars(
 			[
-				'--pfh-po-max'         => PFH_Widgets_Helpers::unit( $this->setting( 'maxWidth', 1140 ) ),
-				'--pfh-po-measure-set' => PFH_Widgets_Helpers::unit( $this->setting( 'measure', 720 ) ),
-				'--pfh-po-aside-set'   => PFH_Widgets_Helpers::unit( $this->setting( 'asideWidth', 260 ) ),
-				'--pfh-po-pt-set'      => PFH_Widgets_Helpers::unit( $this->setting( 'padTop', 40 ) ),
+				'--pfh-po-max'         => PFH_Widgets_Helpers::unit( $this->setting( 'maxWidth', 1240 ) ),
+				'--pfh-po-measure-set' => PFH_Widgets_Helpers::unit( $this->setting( 'measure', 880 ) ),
+				'--pfh-po-aside-set'   => PFH_Widgets_Helpers::unit( $this->setting( 'asideWidth', 320 ) ),
+				'--pfh-po-gap-set'     => PFH_Widgets_Helpers::unit( $this->setting( 'columnGap', 64 ) ),
+				'--pfh-po-module-gap-set' => PFH_Widgets_Helpers::unit( $this->setting( 'moduleGap', 24 ) ),
+				'--pfh-po-pt-set'      => PFH_Widgets_Helpers::unit( $this->setting( 'padTop', 30 ) ),
 				'--pfh-po-pb-set'      => PFH_Widgets_Helpers::unit( $this->setting( 'padBottom', 88 ) ),
 				'--pfh-po-radius'      => PFH_Widgets_Helpers::unit( $this->setting( 'radius', 16 ) ),
-				'--pfh-po-title-set'   => PFH_Widgets_Helpers::unit( $this->setting( 'titleSize', 44 ) ),
+				'--pfh-po-title-set'   => PFH_Widgets_Helpers::unit( $this->setting( 'titleSize', 42 ) ),
+				'--pfh-po-title-mobile-set' => PFH_Widgets_Helpers::unit( $this->setting( 'titleSizeMobile', 32 ) ),
 				'--pfh-po-text-set'    => PFH_Widgets_Helpers::unit( $this->setting( 'textSize', 17 ) ),
+				'--pfh-po-sidebar-title-set' => PFH_Widgets_Helpers::unit( $this->setting( 'sidebarTitleSize', 18 ) ),
 				'--pfh-po-ink'         => PFH_Widgets_Helpers::color( $this->setting( 'ink' ), '#22301c' ),
 				'--pfh-po-body'        => PFH_Widgets_Helpers::color( $this->setting( 'bodyInk' ), '#43503f' ),
 				'--pfh-po-muted'       => PFH_Widgets_Helpers::color( $this->setting( 'mutedInk' ), '#8d9589' ),
@@ -577,6 +1134,25 @@ class PFH_Element_Post extends \Bricks\Element {
 				'--pfh-po-line'        => PFH_Widgets_Helpers::color( $this->setting( 'lineColor' ), '#eaeaea' ),
 				'--pfh-po-tag-bg'      => PFH_Widgets_Helpers::color( $this->setting( 'tagBg' ), '#dfe9dc' ),
 				'--pfh-po-tag-ink'     => PFH_Widgets_Helpers::color( $this->setting( 'tagInk' ), '#46603f' ),
+				'--pfh-po-search-bg'   => PFH_Widgets_Helpers::color( $this->setting( 'searchBg' ), '#ffffff' ),
+				'--pfh-po-search-ink'  => PFH_Widgets_Helpers::color( $this->setting( 'searchInk' ), '#7f897b' ),
+				'--pfh-po-search-border' => PFH_Widgets_Helpers::color( $this->setting( 'searchBorder' ), '#e4e8e1' ),
+				'--pfh-po-search-radius' => PFH_Widgets_Helpers::unit( $this->setting( 'searchRadius', 14 ) ),
+				'--pfh-po-product-bg'  => PFH_Widgets_Helpers::color( $this->setting( 'productBg' ), '#ffffff' ),
+				'--pfh-po-product-media' => PFH_Widgets_Helpers::color( $this->setting( 'productMediaBg' ), '#f6f1e7' ),
+				'--pfh-po-product-border' => PFH_Widgets_Helpers::color( $this->setting( 'productBorder' ), '#e3cbbd' ),
+				'--pfh-po-product-radius' => PFH_Widgets_Helpers::unit( $this->setting( 'productRadius', 16 ) ),
+				'--pfh-po-promises-bg' => PFH_Widgets_Helpers::color( $this->setting( 'promisesBg' ), '#f6f6f6' ),
+				'--pfh-po-promises-ink' => PFH_Widgets_Helpers::color( $this->setting( 'promisesInk' ), '#596b54' ),
+				'--pfh-po-promises-icon' => PFH_Widgets_Helpers::color( $this->setting( 'promisesIcon' ), '#83a07c' ),
+				'--pfh-po-promises-radius' => PFH_Widgets_Helpers::unit( $this->setting( 'promisesRadius', 24 ) ),
+				'--pfh-po-cta-top'     => PFH_Widgets_Helpers::color( $this->setting( 'ctaOverlayTop' ), 'rgba(34,48,28,.94)' ),
+				'--pfh-po-cta-bottom'  => PFH_Widgets_Helpers::color( $this->setting( 'ctaOverlayBottom' ), 'rgba(34,48,28,.12)' ),
+				'--pfh-po-cta-ink'     => PFH_Widgets_Helpers::color( $this->setting( 'ctaInk' ), '#ffffff' ),
+				'--pfh-po-cta-button-bg' => PFH_Widgets_Helpers::color( $this->setting( 'ctaButtonBg' ), '#ffffff' ),
+				'--pfh-po-cta-button-ink' => PFH_Widgets_Helpers::color( $this->setting( 'ctaButtonInk' ), '#22301c' ),
+				'--pfh-po-cta-height'  => PFH_Widgets_Helpers::unit( $this->setting( 'ctaHeight', 390 ) ),
+				'--pfh-po-cta-radius'  => PFH_Widgets_Helpers::unit( $this->setting( 'ctaRadius', 18 ) ),
 			]
 		);
 	}

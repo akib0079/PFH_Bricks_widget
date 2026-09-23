@@ -288,6 +288,7 @@
 	display: none;
 	width: 100%;
 	max-height: var(--pfh-bc-shot-max);
+	border-radius: 10px;
 	object-fit: contain;
 	object-position: right bottom;
 }
