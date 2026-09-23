@@ -79,6 +79,20 @@
 	overflow: hidden;
 }
 
+/*
+ * A soft, layered shadow: a hairline close to the card, a wider one that
+ * lifts it, and a long low one that reads as the card standing over the
+ * footer it overlaps. Tinted with the banner's own green rather than black,
+ * so it does not muddy the pale card. overflow: hidden clips what is inside
+ * the card, never its own shadow.
+ */
+.pfh-hl--shadow .pfh-hl__card {
+	box-shadow:
+		0 1px 2px rgba(34, 48, 28, .05),
+		0 10px 28px -8px rgba(34, 48, 28, .16),
+		0 30px 60px -24px rgba(34, 48, 28, .22);
+}
+
 .pfh-hl--media-left .pfh-hl__card {
 	flex-direction: row-reverse;
 	padding: var(--pfh-hl-py) var(--pfh-hl-px) var(--pfh-hl-py) 0;
@@ -264,7 +278,14 @@
  * off at the foot of the frame, so anchoring it anywhere else leaves a band
  * of its baked-in background floating above the card's own.
  */
+/*
+ * The picture never decides the banner's height: the copy does, and the
+ * picture fills whatever height that gives. Left in the flow, a tall product
+ * shot at half the banner's width asked for 800px and got it, and the card
+ * grew to match. Positioned inside the stretched media box, it cannot.
+ */
 .pfh-hl__media {
+	position: relative;
 	flex: 0 0 var(--pfh-hl-media-w);
 	align-self: stretch;
 	display: flex;
@@ -294,12 +315,45 @@
 }
 
 .pfh-hl__img {
+	position: absolute;
+	inset: 0;
 	width: 100%;
 	height: 100%;
 	border-radius: var(--pfh-hl-img-radius, 0);
 	object-fit: cover;
 	object-position: center bottom;
 	display: block;
+}
+
+/*
+ * A product shot is shown whole — the cap stays on the bottle — sitting in
+ * its half with room around it rather than touching the card's edges.
+ */
+.pfh-hl--fit-contain .pfh-hl__img {
+	box-sizing: border-box;
+	padding: clamp(20px, 3vw, 40px) var(--pfh-hl-px) clamp(20px, 3vw, 40px) clamp(8px, 1.5vw, 20px);
+	object-fit: contain;
+	object-position: center;
+}
+
+.pfh-hl--fit-contain.pfh-hl--media-left .pfh-hl__img {
+	padding-left: var(--pfh-hl-px);
+	padding-right: clamp(8px, 1.5vw, 20px);
+}
+
+/*
+ * A product shot on white, with the white taken out: multiplied, white
+ * becomes the card's own colour and the product stands on the banner rather
+ * than in a white box. The fade mask has to go for this to work — a mask
+ * isolates the picture, and it would then blend with nothing at all. With
+ * no white box there is no seam left for the fade to hide.
+ */
+.pfh-hl--multiply .pfh-hl__img { mix-blend-mode: multiply; }
+
+.pfh-hl--multiply.pfh-hl--blend .pfh-hl__media,
+.pfh-hl--multiply.pfh-hl--blend.pfh-hl--media-left .pfh-hl__media {
+	-webkit-mask-image: none;
+	mask-image: none;
 }
 
 /* ---------- builder placeholder ---------- */
@@ -345,17 +399,23 @@
 
 	.pfh-hl--media-left .pfh-hl__media { justify-content: center; }
 
-	.pfh-hl__img {
+	/* Stacked, the picture is back in the flow: here its height is wanted. */
+	.pfh-hl__img,
+	.pfh-hl--fit-contain .pfh-hl__img {
+		position: static;
 		width: auto;
 		max-width: 100%;
 		height: auto;
+		max-height: 320px;
+		padding: 0;
 		object-fit: contain;
 	}
 
+	.pfh-hl--fit-contain .pfh-hl__media { padding-bottom: var(--pfh-hl-py); }
+
 	.pfh-hl__text { max-width: none; }
 
-	.pfh-hl--blend .pfh-hl__media,
-	.pfh-hl--blend.pfh-hl--media-left .pfh-hl__media {
+	.pfh-hl--blend:not(.pfh-hl--multiply) .pfh-hl__media {
 		-webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--pfh-hl-fade, 14%));
 		mask-image: linear-gradient(to bottom, transparent 0, #000 var(--pfh-hl-fade, 14%));
 	}

@@ -71,6 +71,8 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		'imageBlend'  => true,
 		'imageFade'   => 14,
 		'imageSide'   => 'right',
+		'imageFit'    => 'auto',
+		'imageMultiply' => true,
 
 		// Button and link.
 		'btnLabel'    => '',
@@ -92,6 +94,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		'textSize'    => 14,
 		'priceSize'   => 24,
 		'ink'         => '#22301c',
+		'shadow'      => true,
 
 		// The category's own settings.
 		'fromCategory' => true,
@@ -120,6 +123,13 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * @var array|null
 	 */
 	private $offer = null;
+
+	/**
+	 * The picture being drawn, worked out once per render.
+	 *
+	 * @var array{url:string, alt:string, id:int}|null
+	 */
+	private $picture = null;
 
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-highlight';
@@ -377,6 +387,28 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			[ 'required' => [ 'imageBlend', '=', true ] ]
 		);
 
+		$this->controls['imageFit'] = [
+			'tab'         => 'content',
+			'group'       => 'media',
+			'label'       => esc_html__( 'Picture fit', 'pfh-widgets' ),
+			'type'        => 'select',
+			'inline'      => true,
+			'options'     => [
+				'auto'    => esc_html__( 'Automatic', 'pfh-widgets' ),
+				'cover'   => esc_html__( 'Fill the space', 'pfh-widgets' ),
+				'contain' => esc_html__( 'Show the whole picture', 'pfh-widgets' ),
+			],
+			'default'     => self::DEFAULTS['imageFit'],
+			'description' => esc_html__( 'Automatic fills the space with a wide photograph and shows a tall or square product shot whole, so bottles and jars are never cut off. Either way the banner\'s height follows its text, not the picture.', 'pfh-widgets' ),
+		];
+
+		$this->controls['imageMultiply'] = $this->switch_field(
+			'media',
+			esc_html__( 'Blend a white background into the card', 'pfh-widgets' ),
+			'imageMultiply',
+			[ 'description' => esc_html__( 'For a product shot on white: the white takes the card\'s colour, so the product stands on the banner instead of in a white box. Applies when the whole picture is shown.', 'pfh-widgets' ) ]
+		);
+
 		$this->controls['imageSide'] = [
 			'tab'     => 'content',
 			'group'   => 'media',
@@ -454,6 +486,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		$this->controls['textSize']    = $this->number_field( 'style', esc_html__( 'Description size (px)', 'pfh-widgets' ), 'textSize', 10, 24 );
 		$this->controls['priceSize']   = $this->number_field( 'style', esc_html__( 'Price size (px)', 'pfh-widgets' ), 'priceSize', 14, 48 );
 		$this->controls['ink']         = $this->colour_field( 'style', esc_html__( 'Text colour', 'pfh-widgets' ), 'ink' );
+		$this->controls['shadow']      = $this->switch_field( 'style', esc_html__( 'Shadow under the card', 'pfh-widgets' ), 'shadow' );
 	}
 
 	private function layout_controls() {
@@ -498,11 +531,24 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			$this->offer = $own ? PFH_Widgets_Collection::offer( (int) $own['product'], (string) $own['saving'] ) : null;
 		}
 
+		$this->picture = $this->image();
+
+		$fit = $this->fit( $this->picture );
+
 		$classes = [
 			'pfh-hl',
 			'pfh-scope',
 			'pfh-hl--media-' . $this->choice( 'imageSide', [ 'right', 'left' ] ),
+			'pfh-hl--fit-' . $fit,
 		];
+
+		if ( 'contain' === $fit && $this->flag( 'imageMultiply' ) ) {
+			$classes[] = 'pfh-hl--multiply';
+		}
+
+		if ( $this->flag( 'shadow' ) ) {
+			$classes[] = 'pfh-hl--shadow';
+		}
 
 		if ( $this->number( 'overlap' ) > 0 ) {
 			$classes[] = 'pfh-hl--overlaps';
@@ -677,7 +723,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	}
 
 	private function render_media() {
-		$image = $this->image();
+		$image = $this->picture ? $this->picture : $this->image();
 
 		printf(
 			'<div class="pfh-hl__media"><img class="pfh-hl__img" src="%s" alt="%s" loading="lazy" decoding="async" /></div>',
@@ -839,6 +885,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 				return [
 					'url' => $url,
 					'alt' => '' !== $alt ? $alt : ( $this->offer ? $this->offer['name'] : '' ),
+					'id'  => (int) $this->own['image'],
 				];
 			}
 		}
@@ -847,6 +894,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			return [
 				'url' => $this->offer['image'],
 				'alt' => $this->offer['name'],
+				'id'  => isset( $this->offer['image_id'] ) ? (int) $this->offer['image_id'] : 0,
 			];
 		}
 
@@ -877,7 +925,37 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		return [
 			'url' => $url,
 			'alt' => $alt,
+			'id'  => (int) $id,
 		];
+	}
+
+	/**
+	 * How the picture sits in its half of the banner.
+	 *
+	 * The supplied photograph is a wide scene made to fill that half, and a
+	 * scene can lose a strip off its edges without anyone noticing. A product
+	 * shot is tall or square — a bottle, a jar — and cropping it cuts the cap
+	 * off the bottle. So a wide picture fills and anything else is shown
+	 * whole, unless the panel says otherwise. A picture whose size is not
+	 * known is treated as the supplied photograph was: it fills.
+	 *
+	 * @param array $picture From image().
+	 * @return string 'cover' or 'contain'.
+	 */
+	private function fit( array $picture ) {
+		$chosen = $this->choice( 'imageFit', [ 'auto', 'cover', 'contain' ] );
+
+		if ( 'auto' !== $chosen ) {
+			return $chosen;
+		}
+
+		$meta = ! empty( $picture['id'] ) ? wp_get_attachment_metadata( (int) $picture['id'] ) : [];
+
+		if ( empty( $meta['width'] ) || empty( $meta['height'] ) ) {
+			return 'cover';
+		}
+
+		return ( (int) $meta['width'] / (int) $meta['height'] ) >= 1.15 ? 'cover' : 'contain';
 	}
 
 	private function build_vars() {

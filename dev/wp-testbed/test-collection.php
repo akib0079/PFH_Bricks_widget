@@ -318,6 +318,50 @@ $bundle = draw( 'PFH_Element_Highlight' );
 ok( 'a product not on sale shows no old price', false === strpos( $bundle, 'pfh-hl__price-was' ), 'product ' . $full[0] );
 ok( '  and no saving — not even the typed one', false === strpos( $bundle, 'Bespaar' ) );
 
+echo "\n── how the picture sits ──\n";
+
+require_once ABSPATH . 'wp-admin/includes/image.php';
+
+/**
+ * A picture of the given size, attached to nothing.
+ */
+function picture( $w, $h ) {
+	$dir  = WP_CONTENT_DIR . '/uploads/pfh-fit';
+	wp_mkdir_p( $dir );
+	$file = $dir . "/shot-{$w}x{$h}.jpg";
+	$im   = imagecreatetruecolor( $w, $h );
+	imagefill( $im, 0, 0, imagecolorallocate( $im, 255, 255, 255 ) );
+	imagejpeg( $im, $file, 80 );
+	$id = wp_insert_attachment( [ 'post_title' => 'fit', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit' ], $file );
+	wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
+
+	return $id;
+}
+
+$tall = picture( 600, 800 );
+$wide = picture( 1200, 700 );
+
+update_term_meta( $term->term_id, PFH_Widgets_Collection::META, PFH_Widgets_Collection::clean( [ 'bundle' => [ 'image' => (string) $tall ] ] ) );
+$shot = draw( 'PFH_Element_Highlight' );
+
+ok( 'a tall product shot is shown whole, not cropped', false !== strpos( $shot, 'pfh-hl--fit-contain' ) );
+ok( '  with its white background taken into the card', false !== strpos( $shot, 'pfh-hl--multiply' ) );
+ok( '  unless that is switched off', false === strpos( draw( 'PFH_Element_Highlight', [ 'imageMultiply' => false ] ), 'pfh-hl--multiply' ) );
+ok( '  and the panel can still say fill', false !== strpos( draw( 'PFH_Element_Highlight', [ 'imageFit' => 'cover' ] ), 'pfh-hl--fit-cover' ) );
+
+update_term_meta( $term->term_id, PFH_Widgets_Collection::META, PFH_Widgets_Collection::clean( [ 'bundle' => [ 'image' => (string) $wide ] ] ) );
+ok( 'a wide scene fills its half', false !== strpos( draw( 'PFH_Element_Highlight' ), 'pfh-hl--fit-cover' ) );
+
+delete_term_meta( $term->term_id, PFH_Widgets_Collection::META );
+$default = draw( 'PFH_Element_Highlight' );
+
+ok( 'the supplied photograph fills, as designed', false !== strpos( $default, 'pfh-hl--fit-cover' ) && false === strpos( $default, 'pfh-hl--multiply' ) );
+ok( 'the card has its shadow', false !== strpos( $default, 'pfh-hl--shadow' ) );
+ok( '  which can be turned off', false === strpos( draw( 'PFH_Element_Highlight', [ 'shadow' => false ] ), 'pfh-hl--shadow' ) );
+
+wp_delete_attachment( $tall, true );
+wp_delete_attachment( $wide, true );
+
 wp_trash_post( $sale );
 update_term_meta( $term->term_id, PFH_Widgets_Collection::META, PFH_Widgets_Collection::clean( [ 'bundle' => [ 'product' => (string) $sale ] ] ) );
 wp_untrash_post( $sale );

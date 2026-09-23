@@ -195,22 +195,30 @@ class PFH_Widgets_Collection {
 			);
 		}
 
-		$image = '';
+		/*
+		 * The product's cut-out for the bottom reminder when it has one, else
+		 * its featured image. The id travels with the URL so the banner can
+		 * read the picture's proportions and decide how to fit it.
+		 */
+		$image_id = class_exists( 'PFH_Widgets_Product_Fields' )
+			? (int) get_post_meta( $product->get_id(), PFH_Widgets_Product_Fields::BOTTOM_IMAGE, true )
+			: 0;
 
-		if ( class_exists( 'PFH_Widgets_Product_Fields' ) ) {
-			$image = PFH_Widgets_Product_Fields::bottom_image( $product->get_id(), 'large' );
-		} elseif ( $product->get_image_id() ) {
-			$image = (string) wp_get_attachment_image_url( $product->get_image_id(), 'large' );
+		if ( ! $image_id || ! wp_get_attachment_image_url( $image_id, 'large' ) ) {
+			$image_id = (int) $product->get_image_id();
 		}
 
+		$image = $image_id ? (string) wp_get_attachment_image_url( $image_id, 'large' ) : '';
+
 		return [
-			'id'     => $product->get_id(),
-			'name'   => $product->get_name(),
-			'url'    => (string) get_permalink( $product->get_id() ),
-			'now'    => $now > 0 ? self::money( $now ) : '',
-			'was'    => $on_sale ? self::money( $was ) : '',
-			'saving' => $line,
-			'image'  => $image,
+			'id'       => $product->get_id(),
+			'name'     => $product->get_name(),
+			'url'      => (string) get_permalink( $product->get_id() ),
+			'now'      => $now > 0 ? self::money( $now ) : '',
+			'was'      => $on_sale ? self::money( $was ) : '',
+			'saving'   => $line,
+			'image'    => $image,
+			'image_id' => $image ? $image_id : 0,
 		];
 	}
 
