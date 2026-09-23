@@ -335,6 +335,17 @@ class PFH_Element_Product_Grid extends \Bricks\Element {
 			'default' => 18,
 		];
 
+		$this->controls['shotRadius'] = [
+			'tab'         => 'content',
+			'group'       => 'card',
+			'label'       => esc_html__( 'Picture corner radius (px)', 'pfh-widgets' ),
+			'type'        => 'number',
+			'min'         => 0,
+			'max'         => 40,
+			'inline'      => true,
+			'description' => esc_html__( 'The corners of the product photograph itself, inside its box. Leave empty and it follows the box\'s own radius, a little tighter, which is how nested corners stay concentric.', 'pfh-widgets' ),
+		];
+
 		$this->controls['mediaRatio'] = [
 			'tab'     => 'content',
 			'group'   => 'card',
@@ -597,6 +608,7 @@ class PFH_Element_Product_Grid extends \Bricks\Element {
 
 				'--pfh-media-bg'       => PFH_Widgets_Helpers::color( $this->get( 'mediaBg' ), '#f4f4f4' ),
 				'--pfh-media-radius'   => PFH_Widgets_Helpers::unit( $this->get( 'mediaRadius', 18 ) ),
+				'--pfh-shot-radius-set' => PFH_Widgets_Helpers::unit( $this->get( 'shotRadius', '' ) ),
 				'--pfh-media-ratio'    => $this->get( 'mediaRatio', '310 / 358' ),
 				'--pfh-media-pad-set'  => PFH_Widgets_Helpers::unit( $this->get( 'mediaPadding', 26 ) ),
 				'--pfh-gap-1'          => PFH_Widgets_Helpers::unit( $this->get( 'gapMediaMeta', 14 ) ),

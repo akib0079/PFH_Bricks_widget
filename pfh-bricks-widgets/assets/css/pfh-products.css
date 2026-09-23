@@ -30,6 +30,15 @@
 
 	--pfh-media-bg: #f4f4f4;
 	--pfh-media-radius: 18px;
+	/*
+	 * The photograph's own corners, inside the box. A packshot on white is a
+	 * hard white rectangle sitting in a soft grey tile, and square corners
+	 * inside round ones look unfinished. By default it follows the box,
+	 * tighter — nested corners read as concentric when the inner radius is
+	 * the smaller one — within limits that keep a tiny thumbnail from going
+	 * round and a big one from going square.
+	 */
+	--pfh-shot-radius: var(--pfh-shot-radius-set, clamp(8px, calc(var(--pfh-media-radius) * .7), 14px));
 	--pfh-media-ratio: 310 / 358;
 	--pfh-media-pad: var(--pfh-media-pad-set, 26px);
 	/*
@@ -272,6 +281,9 @@
 	max-height: 100%;
 	width: auto;
 	height: auto;
+	/* Sized to the picture, not letterboxed in a box, so the radius lands on
+	   the photograph's corners rather than on empty space around it. */
+	border-radius: var(--pfh-shot-radius);
 	object-fit: contain;
 	transition: transform var(--pfh-speed) var(--pfh-ease);
 }

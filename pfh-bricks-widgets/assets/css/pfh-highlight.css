@@ -392,17 +392,28 @@
 /*
  * A product shot is shown whole — the cap stays on the bottle — sitting in
  * its half with room around it rather than touching the card's edges.
+ *
+ * Sized to the photograph and centred in the space, rather than stretched
+ * over it and letterboxed: that way the rounded corners land on the picture
+ * itself. On a letterboxed image they rounded an invisible box, and a shot
+ * with its own background kept four hard corners.
  */
 .pfh-hl--fit-contain .pfh-hl__img {
-	box-sizing: border-box;
-	padding: clamp(20px, 3vw, 40px) var(--pfh-hl-px) clamp(20px, 3vw, 40px) clamp(8px, 1.5vw, 20px);
+	--pfh-hl-shot-y: clamp(20px, 3vw, 40px);
+	--pfh-hl-shot-in: clamp(8px, 1.5vw, 20px);
+
+	inset: var(--pfh-hl-shot-y) var(--pfh-hl-px) var(--pfh-hl-shot-y) var(--pfh-hl-shot-in);
+	width: auto;
+	height: auto;
+	max-width: calc(100% - var(--pfh-hl-px) - var(--pfh-hl-shot-in));
+	max-height: calc(100% - (var(--pfh-hl-shot-y) * 2));
+	margin: auto;
+	border-radius: max(var(--pfh-hl-img-radius, 0px), 16px);
 	object-fit: contain;
-	object-position: center;
 }
 
 .pfh-hl--fit-contain.pfh-hl--media-left .pfh-hl__img {
-	padding-left: var(--pfh-hl-px);
-	padding-right: clamp(8px, 1.5vw, 20px);
+	inset: var(--pfh-hl-shot-y) var(--pfh-hl-shot-in) var(--pfh-hl-shot-y) var(--pfh-hl-px);
 }
 
 /*
@@ -471,9 +482,12 @@
 		max-width: 100%;
 		height: auto;
 		max-height: 320px;
+		margin: 0;
 		padding: 0;
 		object-fit: contain;
 	}
+
+	.pfh-hl--fit-contain .pfh-hl__img { border-radius: 14px; }
 
 	.pfh-hl--fit-contain .pfh-hl__media { padding-bottom: var(--pfh-hl-py); }
 

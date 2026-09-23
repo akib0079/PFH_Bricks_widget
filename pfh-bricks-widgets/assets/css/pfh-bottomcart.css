@@ -284,13 +284,20 @@
 	min-width: 0;
 }
 
+/*
+ * Sized to the photograph rather than stretched across the column and
+ * letterboxed: the radius then rounds the picture itself. It used to round
+ * an invisible box, and a packshot on white showed four hard corners. The
+ * column's flex alignment keeps it at the bottom right, as before.
+ */
 .pfh-bcart__shot {
 	display: none;
-	width: 100%;
+	width: auto;
+	height: auto;
+	max-width: 100%;
 	max-height: var(--pfh-bc-shot-max);
-	border-radius: 10px;
+	border-radius: 14px;
 	object-fit: contain;
-	object-position: right bottom;
 }
 
 /* The script swaps this class when a variant brings its own photograph. */

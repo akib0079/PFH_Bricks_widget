@@ -686,6 +686,17 @@ class PFH_Element_Archive extends \Bricks\Element {
 			'default' => 10,
 		];
 
+		$this->controls['shotRadius'] = [
+			'tab'         => 'content',
+			'group'       => 'card',
+			'label'       => esc_html__( 'Picture corner radius (px)', 'pfh-widgets' ),
+			'type'        => 'number',
+			'min'         => 0,
+			'max'         => 40,
+			'inline'      => true,
+			'description' => esc_html__( 'The corners of the product photograph itself, inside its box. Leave empty and it follows the box\'s own radius, a little tighter, which is how nested corners stay concentric.', 'pfh-widgets' ),
+		];
+
 		$this->controls['cardRatio'] = [
 			'tab'     => 'content',
 			'group'   => 'card',
@@ -1729,6 +1740,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 				 * inside a 310/358 box — showed through on the grid instead.
 				 */
 				'--pfh-media-radius'  => PFH_Widgets_Helpers::unit( $this->get( 'cardRadius', 10 ) ),
+				'--pfh-shot-radius-set' => PFH_Widgets_Helpers::unit( $this->get( 'shotRadius', '' ) ),
 				'--pfh-media-ratio'   => (string) $this->get( 'cardRatio', '255 / 285' ),
 				'--pfh-media-bg'      => PFH_Widgets_Helpers::color( $this->get( 'cardImageBg' ), '#f4f6f3' ),
 				'--pfh-media-pad-set' => PFH_Widgets_Helpers::unit( $this->get( 'cardImagePad', 10 ) ),
