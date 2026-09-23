@@ -2,9 +2,11 @@
 /**
  * The recently viewed slider.
  *
- * Two things matter beyond "it renders": with nothing viewed it must show
- * nothing at all, and a visitor's history must never be able to end up in a
- * cached page that another visitor is then served.
+ * Two things matter beyond "it renders": with nothing viewed it must never
+ * show an empty rail or pass the best sellers off as history — it shows them
+ * under their own heading, or, switched to "nothing", nothing at all — and a
+ * visitor's history must never be able to end up in a cached page that
+ * another visitor is then served.
  */
 require __DIR__ . '/wp-load.php';
 require_once WP_PLUGIN_DIR . '/pfh-bricks-widgets/elements/class-pfh-element-products.php';
@@ -34,22 +36,28 @@ function recent( array $over = [] ) {
 
 $ids = get_posts( [ 'post_type' => 'product', 'numberposts' => 4, 'fields' => 'ids' ] );
 
-echo "── nothing viewed, nothing shown ──\n";
+echo "── nothing viewed: the best sellers, under their own heading ──\n";
 unset( $_COOKIE['woocommerce_recently_viewed'] );
 $html = recent( [ 'deferred' => false ] );
+ok( 'a first visit gets products, not a gap', false !== strpos( $html, 'pfh-prod__card' ), substr( trim( $html ), 0, 80 ) );
+ok( 'they are not passed off as history', false === strpos( $html, 'Recently' ) && false !== strpos( $html, 'popular' ) );
+
+echo "── nothing viewed, switched to nothing ──\n";
+$none = [ 'deferred' => false, 'fallback' => 'none' ];
+$html = recent( $none );
 ok( 'renders absolutely nothing', '' === trim( $html ), substr( trim( $html ), 0, 80 ) );
 ok( 'no heading leaks out', false === strpos( $html, 'Recently' ) );
 ok( 'no empty slider rail', false === strpos( $html, 'pfh-prod__track' ) );
 
 echo "── an empty cookie is the same as no cookie ──\n";
 $_COOKIE['woocommerce_recently_viewed'] = '';
-ok( 'still nothing', '' === trim( recent( [ 'deferred' => false ] ) ) );
+ok( 'still nothing', '' === trim( recent( $none ) ) );
 
 $_COOKIE['woocommerce_recently_viewed'] = '|||';
-ok( 'a cookie of separators is still nothing', '' === trim( recent( [ 'deferred' => false ] ) ) );
+ok( 'a cookie of separators is still nothing', '' === trim( recent( $none ) ) );
 
 $_COOKIE['woocommerce_recently_viewed'] = '999999';
-ok( 'an id that is not a product is nothing', '' === trim( recent( [ 'deferred' => false ] ) ) );
+ok( 'an id that is not a product is nothing', '' === trim( recent( $none ) ) );
 
 echo "\n── with a history it shows those products, newest first ──\n";
 $_COOKIE['woocommerce_recently_viewed'] = implode( '|', $ids );   // newest last, as Woo writes it

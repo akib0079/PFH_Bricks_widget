@@ -56,6 +56,15 @@ class PFH_Element_Notice extends \Bricks\Element {
 	}
 
 	public function set_controls() {
+		$this->controls['fromCategory'] = [
+			'tab'         => 'content',
+			'group'       => 'content',
+			'label'       => esc_html__( 'Follow each category\'s own settings', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'On a category page, the category can hide this band or replace any of its words (Products → Categories → edit → Collection page). What it leaves empty keeps the text below.', 'pfh-widgets' ),
+		];
+
 		$this->controls['title'] = [
 			'tab'     => 'content',
 			'group'   => 'content',
@@ -237,9 +246,28 @@ class PFH_Element_Notice extends \Bricks\Element {
 	public function render() {
 		$this->apply_design_revision( $this->previous_defaults() );
 
+		/*
+		 * The category's own say comes first: it can hide the band, and any
+		 * field it filled in replaces the one set here. Anything it left
+		 * empty is the fallback — this element, as it is set up in Bricks.
+		 */
+		$own = $this->is_on( 'fromCategory' ) && class_exists( 'PFH_Widgets_Collection' )
+			? PFH_Widgets_Collection::section( 'inspire' )
+			: null;
+
+		if ( $own && ! empty( $own['hide'] ) ) {
+			return;
+		}
+
 		$title = trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'title', '' ) ) );
 		$text  = trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'text', '' ) ) );
 		$label = trim( (string) $this->get( 'btnLabel', '' ) );
+
+		if ( $own ) {
+			$title = '' !== $own['title'] ? $own['title'] : $title;
+			$text  = '' !== $own['text'] ? $own['text'] : $text;
+			$label = '' !== $own['label'] ? $own['label'] : $label;
+		}
 
 		if ( '' === $title && '' === $text && '' === $label ) {
 			return;
@@ -277,7 +305,12 @@ class PFH_Element_Notice extends \Bricks\Element {
 
 		if ( '' !== $label ) {
 			$link = PFH_Widgets_Helpers::link( $this->get( 'btnLink' ) );
-			$tag  = $link['href'] ? 'a' : 'span';
+
+			if ( $own && '' !== $own['url'] ) {
+				$link = [ 'href' => $own['url'], 'target' => '', 'rel' => '', 'aria' => '' ];
+			}
+
+			$tag = $link['href'] ? 'a' : 'span';
 
 			printf(
 				'<%1$s class="pfh-notice__btn"%2$s>%3$s%4$s</%1$s>',

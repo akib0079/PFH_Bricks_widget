@@ -6,8 +6,9 @@
  * one had been looking at. The placeholder ships empty and hidden and this
  * asks the server for that visitor's own slider.
  *
- * Nothing viewed means nothing returned, and the placeholder simply stays
- * hidden: no heading, no empty rail, no layout shift.
+ * Nothing viewed means the best sellers come back instead, under their own
+ * heading — or, where that is switched off, nothing does and the placeholder
+ * simply stays hidden: no heading, no empty rail, no layout shift.
  */
 ( function () {
 	'use strict';
@@ -42,6 +43,7 @@
 		body.set( 'action', 'pfh_recent' );
 		body.set( 'nonce', c.nonce || '' );
 		body.set( 'element', id );
+		body.set( 'exclude', host.getAttribute( 'data-pfh-recent-exclude' ) || '0' );
 
 		window.fetch( c.ajaxUrl, {
 			method: 'POST',

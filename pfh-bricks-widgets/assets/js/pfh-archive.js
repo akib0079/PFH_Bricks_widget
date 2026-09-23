@@ -176,6 +176,9 @@
 		body.set( 'action', 'pfh_archive' );
 		body.set( 'nonce', cfg.nonce || '' );
 		body.set( 'element', this.id );
+		// Which category this page is, signed by the server. Without it the
+		// request cannot know: admin-ajax.php is not a category page.
+		body.set( 'pfh_ctx', this.root.getAttribute( 'data-pfh-arch-ctx' ) || '' );
 
 		this.busy( true );
 
@@ -549,12 +552,106 @@
 		} );
 	};
 
+	/* ------------------------------------------------------------------
+	 * The category track
+	 * --------------------------------------------------------------- */
+
+	/**
+	 * Say when there are more categories than the row shows.
+	 *
+	 * Measured rather than assumed: a class goes on for each side that has
+	 * something behind it, and the fade and the arrow for that side follow.
+	 * A row whose categories all fit gets neither. Independent of the
+	 * filter request, so it works with or without the AJAX layer.
+	 */
+	function cats( wrap ) {
+		var track = wrap.querySelector( '[data-pfh-cats-track]' );
+		var prev = wrap.querySelector( '[data-pfh-cats-prev]' );
+		var next = wrap.querySelector( '[data-pfh-cats-next]' );
+
+		if ( ! track ) {
+			return;
+		}
+
+		var smooth = ! ( window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches );
+
+		function measure() {
+			// A pixel of slack either way: fractional widths never quite meet.
+			var left = track.scrollLeft > 1;
+			var right = track.scrollLeft + track.clientWidth < track.scrollWidth - 1;
+
+			wrap.classList.toggle( 'can-prev', left );
+			wrap.classList.toggle( 'can-next', right );
+		}
+
+		function step( direction ) {
+			var by = Math.max( 120, track.clientWidth * 0.7 ) * direction;
+
+			if ( track.scrollBy ) {
+				track.scrollBy( { left: by, behavior: smooth ? 'smooth' : 'auto' } );
+			} else {
+				track.scrollLeft += by;
+			}
+		}
+
+		if ( prev ) {
+			prev.addEventListener( 'click', function () {
+				step( -1 );
+			} );
+		}
+
+		if ( next ) {
+			next.addEventListener( 'click', function () {
+				step( 1 );
+			} );
+		}
+
+		/*
+		 * The category being viewed may sit past the edge — the ninth of
+		 * twelve on a phone. Bring it into the middle on arrival, without
+		 * animating, so the page opens showing where the visitor is.
+		 */
+		var active = track.querySelector( '.is-active' );
+
+		if ( active && active.offsetLeft + active.offsetWidth > track.clientWidth ) {
+			var before = track.style.scrollBehavior;
+
+			track.style.scrollBehavior = 'auto';
+			track.scrollLeft = active.offsetLeft - ( track.clientWidth - active.offsetWidth ) / 2;
+			track.style.scrollBehavior = before;
+		}
+
+		track.addEventListener( 'scroll', measure, { passive: true } );
+		window.addEventListener( 'resize', measure, { passive: true } );
+
+		// Web fonts change every pill's width once they land.
+		if ( document.fonts && document.fonts.ready ) {
+			document.fonts.ready.then( measure );
+		}
+
+		if ( 'ResizeObserver' in window ) {
+			new window.ResizeObserver( measure ).observe( track );
+		}
+
+		measure();
+	}
+
 	function start() {
 		Array.prototype.forEach.call(
 			document.querySelectorAll( '[data-pfh-archive]' ),
 			function ( root ) {
 				if ( ! root.pfhArchive ) {
 					root.pfhArchive = new Archive( root );
+				}
+			}
+		);
+
+		Array.prototype.forEach.call(
+			document.querySelectorAll( '[data-pfh-arch-cats]' ),
+			function ( wrap ) {
+				if ( ! wrap.pfhCats ) {
+					wrap.pfhCats = true;
+					cats( wrap );
 				}
 			}
 		);

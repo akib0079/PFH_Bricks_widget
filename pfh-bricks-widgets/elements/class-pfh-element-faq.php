@@ -61,6 +61,15 @@ class PFH_Element_Faq extends \Bricks\Element {
 	}
 
 	public function set_controls() {
+		$this->controls['fromCategory'] = [
+			'tab'         => 'content',
+			'group'       => 'items',
+			'label'       => esc_html__( 'Follow each category\'s own settings', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'On a category page, the category can hide these questions or give its own (Products → Categories → edit → Collection page). A category with none of its own shows the questions set here.', 'pfh-widgets' ),
+		];
+
 		$this->controls['title'] = [
 			'tab'     => 'content',
 			'group'   => 'head',
@@ -389,6 +398,12 @@ class PFH_Element_Faq extends \Bricks\Element {
 	public function render() {
 		$this->apply_design_revision( $this->previous_defaults() );
 
+		$own = $this->category();
+
+		if ( $own && ! empty( $own['hide'] ) ) {
+			return;
+		}
+
 		$items = $this->items();
 
 		if ( ! $items ) {
@@ -419,6 +434,10 @@ class PFH_Element_Faq extends \Bricks\Element {
 		echo '<div class="pfh-faq__inner">';
 
 		$title = trim( PFH_Widgets_Helpers::dd( (string) $this->get( 'title', '' ) ) );
+
+		if ( $own && '' !== $own['title'] ) {
+			$title = $own['title'];
+		}
 
 		if ( '' !== $title ) {
 			$tag = in_array( (string) $this->get( 'titleTag', 'h2' ), [ 'h2', 'h3', 'h4' ], true )
@@ -621,7 +640,37 @@ class PFH_Element_Faq extends \Bricks\Element {
 			}
 		}
 
-		return $own ? $own : (array) $this->get( 'items', [] );
+		if ( $own ) {
+			return $own;
+		}
+
+		// Then the category's, on a category page.
+		$category = $this->category();
+
+		if ( $category && ! empty( $category['items'] ) ) {
+			$rows = [];
+
+			foreach ( $category['items'] as $item ) {
+				$rows[] = [ 'q' => $item['q'], 'a' => wpautop( $item['a'] ) ];
+			}
+
+			return $rows;
+		}
+
+		return (array) $this->get( 'items', [] );
+	}
+
+	/**
+	 * The category's own questions and switch, when this follows them.
+	 *
+	 * @return array|null
+	 */
+	private function category() {
+		if ( ! $this->is_on( 'fromCategory' ) || ! class_exists( 'PFH_Widgets_Collection' ) ) {
+			return null;
+		}
+
+		return PFH_Widgets_Collection::section( 'faq' );
 	}
 
 	private function get( $key, $default = null ) {

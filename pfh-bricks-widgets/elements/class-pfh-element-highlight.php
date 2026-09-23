@@ -7,10 +7,16 @@
  * a photograph that runs to the card's edge. Built to sit directly above the
  * footer and hang over it.
  *
- * It is static on purpose. Every word, price and link is typed into the panel
- * and printed as typed: no product lookup, no WooCommerce, no dynamic data, no
- * queries. There is nothing here that can fail during a save, or come out
- * differently on the page than it did in the builder.
+ * In the builder it is static on purpose. Every word, price and link is typed
+ * into the panel and printed as typed: no product lookup, no dynamic data, no
+ * queries. There is nothing here that can fail during a save.
+ *
+ * On a category page the category can take it over, from its own edit screen
+ * (PFH_Widgets_Collection): hide it, reword any part of it, and tie it to one
+ * product — which then supplies the price, the saving, the picture and the
+ * link, so the offer can never go stale against the shop. Whatever the
+ * category leaves empty is what is typed here. That happens at render only,
+ * on the live page, and a product that has gone away simply falls back.
  *
  * Two rules keep it that way.
  *
@@ -87,6 +93,9 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		'priceSize'   => 24,
 		'ink'         => '#22301c',
 
+		// The category's own settings.
+		'fromCategory' => true,
+
 		// Layout.
 		'maxWidth'    => 1240,
 		'minHeight'   => 468,
@@ -97,6 +106,20 @@ class PFH_Element_Highlight extends \Bricks\Element {
 
 	/** U+1F381, printed as an entity so the character itself is never stored. */
 	const GIFT = '&#x1F381;';
+
+	/**
+	 * The category's own settings for this banner, on a category page.
+	 *
+	 * @var array|null
+	 */
+	private $own = null;
+
+	/**
+	 * What the category's chosen product offers: price, saving, link, picture.
+	 *
+	 * @var array|null
+	 */
+	private $offer = null;
 
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-highlight';
@@ -245,6 +268,13 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			esc_html__( 'Eyebrow', 'pfh-widgets' ),
 			'eyebrow',
 			[ 'description' => esc_html__( 'Leave any field empty to hide that part.', 'pfh-widgets' ) ]
+		);
+
+		$this->controls['fromCategory'] = $this->switch_field(
+			'copy',
+			esc_html__( 'Follow each category\'s own settings', 'pfh-widgets' ),
+			'fromCategory',
+			[ 'description' => esc_html__( 'On a category page, the category can hide this banner, reword it and choose the product it sells (Products → Categories → edit → Collection page). The product then sets the price, the saving and the link. Anything the category leaves empty keeps what is typed here.', 'pfh-widgets' ) ]
 		);
 
 		$this->controls['showGift'] = $this->switch_field( 'copy', esc_html__( 'Gift icon before the eyebrow', 'pfh-widgets' ), 'showGift' );
@@ -448,10 +478,26 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * ------------------------------------------------------------------ */
 
 	/**
-	 * Always a banner. Clearing a field hides that part of it; nothing clears
-	 * the banner itself, so a block that was added is a block that shows.
+	 * Always a banner. Clearing a field hides that part of it; nothing in the
+	 * panel clears the banner itself, so a block that was added is a block
+	 * that shows. The one exception is a category that has asked for it to
+	 * be hidden on its own page.
 	 */
 	public function render() {
+		$this->own   = null;
+		$this->offer = null;
+
+		if ( $this->flag( 'fromCategory' ) && class_exists( 'PFH_Widgets_Collection' ) ) {
+			$own = PFH_Widgets_Collection::section( 'bundle' );
+
+			if ( $own && ! empty( $own['hide'] ) ) {
+				return;
+			}
+
+			$this->own   = $own;
+			$this->offer = $own ? PFH_Widgets_Collection::offer( (int) $own['product'], (string) $own['saving'] ) : null;
+		}
+
 		$classes = [
 			'pfh-hl',
 			'pfh-scope',
@@ -654,6 +700,24 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * @return string
 	 */
 	private function text( $key ) {
+		/*
+		 * With a product chosen, the numbers are the product's — all three,
+		 * even when empty. A product not on sale has no old price and no
+		 * saving, and the typed ones must not show beside its real price.
+		 */
+		$from_offer = [ 'price' => 'now', 'priceWas' => 'was', 'saving' => 'saving' ];
+
+		if ( $this->offer && isset( $from_offer[ $key ] ) ) {
+			return (string) $this->offer[ $from_offer[ $key ] ];
+		}
+
+		// Words the category filled in replace the typed ones.
+		$from_category = [ 'eyebrow' => 'eyebrow', 'titleTop' => 'title_top', 'titleBottom' => 'title_bottom', 'text' => 'text' ];
+
+		if ( $this->own && isset( $from_category[ $key ] ) && '' !== trim( (string) $this->own[ $from_category[ $key ] ] ) ) {
+			return trim( (string) $this->own[ $from_category[ $key ] ] );
+		}
+
 		if ( array_key_exists( $key, (array) $this->settings ) ) {
 			$value = $this->settings[ $key ];
 
@@ -715,6 +779,15 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * @return array
 	 */
 	private function rows( $key ) {
+		if ( 'points' === $key && $this->own && ! empty( $this->own['points'] ) ) {
+			return array_map(
+				static function ( $point ) {
+					return [ 'text' => $point ];
+				},
+				(array) $this->own['points']
+			);
+		}
+
 		if ( array_key_exists( $key, (array) $this->settings ) ) {
 			return is_array( $this->settings[ $key ] ) ? $this->settings[ $key ] : [];
 		}
@@ -728,6 +801,15 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * @return array{href: string, target: string, rel: string}
 	 */
 	private function link() {
+		// The category's own link, else its product, else the typed one.
+		if ( $this->own && '' !== (string) $this->own['url'] ) {
+			return [ 'href' => esc_url_raw( (string) $this->own['url'] ), 'target' => '', 'rel' => '' ];
+		}
+
+		if ( $this->offer && '' !== $this->offer['url'] ) {
+			return [ 'href' => $this->offer['url'], 'target' => '', 'rel' => '' ];
+		}
+
 		$href = esc_url_raw( $this->text( 'url' ) );
 		$new  = '' !== $href && $this->flag( 'newTab' );
 
@@ -747,6 +829,27 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * @return array{url: string, alt: string}
 	 */
 	private function image() {
+		// The category's own picture, else its product's cut-out.
+		if ( $this->own && ! empty( $this->own['image'] ) ) {
+			$url = (string) wp_get_attachment_image_url( (int) $this->own['image'], 'large' );
+
+			if ( '' !== $url ) {
+				$alt = trim( (string) get_post_meta( (int) $this->own['image'], '_wp_attachment_image_alt', true ) );
+
+				return [
+					'url' => $url,
+					'alt' => '' !== $alt ? $alt : ( $this->offer ? $this->offer['name'] : '' ),
+				];
+			}
+		}
+
+		if ( $this->offer && '' !== $this->offer['image'] ) {
+			return [
+				'url' => $this->offer['image'],
+				'alt' => $this->offer['name'],
+			];
+		}
+
 		$image = isset( $this->settings['image'] ) && is_array( $this->settings['image'] ) ? $this->settings['image'] : [];
 		$id    = ! empty( $image['id'] ) ? absint( $image['id'] ) : 0;
 		$url   = '';

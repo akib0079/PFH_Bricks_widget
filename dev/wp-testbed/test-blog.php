@@ -94,7 +94,13 @@ ok( 'the summary is cut where asked', isset( $cut[1] ) && str_word_count( wp_str
 echo "\n── the lead article ──\n";
 $lead = blog( [ 'lead' => true, 'perPage' => 4 ] );
 ok( 'the first post is given the width', false !== strpos( $lead, 'pfh-blog__lead' ) );
-ok( '  and is the newest one', false !== strpos( substr( $lead, 0, (int) strpos( $lead, 'pfh-blog__grid' ) ), 'PFH bericht 1' ) );
+/*
+ * Asked of the install rather than assumed: a fresh WordPress has its own
+ * "Hello world!" dated the moment it was installed, which is newer than any
+ * fixture dated in the past.
+ */
+$newest = get_posts( [ 'post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 1, 'orderby' => 'date', 'order' => 'DESC' ] );
+ok( '  and is the newest one', $newest && false !== strpos( substr( $lead, 0, (int) strpos( $lead, 'pfh-blog__grid' ) ), esc_html( get_the_title( $newest[0] ) ) ), $newest ? get_the_title( $newest[0] ) : 'no posts' );
 ok( 'the rest fill the grid', 3 === substr_count( substr( $lead, (int) strpos( $lead, 'pfh-blog__grid' ) ), '<li class="pfh-blog__card"' ) );
 ok( 'and the text is boxed so it can sit beside the picture', false !== strpos( $lead, 'pfh-blog__card-body' ) );
 

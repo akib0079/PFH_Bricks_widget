@@ -154,6 +154,21 @@ class PFH_Element_Shopdesc extends \Bricks\Element {
 			'type'  => 'color',
 		];
 
+		$this->controls['titleColor'] = [
+			'tab'         => 'content',
+			'group'       => 'content',
+			'label'       => esc_html__( 'Heading colour', 'pfh-widgets' ),
+			'type'        => 'color',
+			'description' => esc_html__( 'The title, and any headings inside the text.', 'pfh-widgets' ),
+		];
+
+		$this->controls['linkColor'] = [
+			'tab'   => 'content',
+			'group' => 'content',
+			'label' => esc_html__( 'Link colour', 'pfh-widgets' ),
+			'type'  => 'color',
+		];
+
 		/* ---- fallback ---- */
 
 		$this->controls['fallbackEnable'] = [
@@ -456,6 +471,8 @@ class PFH_Element_Shopdesc extends \Bricks\Element {
 				'--pfh-sd-size'     => PFH_Widgets_Helpers::unit( $this->get( 'textSize', 14 ) ),
 				'--pfh-sd-title'    => PFH_Widgets_Helpers::unit( $this->get( 'titleSize', 24 ) ),
 				'--pfh-sd-color'    => PFH_Widgets_Helpers::color( $this->get( 'textColor' ) ),
+				'--pfh-sd-title-color' => PFH_Widgets_Helpers::color( $this->get( 'titleColor' ) ),
+				'--pfh-sd-link'     => PFH_Widgets_Helpers::color( $this->get( 'linkColor' ) ),
 				'--pfh-sd-eyebrow'  => PFH_Widgets_Helpers::unit( $this->get( 'eyebrowSize', 11 ) ),
 				'--pfh-sd-eye-color' => PFH_Widgets_Helpers::color( $this->get( 'eyebrowColor' ) ),
 				'--pfh-sd-more'     => PFH_Widgets_Helpers::color( $this->get( 'moreColor' ) ),

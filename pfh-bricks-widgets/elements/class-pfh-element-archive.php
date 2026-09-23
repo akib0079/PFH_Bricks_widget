@@ -83,6 +83,14 @@ class PFH_Element_Archive extends \Bricks\Element {
 	 */
 	private $base = '';
 
+	/**
+	 * The category this archive belongs to, when it was handed over rather
+	 * than read off the request. Null means "ask WordPress".
+	 *
+	 * @var string|null
+	 */
+	private $context_cat = null;
+
 	public function get_label() {
 		return esc_html__( 'PFH Shop Archive', 'pfh-widgets' );
 	}
@@ -800,6 +808,10 @@ class PFH_Element_Archive extends \Bricks\Element {
 	 * @return string
 	 */
 	private function base_category() {
+		if ( null !== $this->context_cat ) {
+			return $this->context_cat;
+		}
+
 		if ( is_tax( 'product_cat' ) ) {
 			$term = get_queried_object();
 
@@ -936,6 +948,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$this->set_attribute( '_root', 'class', $classes );
 		$this->set_attribute( '_root', 'style', $this->build_vars() );
 		$this->set_attribute( '_root', 'data-pfh-archive', $this->uid() );
+		$this->set_attribute( '_root', 'data-pfh-arch-ctx', self::sign( [ 'cat' => $this->base_category(), 'base' => $this->base ] ) );
 
 		echo '<section ' . $this->render_attributes( '_root' ) . '>';
 		echo '<div class="pfh-arch__inner">';
@@ -1020,7 +1033,22 @@ class PFH_Element_Archive extends \Bricks\Element {
 		// layer deliberately leaves these alone.
 		$here = $this->base_category();
 
-		echo '<div class="pfh-arch__pills" role="group" aria-label="' . esc_attr__( 'Categories', 'pfh-widgets' ) . '">';
+		/*
+		 * The track scrolls sideways when the categories outrun the row, and
+		 * a row that is cut off looks like a row that ends. The arrows and
+		 * the fade on either side are what say there is more — and the
+		 * script only shows them on the side that actually has more, so a
+		 * shop whose categories all fit shows neither.
+		 */
+		echo '<div class="pfh-arch__cats" data-pfh-arch-cats>';
+
+		printf(
+			'<button type="button" class="pfh-arch__cats-nav pfh-arch__cats-nav--prev" data-pfh-cats-prev aria-label="%s" tabindex="-1">%s</button>',
+			esc_attr__( 'Earlier categories', 'pfh-widgets' ),
+			PFH_Widgets_Icons::get( 'nav-left' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+		);
+
+		echo '<div class="pfh-arch__pills" role="group" data-pfh-cats-track aria-label="' . esc_attr__( 'Categories', 'pfh-widgets' ) . '">';
 
 		if ( $this->is_on( 'catsAll' ) ) {
 			printf(
@@ -1047,6 +1075,14 @@ class PFH_Element_Archive extends \Bricks\Element {
 				esc_html( $term->name )
 			);
 		}
+
+		echo '</div>';
+
+		printf(
+			'<button type="button" class="pfh-arch__cats-nav pfh-arch__cats-nav--next" data-pfh-cats-next aria-label="%s" tabindex="-1">%s</button>',
+			esc_attr__( 'More categories', 'pfh-widgets' ),
+			PFH_Widgets_Icons::get( 'nav-right' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+		);
 
 		echo '</div>';
 	}
@@ -1437,6 +1473,26 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$element->settings = $settings;
 		$element->base     = isset( $stored['base'] ) ? (string) $stored['base'] : '';
 
+		/*
+		 * Which category, and which page to build links on, come from the
+		 * page that asked — not from the transient. admin-ajax.php is not a
+		 * category archive, so asking WordPress there always answered "the
+		 * whole shop": page two of a category was page two of everything.
+		 * And one Bricks template draws every category under one element
+		 * id, so the transient holds whichever category somebody opened
+		 * last, not the one this shopper is looking at.
+		 *
+		 * The page hands its context over signed, so the browser can carry it
+		 * but not change it. A page cached before this existed sends none and
+		 * gets what it always got.
+		 */
+		$context = isset( $raw['pfh_ctx'] ) ? self::unsign( (string) $raw['pfh_ctx'] ) : null;
+
+		if ( $context ) {
+			$element->context_cat = $context['cat'];
+			$element->base        = $context['base'];
+		}
+
 		$element->element = [
 			'id'       => $id,
 			'name'     => 'pfh-archive',
@@ -1447,7 +1503,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 
 		$config = $element->config();
 
-		// The archive's own category still comes from the stored config, so a
+		// The archive's own category comes from the signed context above, so a
 		// request cannot escape the collection it belongs to.
 		$state = PFH_Widgets_Archive::state( $raw, $config );
 
@@ -1472,6 +1528,53 @@ class PFH_Element_Archive extends \Bricks\Element {
 	/* ---------------------------------------------------------------------
 	 * Helpers
 	 * ------------------------------------------------------------------ */
+
+	/**
+	 * The page's own context, signed so it can travel through the browser.
+	 *
+	 * @param array{cat:string, base:string} $context Category slug and page URL.
+	 * @return string
+	 */
+	private static function sign( array $context ) {
+		$data = base64_encode( (string) wp_json_encode( [ 'cat' => (string) $context['cat'], 'base' => (string) $context['base'] ] ) );
+
+		return $data . '.' . hash_hmac( 'sha256', $data, wp_salt( 'nonce' ) );
+	}
+
+	/**
+	 * A context the browser handed back, if it is one this site signed.
+	 *
+	 * Not time-limited on purpose: a page cache can serve the same markup
+	 * for days, and its pager has to keep working all that time.
+	 *
+	 * @param string $token Token from data-pfh-arch-ctx.
+	 * @return array{cat:string, base:string}|null
+	 */
+	private static function unsign( $token ) {
+		$parts = explode( '.', $token );
+
+		if ( 2 !== count( $parts ) || ! hash_equals( hash_hmac( 'sha256', $parts[0], wp_salt( 'nonce' ) ), $parts[1] ) ) {
+			return null;
+		}
+
+		$context = json_decode( (string) base64_decode( $parts[0], true ), true );
+
+		if ( ! is_array( $context ) || ! isset( $context['cat'], $context['base'] ) ) {
+			return null;
+		}
+
+		$cat = sanitize_title( (string) $context['cat'] );
+
+		// A category deleted since the page was cached is no longer a place.
+		if ( '' !== $cat && ! get_term_by( 'slug', $cat, 'product_cat' ) ) {
+			return null;
+		}
+
+		return [
+			'cat'  => $cat,
+			'base' => esc_url_raw( (string) $context['base'] ),
+		];
+	}
 
 	/**
 	 * The "12 producten" line.

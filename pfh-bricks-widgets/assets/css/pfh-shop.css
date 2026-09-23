@@ -202,6 +202,58 @@
 .pfh-shopdesc__body p:last-child { margin-bottom: 0; }
 
 /*
+ * The text is whatever the client writes in the category's own editor, so it
+ * arrives with links, headings and lists — and the plugin's base reset makes
+ * every link inside a PFH section inherit its colour with no underline, which
+ * is right for a menu and wrong for a paragraph: the links were there, they
+ * just looked exactly like the words around them.
+ */
+.pfh-shopdesc__body a {
+	color: var(--pfh-sd-link, #2b5f63);
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+	text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+	transition: color .18s ease, text-decoration-color .18s ease;
+}
+
+.pfh-shopdesc__body a:hover { text-decoration-color: currentColor; }
+
+.pfh-shopdesc__body a:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/*
+ * Headings in the text are sub-heads of the section's own title, so they sit
+ * below it in the scale and share its colour. Left alone they took the
+ * theme's page-level h2 — bigger than the title they belong to, in another
+ * colour, and hard up against the paragraph above.
+ */
+.pfh-shopdesc__body :is(h1, h2, h3, h4, h5, h6) {
+	margin: 1.6em 0 .45em;
+	color: var(--pfh-sd-title-color, #22301c);
+	font-family: inherit;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: -.01em;
+	text-wrap: balance;
+}
+
+.pfh-shopdesc__body :is(h1, h2) { font-size: calc(var(--pfh-sd-title, 24px) * .8); }
+.pfh-shopdesc__body h3 { font-size: calc(var(--pfh-sd-title, 24px) * .7); }
+.pfh-shopdesc__body :is(h4, h5, h6) { font-size: calc(var(--pfh-sd-size, 14px) + 1px); }
+.pfh-shopdesc__body > :first-child { margin-top: 0; }
+
+.pfh-shopdesc__body :is(ul, ol) { margin: 0 0 1em; padding-left: 1.3em; }
+.pfh-shopdesc__body ul { list-style: disc; }
+.pfh-shopdesc__body ol { list-style: decimal; }
+.pfh-shopdesc__body li { margin-bottom: .35em; }
+.pfh-shopdesc__body li::marker { color: var(--pfh-sd-more); }
+.pfh-shopdesc__body strong { color: var(--pfh-sd-title-color, #22301c); font-weight: 600; }
+
+/*
  * Clamped by default so the collapsed height is right on the very first
  * paint. The script only ever removes the clamp, never adds it, which is what
  * stops the section jumping about as the page settles.
