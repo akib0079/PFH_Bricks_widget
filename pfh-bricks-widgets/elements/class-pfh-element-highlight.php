@@ -620,12 +620,26 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		$tag   = $this->choice( 'titleTag', [ 'h2', 'h3', 'p' ] );
 		$inner = '';
 
+		/*
+		 * On a clickable banner the title has to look like what it is: a
+		 * link. The line that carries the offer — the bold one, or the only
+		 * one — gets an underline and an arrow, and the hover draws the line
+		 * in. Inline spans, so the underline follows the words across a wrap
+		 * instead of running the full width of the column.
+		 */
+		$mark = static function ( $text ) {
+			return '<span class="pfh-hl__title-line">' . esc_html( $text ) . '</span>'
+				. '<span class="pfh-hl__title-arrow" aria-hidden="true">' . PFH_Widgets_Icons::get( 'arrow-ne' ) . '</span>';
+		};
+
+		$marked = $whole ? ( '' !== $bottom ? 'bottom' : 'top' ) : '';
+
 		if ( '' !== $top ) {
-			$inner .= '<span class="pfh-hl__title-top">' . esc_html( $top ) . '</span>';
+			$inner .= '<span class="pfh-hl__title-top">' . ( 'top' === $marked ? $mark( $top ) : esc_html( $top ) ) . '</span>';
 		}
 
 		if ( '' !== $bottom ) {
-			$inner .= '<span class="pfh-hl__title-bottom">' . esc_html( $bottom ) . '</span>';
+			$inner .= '<span class="pfh-hl__title-bottom">' . ( 'bottom' === $marked ? $mark( $bottom ) : esc_html( $bottom ) ) . '</span>';
 		}
 
 		/*

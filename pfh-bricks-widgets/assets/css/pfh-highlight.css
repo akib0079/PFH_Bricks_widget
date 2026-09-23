@@ -172,6 +172,70 @@
 	border-radius: var(--pfh-hl-radius);
 }
 
+/*
+ * The title says it is a link before anyone hovers: a quiet underline under
+ * the line that carries the offer, and an arrow after it — which is all a
+ * phone ever gets, having no hover. On hover or keyboard focus, anywhere on
+ * the card, a full-strength line is drawn in over the quiet one from the
+ * left, and the arrow steps out. Two background layers rather than
+ * text-decoration, because a decoration's colour and thickness cannot be
+ * animated from one to the other.
+ */
+.pfh-hl__title-line {
+	--pfh-hl-line-faint: color-mix(in srgb, currentColor 32%, transparent);
+
+	padding-bottom: .08em;
+	background-image:
+		linear-gradient(currentColor, currentColor),
+		linear-gradient(var(--pfh-hl-line-faint), var(--pfh-hl-line-faint));
+	background-repeat: no-repeat;
+	background-position: 0 100%, 0 100%;
+	background-size: 0% 2px, 100% 1px;
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+	transition: background-size .45s var(--pfh-ease, cubic-bezier(.22, .61, .36, 1));
+}
+
+.pfh-hl__title-arrow {
+	display: inline-flex;
+	width: .5em;
+	height: .5em;
+	margin-left: .28em;
+	vertical-align: .12em;
+	transition: transform .3s var(--pfh-ease, cubic-bezier(.22, .61, .36, 1));
+}
+
+.pfh-hl__title-arrow svg { width: 100%; height: 100%; }
+
+.pfh-hl__card.is-clickable:hover .pfh-hl__title-line,
+.pfh-hl__card.is-clickable:focus-within .pfh-hl__title-line {
+	background-size: 100% 2px, 100% 1px;
+}
+
+.pfh-hl__card.is-clickable:hover .pfh-hl__title-arrow,
+.pfh-hl__card.is-clickable:focus-within .pfh-hl__title-arrow {
+	transform: translate(.12em, -.12em);
+}
+
+/* The card answers the pointer too: the picture leans in, the shadow deepens. */
+.pfh-hl__card.is-clickable .pfh-hl__img {
+	transform-origin: center bottom;
+	transition: transform .7s var(--pfh-ease, cubic-bezier(.22, .61, .36, 1));
+}
+
+.pfh-hl__card.is-clickable:hover .pfh-hl__img { transform: scale(1.03); }
+
+.pfh-hl--shadow .pfh-hl__card.is-clickable {
+	transition: box-shadow .35s ease;
+}
+
+.pfh-hl--shadow .pfh-hl__card.is-clickable:hover {
+	box-shadow:
+		0 1px 2px rgba(34, 48, 28, .06),
+		0 14px 34px -8px rgba(34, 48, 28, .2),
+		0 38px 72px -24px rgba(34, 48, 28, .28);
+}
+
 /* ---------- copy ---------- */
 
 .pfh-hl__text {
@@ -427,5 +491,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.pfh-hl__btn { transition: none; }
+	.pfh-hl__btn,
+	.pfh-hl__title-line,
+	.pfh-hl__title-arrow,
+	.pfh-hl__card.is-clickable,
+	.pfh-hl__card.is-clickable .pfh-hl__img { transition: none; }
+	.pfh-hl__card.is-clickable:hover .pfh-hl__img { transform: none; }
 }

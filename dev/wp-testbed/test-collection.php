@@ -293,6 +293,9 @@ ok( 'the price is the product\'s', false !== strpos( $bundle, '>' . esc_html( $n
 ok( '  with its old price beside it', false !== strpos( $bundle, 'pfh-hl__price-was">' . esc_html( $was ) . '<' ), $was );
 ok( '  and the saving worked out from them', false !== strpos( $bundle, esc_html( 'Bespaar ' . $diff . ' — ' . $pct . '% korting' ) ), $diff . ' / ' . $pct );
 ok( 'the typed price is gone', false === strpos( $bundle, '€ 41,97' ) && false === strpos( $bundle, '46,97' ) );
+ok( 'the title looks like the link it is: underlined, with an arrow', false !== strpos( $bundle, '<span class="pfh-hl__title-line">' ) && false !== strpos( $bundle, 'pfh-hl__title-arrow' ) );
+ok( '  on the bold line, the one that carries the offer', (bool) preg_match( '/pfh-hl__title-bottom"><span class="pfh-hl__title-line">/', $bundle ) );
+ok( '  and a banner that links nowhere has neither', false === strpos( draw( 'PFH_Element_Highlight', [ 'fromCategory' => false ] ), 'pfh-hl__title-line' ) );
 ok( 'the whole banner links to the product', false !== strpos( $bundle, 'pfh-hl__link" href="' . esc_url( get_permalink( $sale ) ) . '"' ) && false !== strpos( $bundle, 'is-clickable' ) );
 ok( 'the category\'s words replace the typed ones', false !== strpos( $bundle, 'Kies je drie favorieten' ) && false === strpos( $bundle, '3 smaken naar keuze' ) );
 ok( '  its selling points too', false !== strpos( $bundle, 'Drie flessen naar keuze' ) && false === strpos( $bundle, 'Ideaal cadeau' ) );
