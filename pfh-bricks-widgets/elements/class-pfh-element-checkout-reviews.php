@@ -253,6 +253,12 @@ class PFH_Element_Checkout_Reviews extends \Bricks\Element {
 		if ( '' !== $line && class_exists( 'PFH_Widgets_Reviews' ) ) {
 			$figures = PFH_Widgets_Reviews::figures( [ 'scale' => 10, 'score' => '9,7', 'count' => 396 ] );
 
+			// Written the way the shop writes its prices ("€ 6,50" — "9,7"), not
+			// the admin language's way, which on an English admin is "9.7".
+			if ( function_exists( 'wc_get_price_decimal_separator' ) ) {
+				$figures['score'] = strtr( (string) $figures['score'], [ '.' => wc_get_price_decimal_separator(), ',' => wc_get_price_decimal_separator() ] );
+			}
+
 			printf(
 				'<a class="pfh-ckrev__score" href="%s" target="_blank" rel="noopener noreferrer">%s<span class="pfh-ckrev__score-text">%s</span><span class="pfh-ckrev__source">WebwinkelKeur</span></a>',
 				esc_url( PFH_Widgets_Reviews::review_url() ),

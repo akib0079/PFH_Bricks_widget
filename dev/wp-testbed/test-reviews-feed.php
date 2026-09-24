@@ -150,6 +150,18 @@ ok( 'it shows the real reviews', false !== strpos( $slider, 'De olijfolie is hee
 ok( '  at five stars, not two and a half', false !== strpos( $slider, 'var(--pfh-rv-star) * 5 +' ) && false === strpos( $slider, 'var(--pfh-rv-star) * 2.5' ) );
 ok( '  with the country under the name', false !== strpos( $slider, 'België' ) );
 
+echo "\n── written the shop's way ──\n";
+
+$sep = get_option( 'woocommerce_price_decimal_sep' );
+update_option( 'woocommerce_price_decimal_sep', ',' );
+ok( 'the score takes the decimal comma the prices use', false !== strpos( el( 'PFH_Element_Checkout_Reviews' ), '9,7/10' ) );
+update_option( 'woocommerce_price_decimal_sep', '.' );
+ok( '  and a point where the shop uses one', false !== strpos( el( 'PFH_Element_Checkout_Reviews' ), '9.7/10' ) );
+update_option( 'woocommerce_price_decimal_sep', $sep );
+
+$css = file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/css/pfh-checkout.css' );
+ok( 'the quote keeps the shop\'s face over a theme\'s serif blockquote', (bool) preg_match( '/\.pfh-ckrev \.pfh-ckrev__text \{[^}]*font-family: inherit;[^}]*font-style: normal;/', $css ) );
+
 echo "\n── after an update ──\n";
 
 ok( 'the cache key carries the schema, so rows read the old way are not served', false !== strpos( file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/includes/class-pfh-reviews.php' ), "'|' . self::SCHEMA" ) );

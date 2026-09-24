@@ -191,17 +191,25 @@
 	transition: opacity .45s var(--pfh-ease, ease), transform .45s var(--pfh-ease, ease), visibility 0s;
 }
 
-.pfh-ckrev__text {
+/*
+ * Doubled class: themes and checkout plugins style every blockquote (serif,
+ * italic, a rule down the side), and the review must stay in the shop's face.
+ */
+.pfh-ckrev .pfh-ckrev__text {
 	margin: 0;
 	padding: 0;
 	border: 0;
+	background: none;
 	color: var(--pfh-ck-body);
+	font-family: inherit;
+	font-style: normal;
+	font-weight: 400;
 	font-size: 14.5px;
 	line-height: 1.6;
 	quotes: "\201C" "\201D";
 }
 
-.pfh-ckrev__text p { margin: 0; }
+.pfh-ckrev .pfh-ckrev__text p { margin: 0; font: inherit; color: inherit; }
 .pfh-ckrev__text p::before { content: open-quote; }
 .pfh-ckrev__text p::after { content: close-quote; }
 
