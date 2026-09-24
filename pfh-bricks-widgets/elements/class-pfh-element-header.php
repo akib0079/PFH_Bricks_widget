@@ -1050,11 +1050,13 @@ class PFH_Element_Header extends \Bricks\Element {
 			'type'     => 'select',
 			'inline'   => true,
 			'options'  => [
-				'drawer' => esc_html__( 'Open drawer', 'pfh-widgets' ),
-				'link'   => esc_html__( 'Go to cart page', 'pfh-widgets' ),
+				'drawer'    => esc_html__( 'Open drawer', 'pfh-widgets' ),
+				'funnelkit' => esc_html__( 'Open FunnelKit Cart', 'pfh-widgets' ),
+				'link'      => esc_html__( 'Go to cart page', 'pfh-widgets' ),
 			],
 			'default'  => 'drawer',
 			'required' => [ 'showCart', '=', true ],
+			'description' => esc_html__( 'FunnelKit Cart: the slide-in cart of the FunnelKit Cart plugin opens, with its upsells and coupon field. On a page where that plugin does not load its cart, the drawer below opens instead.', 'pfh-widgets' ),
 		];
 
 		$this->controls['cartLink'] = [
@@ -1072,7 +1074,7 @@ class PFH_Element_Header extends \Bricks\Element {
 			'label'    => esc_html__( 'Drawer title', 'pfh-widgets' ),
 			'type'     => 'text',
 			'default'  => 'Winkelwagen',
-			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', 'drawer' ] ],
+			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', [ 'drawer', 'funnelkit' ] ] ],
 		];
 
 		$this->controls['cartOpenOnAdd'] = [
@@ -1081,7 +1083,7 @@ class PFH_Element_Header extends \Bricks\Element {
 			'label'    => esc_html__( 'Open drawer after add to cart', 'pfh-widgets' ),
 			'type'     => 'checkbox',
 			'default'  => true,
-			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', 'drawer' ] ],
+			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', [ 'drawer', 'funnelkit' ] ] ],
 		];
 
 		$this->controls['cartWidth'] = [
@@ -1093,7 +1095,7 @@ class PFH_Element_Header extends \Bricks\Element {
 			'max'      => 720,
 			'inline'   => true,
 			'default'  => 420,
-			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', 'drawer' ] ],
+			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', [ 'drawer', 'funnelkit' ] ] ],
 		];
 
 		$labels = [
@@ -1112,7 +1114,7 @@ class PFH_Element_Header extends \Bricks\Element {
 				'label'    => $data[1],
 				'type'     => 'text',
 				'default'  => $data[0],
-				'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', 'drawer' ] ],
+				'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', [ 'drawer', 'funnelkit' ] ] ],
 			];
 		}
 
@@ -1121,7 +1123,7 @@ class PFH_Element_Header extends \Bricks\Element {
 			'group'       => 'cart',
 			'label'       => esc_html__( 'Empty cart button link', 'pfh-widgets' ),
 			'type'        => 'link',
-			'required'    => [ [ 'showCart', '=', true ], [ 'cartMode', '=', 'drawer' ] ],
+			'required'    => [ [ 'showCart', '=', true ], [ 'cartMode', '=', [ 'drawer', 'funnelkit' ] ] ],
 			'description' => esc_html__( 'Leave empty to use the WooCommerce shop page.', 'pfh-widgets' ),
 		];
 
@@ -1131,7 +1133,7 @@ class PFH_Element_Header extends \Bricks\Element {
 			'label'    => esc_html__( 'Drawer background', 'pfh-widgets' ),
 			'type'     => 'color',
 			'default'  => [ 'hex' => '#ffffff' ],
-			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', 'drawer' ] ],
+			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', [ 'drawer', 'funnelkit' ] ] ],
 		];
 
 		$this->controls['cartBtnBg'] = [
@@ -1140,7 +1142,7 @@ class PFH_Element_Header extends \Bricks\Element {
 			'label'    => esc_html__( 'Primary button background', 'pfh-widgets' ),
 			'type'     => 'color',
 			'default'  => [ 'hex' => '#6f8566' ],
-			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', 'drawer' ] ],
+			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', [ 'drawer', 'funnelkit' ] ] ],
 		];
 
 		$this->controls['cartBtnColor'] = [
@@ -1149,7 +1151,7 @@ class PFH_Element_Header extends \Bricks\Element {
 			'label'    => esc_html__( 'Primary button text', 'pfh-widgets' ),
 			'type'     => 'color',
 			'default'  => [ 'hex' => '#ffffff' ],
-			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', 'drawer' ] ],
+			'required' => [ [ 'showCart', '=', true ], [ 'cartMode', '=', [ 'drawer', 'funnelkit' ] ] ],
 		];
 	}
 
@@ -1468,7 +1470,8 @@ class PFH_Element_Header extends \Bricks\Element {
 				'emptyText' => (string) $this->get( 'searchEmptyText', '' ),
 			],
 			'cart'           => [
-				'enabled'   => $this->is_on( 'showCart' ) && 'drawer' === $this->get( 'cartMode', 'drawer' ),
+				'enabled'   => $this->is_on( 'showCart' ) && in_array( $this->get( 'cartMode', 'drawer' ), [ 'drawer', 'funnelkit' ], true ),
+				'mode'      => (string) $this->get( 'cartMode', 'drawer' ),
 				'openOnAdd' => $this->is_on( 'cartOpenOnAdd' ),
 				'labels'    => $this->cart_labels(),
 			],
@@ -1843,7 +1846,9 @@ class PFH_Element_Header extends \Bricks\Element {
 	}
 
 	private function render_cart_drawer() {
-		if ( ! $this->is_on( 'showCart' ) || 'drawer' !== $this->get( 'cartMode', 'drawer' ) ) {
+		// With FunnelKit Cart chosen the drawer is still drawn: it is what
+		// opens on a page where FunnelKit does not load its own cart.
+		if ( ! $this->is_on( 'showCart' ) || ! in_array( $this->get( 'cartMode', 'drawer' ), [ 'drawer', 'funnelkit' ], true ) ) {
 			return;
 		}
 

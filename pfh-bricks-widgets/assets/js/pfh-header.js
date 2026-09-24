@@ -445,6 +445,16 @@
 				var name = button.getAttribute( 'data-pfh-open' );
 				var panel = self.panels[ name ];
 
+				// FunnelKit's slide-in cart, when that is the cart chosen and
+				// the plugin has put it on this page.
+				if ( 'cart' === name && self.funnelKit() ) {
+					event.preventDefault();
+					self.closeMega();
+					self.openFunnelKit();
+
+					return;
+				}
+
 				if ( ! panel ) {
 					return;
 				}
@@ -566,6 +576,40 @@
 
 	/* ----------------------------------------------------- Cart ------ */
 
+	/**
+	 * FunnelKit Cart is the cart to open: chosen in the panel, and its slide
+	 * cart is on this page (the plugin leaves it off some pages; there the
+	 * drawer opens instead).
+	 */
+	Header.prototype.funnelKit = function () {
+		return 'funnelkit' === this.config.cart.mode
+			&& !! window.jQuery
+			&& !! window.fkcart_app_data
+			&& !! document.getElementById( 'fkcart-modal' );
+	};
+
+	Header.prototype.openFunnelKit = function () {
+		window.jQuery( document.body ).trigger( 'fkcart_open' );
+	};
+
+	/**
+	 * After our own add-to-cart: FunnelKit has not heard of it (it listens
+	 * for WooCommerce's event, which ours does not fire), so it is asked to
+	 * refresh, and opened when its own "open after add" setting says so —
+	 * but not on the cart page, where the cart is already the page.
+	 */
+	Header.prototype.funnelKitAdded = function () {
+		var $ = window.jQuery;
+
+		$( document.body ).trigger( 'fkcart_update_side_cart', [ false ] );
+
+		var onCart = '1' === String( window.fkcart_app_data.is_cart ) || !! document.querySelector( '[data-pfh-cartp]' );
+
+		if ( 'yes' === window.fkcart_app_data.should_open_cart && ! onCart ) {
+			this.openFunnelKit();
+		}
+	};
+
 	Header.prototype.bindCart = function () {
 		var panel = this.panels.cart;
 
@@ -574,6 +618,17 @@
 		}
 
 		var self = this;
+
+		// The header's button says whether FunnelKit's cart is open.
+		if ( window.jQuery && 'funnelkit' === this.config.cart.mode ) {
+			var button = this.root.querySelector( '[data-pfh-open="cart"]' );
+
+			window.jQuery( document.body ).on( 'fkcart_cart_open fkcart_cart_closed', function ( event ) {
+				if ( button ) {
+					button.setAttribute( 'aria-expanded', 'fkcart_cart_open' === event.type ? 'true' : 'false' );
+				}
+			} );
+		}
 
 		panel.el.addEventListener( 'click', function ( event ) {
 			var remove = event.target.closest( '[data-pfh-cart-remove]' );
@@ -609,6 +664,13 @@
 		 * jQuery or WooCommerce's loop script on the page at all.
 		 */
 		document.addEventListener( 'pfh:added', function () {
+			if ( self.funnelKit() ) {
+				self.funnelKitAdded();
+				self.updateCart( 'refresh' );
+
+				return;
+			}
+
 			/*
 			 * Open first, refresh second. Waiting for the contents would mean
 			 * two sequential round trips before anything visible happens; the
@@ -627,8 +689,10 @@
 		} );
 
 		if ( window.jQuery ) {
+			// WooCommerce's own add-to-cart: FunnelKit hears this one itself
+			// and opens by its own setting, so the drawer stays shut.
 			window.jQuery( document.body ).on( 'added_to_cart', function () {
-				self.updateCart( 'refresh', '', 0, self.config.cart.openOnAdd );
+				self.updateCart( 'refresh', '', 0, self.config.cart.openOnAdd && ! self.funnelKit() );
 			} );
 
 			window.jQuery( document.body ).on( 'wc_fragments_refreshed wc_fragments_loaded removed_from_cart updated_wc_div', function () {
