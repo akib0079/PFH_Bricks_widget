@@ -886,6 +886,12 @@ class PFH_Widgets_Cart_Page {
 			return;
 		}
 
+		// Replaced with nothing — FunnelKit does this for an order-bump line,
+		// whose quantity follows the offer — still says how many there are.
+		if ( '' === trim( wp_strip_all_tags( $filtered ) ) ) {
+			$filtered = '<span>' . esc_html( wc_stock_amount( $qty ) ) . '</span>';
+		}
+
 		echo '<div class="pfh-cartp__qty is-fixed">' . wp_kses_post( $filtered ) . '</div>';
 	}
 
@@ -1266,6 +1272,9 @@ class PFH_Widgets_Cart_Page {
 			return;
 		}
 
+		// Before the head's scripts print (some sites print everything
+		// there), and again before the footer's, for sites that do not.
+		add_action( 'wp_print_scripts', [ __CLASS__, 'drop_wc_cart_script' ], 1 );
 		add_action( 'wp_footer', [ __CLASS__, 'drop_wc_cart_script' ], 1 );
 	}
 

@@ -236,6 +236,14 @@ remove_filter( 'woocommerce_cart_item_quantity', $fixed, 10 );
 ok( 'a line a plugin fixed at one gets no stepper', false === strpos( $html, 'name="cart[' . $kb . '][qty]"' ) && false !== strpos( $html, 'is-fixed"><span class="gift">1</span>' ) );
 ok( '  the other line keeps its stepper', false !== strpos( $html, 'name="cart[' . $ka . '][qty]"' ) );
 
+$blank = static function ( $html, $key ) use ( $kb ) {
+	return $key === $kb ? '' : $html;
+};
+add_filter( 'woocommerce_cart_item_quantity', $blank, 10, 2 );
+$html = inner();
+remove_filter( 'woocommerce_cart_item_quantity', $blank, 10 );
+ok( 'a line a plugin blanked still says how many (an order bump)', (bool) preg_match( '#pfh-cartp__qty is-fixed"><span>\d+</span></div>#', $html ) );
+
 $wrap = static function ( $html ) {
 	return $html . '<small class="per-unit">per stuk</small>';
 };
@@ -300,10 +308,14 @@ ok( '  a changed token is refused', null === PFH_Widgets_Cart_Page::unsign( base
 
 echo "\n── the page it sits on ──\n";
 
-wp_enqueue_script( 'wc-cart', 'https://example.test/cart.js', [], '1', true );
+wp_enqueue_script( 'wc-cart', 'https://example.test/cart.js', [], '1', false );
 PFH_Widgets_Cart_Page::claim();
+ok( 'the classic cart script is taken off before the head prints it', false !== has_action( 'wp_print_scripts', [ 'PFH_Widgets_Cart_Page', 'drop_wc_cart_script' ] ) );
+do_action( 'wp_print_scripts' );
+ok( '  and it is gone', ! wp_script_is( 'wc-cart', 'enqueued' ) );
+wp_enqueue_script( 'wc-cart', 'https://example.test/cart.js', [], '1', true );
 do_action( 'wp_footer' );
-ok( 'WooCommerce\'s classic cart script is taken off the page', ! wp_script_is( 'wc-cart', 'enqueued' ) );
+ok( 'and again before the footer prints it', ! wp_script_is( 'wc-cart', 'enqueued' ) );
 
 echo "\n── what goes with the cart ──\n";
 

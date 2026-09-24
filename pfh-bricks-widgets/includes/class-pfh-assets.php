@@ -730,6 +730,13 @@ class PFH_Widgets_Assets {
 		wp_enqueue_style( 'pfh-cart-page' );
 		wp_enqueue_script( 'pfh-cart-page' );
 
+		// Bricks enqueues an element's assets before the head is printed —
+		// the moment WooCommerce's classic cart script can still be taken
+		// off a page that prints its scripts in the head.
+		if ( class_exists( 'PFH_Widgets_Cart_Page' ) && ! PFH_Widgets_Helpers::is_builder_context() ) {
+			PFH_Widgets_Cart_Page::claim();
+		}
+
 		if ( ! wp_scripts()->get_data( 'pfh-cart-page', 'data' ) ) {
 			wp_localize_script(
 				'pfh-cart-page',
