@@ -128,20 +128,6 @@ class PFH_Element_Reviews extends \Bricks\Element {
 			'description' => esc_html__( 'A failed call is cached for 15 minutes instead, so a bad key cannot slow every page view.', 'pfh-widgets' ),
 		];
 
-		$this->controls['ratingScale'] = [
-			'tab'         => 'content',
-			'group'       => 'source',
-			'label'       => esc_html__( 'API rating scale', 'pfh-widgets' ),
-			'type'        => 'select',
-			'inline'      => true,
-			'options'     => [
-				'10' => esc_html__( '1 – 10 (WebwinkelKeur default)', 'pfh-widgets' ),
-				'5'  => esc_html__( '1 – 5', 'pfh-widgets' ),
-			],
-			'default'     => '10',
-			'description' => esc_html__( 'Converted to the star count below.', 'pfh-widgets' ),
-		];
-
 		$this->controls['minRating'] = [
 			'tab'         => 'content',
 			'group'       => 'source',
@@ -152,7 +138,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 			'step'        => 0.5,
 			'inline'      => true,
 			'default'     => 0,
-			'description' => esc_html__( 'On the API scale. 0 shows everything.', 'pfh-widgets' ),
+			'description' => esc_html__( 'Out of 10 (a 5-star review is 10, 4 stars is 8). 0 shows everything.', 'pfh-widgets' ),
 		];
 
 		$this->controls['requireText'] = [
@@ -171,7 +157,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 			'type'    => 'select',
 			'inline'  => true,
 			'options' => [
-				'city'   => esc_html__( 'City (from WebwinkelKeur)', 'pfh-widgets' ),
+				'city'   => esc_html__( 'Town or country (from WebwinkelKeur)', 'pfh-widgets' ),
 				'date'   => esc_html__( 'Review date', 'pfh-widgets' ),
 				'custom' => esc_html__( 'Same text for everyone', 'pfh-widgets' ),
 				'none'   => esc_html__( 'Nothing', 'pfh-widgets' ),
@@ -1142,7 +1128,9 @@ class PFH_Element_Reviews extends \Bricks\Element {
 	 * @return array
 	 */
 	private function from_feed( array $feed, $stars ) {
-		$scale = (int) $this->get( 'ratingScale', 10 );
+		// The feed hands every rating over out of ten, whatever scale
+		// WebwinkelKeur sent it on.
+		$scale = 10;
 		$out   = [];
 
 		foreach ( $feed as $row ) {
@@ -1208,9 +1196,9 @@ class PFH_Element_Reviews extends \Bricks\Element {
 			return $stamp ? date_i18n( (string) $this->get( 'dateFormat', 'F Y' ), $stamp ) : $text;
 		}
 
-		$city = trim( (string) $row['city'] );
+		$place = PFH_Widgets_Reviews::place( $row );
 
-		return '' !== $city ? $city : $text;
+		return '' !== $place ? $place : $text;
 	}
 
 	/**

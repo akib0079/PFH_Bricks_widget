@@ -101,6 +101,18 @@ class PFH_Element_Checkout_Reviews extends \Bricks\Element {
 			'description' => esc_html__( 'The score above is always the whole shop\'s. This only chooses which written reviews appear.', 'pfh-widgets' ),
 		];
 
+		$this->controls['minLength'] = [
+			'tab'         => 'content',
+			'group'       => 'feed',
+			'label'       => esc_html__( 'Shortest review (characters)', 'pfh-widgets' ),
+			'type'        => 'number',
+			'min'         => 0,
+			'max'         => 200,
+			'inline'      => true,
+			'default'     => 25,
+			'description' => esc_html__( 'Skips one-word reviews ("Top!") so the column shows ones that say something. If too few are left, the shorter ones are used after all.', 'pfh-widgets' ),
+		];
+
 		$this->controls['maxLength'] = [
 			'tab'         => 'content',
 			'group'       => 'feed',
@@ -315,7 +327,10 @@ class PFH_Element_Checkout_Reviews extends \Bricks\Element {
 			);
 		}
 
-		$out = [];
+		$limit = max( 1, min( 12, (int) $this->setting( 'limit', 6 ) ) );
+		$least = max( 0, (int) $this->setting( 'minLength', 25 ) );
+		$full  = [];
+		$short = [];
 
 		foreach ( $feed as $row ) {
 			$text = $this->cut( (string) $row['text'], $max );
@@ -326,9 +341,10 @@ class PFH_Element_Checkout_Reviews extends \Bricks\Element {
 
 			$name = trim( (string) $row['name'] );
 			$meta = [];
+			$from = PFH_Widgets_Reviews::place( $row );
 
-			if ( '' !== trim( (string) $row['city'] ) ) {
-				$meta[] = trim( (string) $row['city'] );
+			if ( '' !== $from ) {
+				$meta[] = $from;
 			}
 
 			if ( $this->switched_on( 'showDate' ) && '' !== (string) $row['date'] ) {
@@ -339,17 +355,26 @@ class PFH_Element_Checkout_Reviews extends \Bricks\Element {
 				}
 			}
 
-			$out[] = [
+			$review = [
 				'text'  => $text,
 				'name'  => '' !== $name ? $name : __( 'Klant via WebwinkelKeur', 'pfh-widgets' ),
 				'meta'  => implode( ' · ', $meta ),
 				'stars' => PFH_Widgets_Reviews::stars( $row['rating10'], 10, 5 ),
 			];
 
-			if ( count( $out ) >= max( 1, min( 12, (int) $this->setting( 'limit', 6 ) ) ) ) {
+			if ( function_exists( 'mb_strlen' ) ? mb_strlen( $text ) >= $least : strlen( $text ) >= $least ) {
+				$full[] = $review;
+			} else {
+				$short[] = $review;
+			}
+
+			if ( count( $full ) >= $limit ) {
 				break;
 			}
 		}
+
+		// Newest first throughout; the short ones only fill a gap.
+		$out = array_slice( array_merge( $full, $short ), 0, $limit );
 
 		if ( $out ) {
 			return $out;
@@ -398,25 +423,52 @@ class PFH_Element_Checkout_Reviews extends \Bricks\Element {
 	}
 
 	/**
-	 * "3 dagen geleden", or a date once it is more than a month old.
+	 * "gisteren", "3 dagen geleden", or a date once it is more than a month
+	 * old — in Dutch, like the rest of the checkout, whatever the site's
+	 * admin language.
 	 *
 	 * @param string $date As WebwinkelKeur sends it.
 	 * @return string
 	 */
 	private function when( $date ) {
-		$time = is_numeric( $date ) ? (int) $date : strtotime( $date );
+		$zone = wp_timezone();
 
-		if ( ! $time ) {
+		// WebwinkelKeur writes its dates in Dutch time, without saying so.
+		try {
+			$then = is_numeric( $date )
+				? ( new DateTimeImmutable( '@' . (int) $date ) )->setTimezone( $zone )
+				: new DateTimeImmutable( $date, $zone );
+		} catch ( Exception $e ) {
 			return '';
 		}
 
-		if ( time() - $time < MONTH_IN_SECONDS ) {
-			/* translators: %s: time ago, e.g. "3 dagen". */
-			return sprintf( __( '%s ago' ), human_time_diff( $time ) ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- WordPress's own string, already translated.
+		// Calendar days, not 24-hour blocks, so a review from last night is
+		// "gisteren" this morning.
+		$then  = $then->setTime( 0, 0 );
+		$today = ( new DateTimeImmutable( 'now', $zone ) )->setTime( 0, 0 );
+		$days  = (int) $then->diff( $today )->format( '%r%a' );
+
+		if ( $days <= 0 ) {
+			return 'vandaag';
 		}
 
-		return date_i18n( get_option( 'date_format' ), $time );
+		if ( 1 === $days ) {
+			return 'gisteren';
+		}
+
+		if ( $days < 14 ) {
+			return $days . ' dagen geleden';
+		}
+
+		if ( $days < 35 ) {
+			return (int) floor( $days / 7 ) . ' weken geleden';
+		}
+
+		$months = [ 'januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december' ];
+
+		return (int) $then->format( 'j' ) . ' ' . $months[ (int) $then->format( 'n' ) - 1 ] . ' ' . $then->format( 'Y' );
 	}
+
 
 	private function build_vars() {
 		return PFH_Widgets_Helpers::css_vars(

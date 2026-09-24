@@ -58,6 +58,22 @@ class PFH_Widgets_Reviews {
 	const SUMMARY_CACHE = 'pfh_wwk_summary';
 
 	/**
+	 * Bumped whenever the cached shape changes, so an update never serves
+	 * rows read the old way for the rest of the cache's twelve hours.
+	 */
+	const SCHEMA = 2;
+
+	/** Country names for the reviewer's line when WebwinkelKeur gives no town. */
+	const COUNTRIES = [
+		'NL' => 'Nederland',
+		'BE' => 'België',
+		'DE' => 'Duitsland',
+		'FR' => 'Frankrijk',
+		'LU' => 'Luxemburg',
+		'GB' => 'Verenigd Koninkrijk',
+	];
+
+	/**
 	 * Resolve the API credentials.
 	 *
 	 * @param array $args Element settings (id, code).
@@ -137,7 +153,7 @@ class PFH_Widgets_Reviews {
 		}
 
 		$limit = max( 1, min( 100, (int) $args['limit'] ) );
-		$key   = self::CACHE . md5( $creds['id'] . '|' . $limit );
+		$key   = self::CACHE . md5( $creds['id'] . '|' . $limit . '|' . self::SCHEMA );
 		$cached = get_transient( $key );
 
 		if ( is_array( $cached ) ) {
@@ -277,6 +293,15 @@ class PFH_Widgets_Reviews {
 	 * under `data`, or one under `ratings` — and field names vary with it, so
 	 * every lookup below tries the known aliases rather than assuming one.
 	 *
+	 * Each row's `rating10` is always out of ten. WebwinkelKeur's list gives
+	 * every review in stars, 1 to 5, while its summary scores the shop out of
+	 * ten; read as tenths, a five-star review was a 5/10 and fell under every
+	 * "good reviews only" threshold. A batch whose ratings never go above 5 is
+	 * on the five-point scale and is doubled.
+	 *
+	 * Reviews WebwinkelKeur holds in quarantine — disputed, not yet public —
+	 * are left out.
+	 *
 	 * @param array $body Decoded JSON.
 	 * @return array<int, array<string, mixed>>
 	 */
@@ -291,9 +316,10 @@ class PFH_Widgets_Reviews {
 		}
 
 		$out = [];
+		$top = 0.0;
 
 		foreach ( (array) $rows as $row ) {
-			if ( ! is_array( $row ) ) {
+			if ( ! is_array( $row ) || self::truthy( $row, 'quarantine' ) ) {
 				continue;
 			}
 
@@ -303,12 +329,17 @@ class PFH_Widgets_Reviews {
 			$date = self::pick( $row, [ 'created', 'created_at', 'date', 'datetime', 'timestamp' ] );
 
 			$rating = self::pick( $row, [ 'rating', 'score', 'total', 'average', 'stars' ] );
-			$rating = '' === $rating ? null : (float) $rating;
+			$rating = is_numeric( $rating ) ? (float) $rating : null;
+
+			if ( null !== $rating ) {
+				$top = max( $top, $rating );
+			}
 
 			$out[] = [
 				'id'       => (string) self::pick( $row, [ 'id', 'rating_id', 'uuid' ] ),
 				'name'     => (string) $name,
 				'city'     => (string) $city,
+				'country'  => strtoupper( (string) self::pick( $row, [ 'country', 'country_code' ] ) ),
 				'text'     => (string) $text,
 				'date'     => (string) $date,
 				'rating10' => $rating,
@@ -316,7 +347,68 @@ class PFH_Widgets_Reviews {
 			];
 		}
 
+		/**
+		 * Filter the scale the list's ratings are on: 5, 10, or 0 to decide
+		 * from the batch (the default).
+		 *
+		 * @param int   $scale 0, 5 or 10.
+		 * @param array $body  Decoded JSON.
+		 */
+		$scale = (int) apply_filters( 'pfh_webwinkelkeur_rating_scale', 0, $body );
+
+		if ( 5 !== $scale && 10 !== $scale ) {
+			$scale = $top > 0 && $top <= 5 ? 5 : 10;
+		}
+
+		if ( 5 === $scale ) {
+			foreach ( $out as $i => $row ) {
+				if ( null !== $row['rating10'] ) {
+					$out[ $i ]['rating10'] = min( 10.0, $row['rating10'] * 2 );
+				}
+			}
+		}
+
 		return $out;
+	}
+
+	/**
+	 * Whether a flag in a row is set, however the API spelled it.
+	 *
+	 * @param array  $row Source row.
+	 * @param string $key Flag.
+	 * @return bool
+	 */
+	private static function truthy( array $row, $key ) {
+		if ( ! isset( $row[ $key ] ) ) {
+			return false;
+		}
+
+		$value = $row[ $key ];
+
+		return true === $value || 1 === $value || in_array( strtolower( (string) $value ), [ '1', 'true', 'yes' ], true );
+	}
+
+	/**
+	 * Where a reviewer is from: their town when WebwinkelKeur has one, else
+	 * their country, named rather than coded.
+	 *
+	 * @param array $row Normalised review.
+	 * @return string
+	 */
+	public static function place( array $row ) {
+		$city = isset( $row['city'] ) ? trim( (string) $row['city'] ) : '';
+
+		if ( '' !== $city ) {
+			return $city;
+		}
+
+		$code = isset( $row['country'] ) ? strtoupper( trim( (string) $row['country'] ) ) : '';
+
+		if ( '' === $code ) {
+			return '';
+		}
+
+		return isset( self::COUNTRIES[ $code ] ) ? self::COUNTRIES[ $code ] : $code;
 	}
 
 	/**
@@ -386,7 +478,7 @@ class PFH_Widgets_Reviews {
 			return $empty;
 		}
 
-		$key    = self::SUMMARY_CACHE . '_' . md5( $creds['id'] );
+		$key    = self::SUMMARY_CACHE . '_' . md5( $creds['id'] . '|' . self::SCHEMA );
 		$cached = get_transient( $key );
 
 		if ( is_array( $cached ) ) {
@@ -432,7 +524,8 @@ class PFH_Widgets_Reviews {
 					}
 				}
 
-				$rating = self::pick( $data, [ 'rating', 'average', 'score', 'average_rating' ] );
+				// The summary scores the shop out of ten, in `rating_average`.
+				$rating = self::pick( $data, [ 'rating_average', 'rating', 'average', 'score', 'average_rating' ] );
 				$count  = self::pick( $data, [ 'amount', 'count', 'total', 'number_of_ratings', 'ratings' ] );
 
 				if ( '' !== $rating ) {

@@ -54,7 +54,7 @@ $html = el( 'PFH_Element_Checkout_Reviews' );
 
 ok( 'a real review is shown', false !== strpos( $html, 'Heerlijke honing, snel geleverd' ) );
 ok( '  with the reviewer\'s name and town', false !== strpos( $html, '>Marieke<' ) && false !== strpos( $html, 'Utrecht' ) );
-ok( '  and how recently they wrote it', false !== strpos( $html, sprintf( __( '%s ago' ), human_time_diff( time() - 3 * DAY_IN_SECONDS ) ) ) ); // phpcs:ignore
+ok( '  and how recently they wrote it', false !== strpos( $html, '3 dagen geleden' ) );
 ok( 'a low rating is not chosen for the column', false === strpos( $html, 'beschadigd' ) );
 ok( 'a rating without words is not a review to show', false === strpos( $html, '>Sanne<' ) );
 ok( 'a long review is cut at a word', (bool) preg_match( '/houdt\.?…|[a-z]…/u', $html ) && substr_count( $html, 'Echt een aanrader' ) < 8 );
