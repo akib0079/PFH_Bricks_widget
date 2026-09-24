@@ -3,7 +3,7 @@
  * Plugin Name:       Products For Home – Bricks Widgets
  * Plugin URI:        https://productsforhome.nl/
  * Description:       Custom Bricks Builder elements for the Products For Home redesign, plus the store services that replace four third-party plugins: cookie consent with real tag blocking, a WooCommerce permalink manager, WebwinkelKeur reviews with a sticky trust badge, and PDF invoices and packing slips. Ships a full shop/collection template — AJAX-filtered product archive with a slide-in filter panel and pagination, shop header, collection description, notice band, counter row and FAQ — plus fully dynamic Header (mega menu, search popup, cart drawer), Hero Slider, Category Slider, Product Slider, Product Grid, two Featured Sections, an Info Section, a Rating Badge, a Highlighted Features grid, a WebwinkelKeur Review Slider, an overlapping Call To Action and Footer elements.
- * Version:           1.51.0
+ * Version:           1.52.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            AVIX Digital Agency
@@ -14,7 +14,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PFH_WIDGETS_VERSION', '1.51.0' );
+define( 'PFH_WIDGETS_VERSION', '1.52.0' );
 define( 'PFH_WIDGETS_FILE', __FILE__ );
 define( 'PFH_WIDGETS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PFH_WIDGETS_URL', plugin_dir_url( __FILE__ ) );
@@ -38,6 +38,7 @@ require_once PFH_WIDGETS_DIR . 'includes/class-pfh-diagnose.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-save-guard.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-product-fields.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-badge.php';
+require_once PFH_WIDGETS_DIR . 'includes/class-pfh-license.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-instagram.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-account.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-policy.php';
