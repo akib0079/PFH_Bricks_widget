@@ -301,6 +301,13 @@ trait PFH_Product_Card_Trait {
 				$orderby = 'date';
 				break;
 
+			case 'cart':
+				$args['post__in'] = $this->goes_with_cart( $limit );
+				$args['orderby']  = 'post__in';
+				$orderby          = '';
+				unset( $args['order'] );
+				break;
+
 			case 'ids':
 				$ids              = $this->id_list( $this->get( 'productIds', '' ) );
 				$args['post__in'] = $ids ? $ids : [ 0 ];
@@ -808,6 +815,61 @@ trait PFH_Product_Card_Trait {
 		return $recent ? (int) $recent[0] : 0;
 	}
 
+	/**
+	 * For the cart page: what the shop set as cross-sells for the products
+	 * in the cart, then its best sellers to fill the row — never something
+	 * already in the cart. With nothing in the cart (or in the builder,
+	 * where there is no cart), simply the best sellers.
+	 *
+	 * @param int $limit How many.
+	 * @return int[] Product ids, in order; [0] when there are none.
+	 */
+	private function goes_with_cart( $limit ) {
+		$in_cart = [];
+		$ids     = [];
+
+		if ( function_exists( 'WC' ) && WC()->cart ) {
+			foreach ( WC()->cart->get_cart() as $item ) {
+				$in_cart[] = (int) $item['product_id'];
+
+				if ( ! empty( $item['variation_id'] ) ) {
+					$in_cart[] = (int) $item['variation_id'];
+				}
+			}
+
+			$ids = array_values( array_diff( array_map( 'intval', WC()->cart->get_cross_sells() ), $in_cart ) );
+		}
+
+		if ( count( $ids ) < $limit ) {
+			$best = get_posts(
+				[
+					'post_type'      => 'product',
+					'post_status'    => 'publish',
+					'fields'         => 'ids',
+					'posts_per_page' => $limit,
+					'post__not_in'   => array_merge( $in_cart, $ids ),
+					'meta_key'       => 'total_sales', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+					'orderby'        => 'meta_value_num',
+					'order'          => 'DESC',
+					'tax_query'      => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+						[
+							'taxonomy' => 'product_visibility',
+							'field'    => 'name',
+							'terms'    => [ 'exclude-from-catalog', 'outofstock' ],
+							'operator' => 'NOT IN',
+						],
+					],
+				]
+			);
+
+			$ids = array_merge( $ids, array_map( 'intval', $best ) );
+		}
+
+		$ids = array_slice( array_values( array_unique( $ids ) ), 0, $limit );
+
+		return $ids ? $ids : [ 0 ];
+	}
+
 	private function source_controls() {
 		$this->controls['source'] = [
 			'tab'     => 'content',
@@ -822,6 +884,7 @@ trait PFH_Product_Card_Trait {
 				'best'       => esc_html__( 'Best selling', 'pfh-widgets' ),
 				'recent'     => esc_html__( 'Newest products', 'pfh-widgets' ),
 				'viewed'     => esc_html__( 'Recently viewed by this visitor', 'pfh-widgets' ),
+				'cart'       => esc_html__( 'Goes with what is in the cart', 'pfh-widgets' ),
 				'ids'        => esc_html__( 'Specific products', 'pfh-widgets' ),
 				'manual'     => esc_html__( 'Manual cards (no WooCommerce)', 'pfh-widgets' ),
 			],
@@ -916,7 +979,7 @@ trait PFH_Product_Card_Trait {
 				'rand'       => esc_html__( 'Random', 'pfh-widgets' ),
 			],
 			'default'  => 'menu_order',
-			'required' => [ 'source', '!=', [ 'manual', 'ids' ] ],
+			'required' => [ 'source', '!=', [ 'manual', 'ids', 'cart' ] ],
 		];
 
 		$this->controls['hideOutOfStock'] = [

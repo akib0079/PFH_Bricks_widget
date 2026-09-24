@@ -231,6 +231,21 @@ class PFH_Widgets_Assets {
 		);
 
 		wp_register_style(
+			'pfh-cart-page',
+			PFH_WIDGETS_URL . 'assets/css/pfh-cart-page.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_script(
+			'pfh-cart-page',
+			PFH_WIDGETS_URL . 'assets/js/pfh-cart-page.js',
+			[],
+			PFH_WIDGETS_VERSION,
+			true
+		);
+
+		wp_register_style(
 			'pfh-policy',
 			PFH_WIDGETS_URL . 'assets/css/pfh-policy.css',
 			[ 'pfh-base' ],
@@ -704,6 +719,29 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-checkout' );
 		wp_enqueue_script( 'pfh-checkout' );
+	}
+
+	/**
+	 * Enqueue everything the cart page needs, with its own endpoint: the
+	 * nonce belongs to the cart action, not the header's.
+	 */
+	public static function cart_page() {
+		self::base();
+		wp_enqueue_style( 'pfh-cart-page' );
+		wp_enqueue_script( 'pfh-cart-page' );
+
+		if ( ! wp_scripts()->get_data( 'pfh-cart-page', 'data' ) ) {
+			wp_localize_script(
+				'pfh-cart-page',
+				'pfhCartPage',
+				[
+					'ajaxUrl' => admin_url( 'admin-ajax.php', 'relative' ),
+					'nonce'   => wp_create_nonce( PFH_Widgets_Cart_Page::ACTION ),
+					'updated' => __( 'Winkelwagen bijgewerkt', 'pfh-widgets' ),
+					'failed'  => __( 'Dat lukte niet. Probeer het opnieuw.', 'pfh-widgets' ),
+				]
+			);
+		}
 	}
 
 	/**

@@ -18,6 +18,7 @@ define( 'PFH_WIDGETS_URL', './' );
 require $dir . 'includes/class-pfh-helpers.php';
 require $dir . 'includes/class-pfh-icons.php';
 require $dir . 'includes/class-pfh-cart.php';
+require $dir . 'includes/class-pfh-cart-page.php';
 require $dir . 'includes/class-pfh-ajax.php';
 require $dir . 'includes/class-pfh-reviews.php';
 require $dir . 'includes/class-pfh-assets.php';
@@ -53,6 +54,7 @@ $elements = [
 	'PFH_Element_Post'           => [ 'class-pfh-element-post.php', 'pfh-post.css' ],
 	'PFH_Element_Checkout_Trust'   => [ 'class-pfh-element-checkout-trust.php', 'pfh-checkout.css' ],
 	'PFH_Element_Checkout_Reviews' => [ 'class-pfh-element-checkout-reviews.php', 'pfh-checkout.css' ],
+	'PFH_Element_Cart_Page'        => [ 'class-pfh-element-cart-page.php', 'pfh-cart-page.css' ],
 	'PFH_Element_Policy'         => [ 'class-pfh-element-policy.php', 'pfh-policy.css' ],
 	'PFH_Element_Terms'          => [ 'class-pfh-element-terms.php', 'pfh-policy.css' ],
 	'PFH_Element_Shipping'       => [ 'class-pfh-element-shipping.php', 'pfh-policy.css' ],

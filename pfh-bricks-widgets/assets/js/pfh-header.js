@@ -683,6 +683,12 @@
 
 				self.paintCart( json.data );
 
+				// A change made here, not just a look: tell the page, so a
+				// cart page underneath the drawer redraws too.
+				if ( 'refresh' !== ( command || 'refresh' ) ) {
+					document.dispatchEvent( new CustomEvent( 'pfh:cart-changed', { detail: { count: json.data.count } } ) );
+				}
+
 				if ( openAfter ) {
 					var trigger = self.root.querySelector( '[data-pfh-open="cart"]' );
 

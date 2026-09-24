@@ -134,6 +134,10 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-checkout-reviews.php',
 				'class' => 'PFH_Element_Checkout_Reviews',
 			],
+			'pfh-cart-page' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-cart-page.php',
+				'class' => 'PFH_Element_Cart_Page',
+			],
 			'pfh-policy' => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-policy.php',
 				'class' => 'PFH_Element_Policy',
@@ -290,6 +294,7 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Collection::init();
 		PFH_Widgets_Recent::init();
 		PFH_Widgets_Checkout_Labels::init();
+		PFH_Widgets_Cart_Page::init();
 		PFH_Widgets_Diagnostics::init();
 	}
 
