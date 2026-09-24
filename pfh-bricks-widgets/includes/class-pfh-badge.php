@@ -20,7 +20,13 @@ class PFH_Widgets_Badge extends PFH_Settings_Module {
 	const OPTION = 'pfh_badge';
 
 	public static function init() {
-		PFH_Widgets_Settings::register( 'reviews', __( 'WebwinkelKeur', 'pfh-widgets' ), __CLASS__ );
+		PFH_Widgets_Settings::register(
+			'reviews',
+			static function () {
+				return __( 'WebwinkelKeur', 'pfh-widgets' );
+			},
+			__CLASS__
+		);
 
 		// Make the stored credentials the fallback for every review surface.
 		add_filter( 'pfh_webwinkelkeur_credentials', [ __CLASS__, 'credentials' ] );
@@ -28,10 +34,10 @@ class PFH_Widgets_Badge extends PFH_Settings_Module {
 		// A changed key must not keep serving the old shop's cache.
 		add_action( 'pfh_widgets_settings_saved', [ __CLASS__, 'maybe_flush' ], 10, 2 );
 
-		if ( ! self::get( 'enabled', false ) ) {
-			return;
-		}
-
+		// Whether the badge is on is asked when the page is drawn, not here:
+		// reading a setting builds the translated settings schema, and on
+		// plugins_loaded that logs "translation loading was triggered too
+		// early" on every request.
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'assets' ] );
 		add_action( 'wp_footer', [ __CLASS__, 'render' ], 30 );
 	}
@@ -248,10 +254,32 @@ class PFH_Widgets_Badge extends PFH_Settings_Module {
 	}
 
 	/**
+	 * Whether this request is an editor, not a page a visitor sees: the admin,
+	 * the Bricks canvas, or another page builder's preview. A fixed badge
+	 * there only gets in the way.
+	 *
+	 * @return bool
+	 */
+	private static function skip() {
+		if ( is_admin() || PFH_Widgets_Helpers::is_builder_context() ) {
+			return true;
+		}
+
+		foreach ( [ 'bricks', 'brickspreview', 'elementor-preview', 'vc_editable', 'et_fb', 'fl_builder' ] as $key ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only context check.
+			if ( isset( $_GET[ $key ] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Front-end assets.
 	 */
 	public static function assets() {
-		if ( PFH_Widgets_Consent::skip() ) {
+		if ( ! self::get( 'enabled', false ) || self::skip() ) {
 			return;
 		}
 
@@ -302,7 +330,7 @@ class PFH_Widgets_Badge extends PFH_Settings_Module {
 	 */
 	public static function render() {
 		// A fixed badge over the Bricks canvas is in the editor's way.
-		if ( PFH_Widgets_Consent::skip() ) {
+		if ( ! self::get( 'enabled', false ) || self::skip() ) {
 			return;
 		}
 

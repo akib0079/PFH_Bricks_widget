@@ -283,8 +283,6 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Diagnose::boot();
 		PFH_Widgets_Save_Guard::init();
 		PFH_Widgets_Product_Fields::init();
-		PFH_Widgets_Consent::init();
-		PFH_Widgets_Permalinks::init();
 		PFH_Widgets_Badge::init();
 		PFH_Widgets_Instagram::init();
 		PFH_Widgets_Account::init();
@@ -292,7 +290,6 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Collection::init();
 		PFH_Widgets_Recent::init();
 		PFH_Widgets_Checkout_Labels::init();
-		PFH_Widgets_Documents::init();
 		PFH_Widgets_Diagnostics::init();
 	}
 
@@ -316,7 +313,7 @@ class PFH_Widgets_Plugin {
 	}
 
 	/**
-	 * On activation: rebuild rewrite rules so the permalink manager's URLs
+	 * On activation: rebuild rewrite rules, so the product and category URLs
 	 * resolve on the first request rather than after a manual save.
 	 */
 	public static function activate() {

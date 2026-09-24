@@ -2,7 +2,7 @@
 /**
  * Settings framework.
  *
- * Every module (consent, permalinks, review badge, documents) declares a flat
+ * Every module (the WebwinkelKeur feed, Instagram) declares a flat
  * schema; this file turns that schema into defaults, a sanitiser and an admin
  * screen, so a new field is one array entry rather than three code paths that
  * can drift apart.
@@ -258,7 +258,7 @@ class PFH_Widgets_Settings {
 	/**
 	 * Registered tabs: slug => [label, class].
 	 *
-	 * @var array<string, array{label:string, class:string}>
+	 * @var array<string, array{label:string|callable, class:string}>
 	 */
 	private static $tabs = [];
 
@@ -270,9 +270,15 @@ class PFH_Widgets_Settings {
 	/**
 	 * Register a module as a tab.
 	 *
-	 * @param string $slug  Tab slug.
-	 * @param string $label Tab label.
-	 * @param string $class Module class name (extends PFH_Settings_Module).
+	 * Modules register on plugins_loaded, which is before WordPress lets a
+	 * plugin translate anything — calling __() there logs a "translation
+	 * loading was triggered too early" notice on every request. So the label
+	 * can be a callable returning the translated text, and it is only called
+	 * when the screen is drawn.
+	 *
+	 * @param string          $slug  Tab slug.
+	 * @param string|callable $label Tab label, or a callable returning it.
+	 * @param string          $class Module class name (extends PFH_Settings_Module).
 	 */
 	public static function register( $slug, $label, $class ) {
 		self::$tabs[ $slug ] = [
@@ -282,7 +288,7 @@ class PFH_Widgets_Settings {
 	}
 
 	/**
-	 * @return array<string, array{label:string, class:string}>
+	 * @return array<string, array{label:string|callable, class:string}>
 	 */
 	public static function tabs() {
 		return self::$tabs;
@@ -408,7 +414,7 @@ class PFH_Widgets_Settings {
 				<?php foreach ( self::$tabs as $slug => $meta ) : ?>
 					<a class="nav-tab <?php echo $slug === $tab ? 'nav-tab-active' : ''; ?>"
 						href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::PAGE . '&tab=' . $slug ) ); ?>">
-						<?php echo esc_html( $meta['label'] ); ?>
+						<?php echo esc_html( is_callable( $meta['label'] ) ? (string) call_user_func( $meta['label'] ) : (string) $meta['label'] ); ?>
 					</a>
 				<?php endforeach; ?>
 			</nav>

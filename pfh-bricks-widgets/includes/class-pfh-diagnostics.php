@@ -43,20 +43,7 @@ class PFH_Widgets_Diagnostics {
 		$out[] = '';
 
 		$out[] = '── Does this plugin touch routing? ──';
-		$active = class_exists( 'PFH_Widgets_Permalinks' ) && PFH_Widgets_Permalinks::active();
-		$out[]  = 'Permalink manager        : ' . ( $active ? 'ON — it is rewriting URLs' : 'OFF — WooCommerce handles every URL' );
-
-		if ( class_exists( 'PFH_Widgets_Permalinks' ) ) {
-			$out[] = '  enabled switch         : ' . var_export( PFH_Widgets_Permalinks::get( 'enabled', false ), true );
-			$out[] = '  product mode           : ' . var_export( PFH_Widgets_Permalinks::get( 'product_mode', 'default' ), true );
-			$out[] = '  category mode          : ' . var_export( PFH_Widgets_Permalinks::get( 'category_mode', 'default' ), true );
-			$out[] = '  legacy redirects       : ' . var_export( PFH_Widgets_Permalinks::get( 'redirect_legacy', true ), true )
-				. ' (' . ( PFH_Widgets_Permalinks::get( 'permanent_redirect', false ) ? '301 permanent' : '302 temporary' ) . ')';
-		}
-
-		$out[] = '  parse_request hooked   : ' . var_export( false !== has_action( 'parse_request', [ 'PFH_Widgets_Permalinks', 'resolve' ] ), true );
-		$out[] = '  template_redirect      : ' . var_export( false !== has_action( 'template_redirect', [ 'PFH_Widgets_Permalinks', 'canonical' ] ), true );
-		$out[] = '  raw stored option      : ' . wp_json_encode( get_option( 'pfh_permalinks', '(never saved)' ) );
+		$out[] = 'No. It has no permalink manager; WooCommerce handles every URL.';
 		$out[] = '';
 
 		$out[] = '── The shop page ──';
@@ -88,11 +75,6 @@ class PFH_Widgets_Diagnostics {
 
 		$out[] = '';
 		$out[] = '── Other things this plugin switches on ──';
-
-		if ( class_exists( 'PFH_Widgets_Consent' ) ) {
-			$out[] = 'Cookie banner            : ' . var_export( PFH_Widgets_Consent::get( 'enabled', true ), true );
-			$out[] = 'Script blocking (buffers every page) : ' . var_export( PFH_Widgets_Consent::get( 'block_scripts', true ), true );
-		}
 
 		if ( class_exists( 'PFH_Widgets_Badge' ) ) {
 			$out[] = 'Sticky review badge      : ' . var_export( PFH_Widgets_Badge::get( 'enabled', false ), true );

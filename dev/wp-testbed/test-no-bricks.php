@@ -33,7 +33,7 @@ if ( class_exists( '\Bricks\Element' ) ) {
 echo "── it boots ──\n";
 ok( 'the plugin is active', in_array( 'pfh-bricks-widgets/pfh-bricks-widgets.php', (array) get_option( 'active_plugins' ), true ) );
 ok( 'it reached its bootstrap', defined( 'PFH_WIDGETS_VERSION' ) );
-ok( 'its services are up', class_exists( 'PFH_Widgets_Assets' ) && class_exists( 'PFH_Widgets_Consent' ) && class_exists( 'PFH_Widgets_Permalinks' ) );
+ok( 'its services are up', class_exists( 'PFH_Widgets_Assets' ) && class_exists( 'PFH_Widgets_Reviews' ) && class_exists( 'PFH_Widgets_Instagram' ) );
 
 echo "\n── and it loaded no element while doing so ──\n";
 foreach ( [ 'PFH_Element_Recent', 'PFH_Element_Products', 'PFH_Element_Archive', 'PFH_Element_Highlight' ] as $class ) {

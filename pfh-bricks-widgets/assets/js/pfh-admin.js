@@ -1,5 +1,5 @@
 /**
- * Settings screen behaviour: media picker, colour swatch, permalink preview
+ * Settings screen behaviour: media picker, colour swatch, option preview
  * and conditional rows.
  */
 ( function ( $ ) {
@@ -54,7 +54,7 @@
 			}
 		} );
 
-		/* ---- permalink preview follows the select ---- */
+		/* ---- a field's preview follows its select ---- */
 
 		$( 'select[data-pfh-field]' ).on( 'change', function () {
 			var key = $( this ).data( 'pfh-field' );

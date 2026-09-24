@@ -53,7 +53,13 @@ class PFH_Widgets_Instagram extends PFH_Settings_Module {
 	const LIFETIME = 60 * DAY_IN_SECONDS;
 
 	public static function init() {
-		PFH_Widgets_Settings::register( 'instagram', __( 'Instagram', 'pfh-widgets' ), __CLASS__ );
+		PFH_Widgets_Settings::register(
+			'instagram',
+			static function () {
+				return __( 'Instagram', 'pfh-widgets' );
+			},
+			__CLASS__
+		);
 
 		add_action( self::CRON, [ __CLASS__, 'keep_alive' ] );
 		add_action( 'pfh_widgets_settings_saved', [ __CLASS__, 'maybe_flush' ], 10, 2 );

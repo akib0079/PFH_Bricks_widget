@@ -7,9 +7,9 @@ Two halves:
 
 * **Twenty-one Bricks elements**, all fully dynamic and editable from the Bricks
   panel — no hard-coded content, no template edits.
-* **Four store services** under a **Products For Home** admin menu, replacing
-  Complianz, Premmerce Permalink Manager, WebwinkelKeur and PDF Invoices &
-  Packing Slips. See [Store services](#store-services).
+* **Two store services** under a **Products For Home** admin menu: the
+  WebwinkelKeur review feed and the Instagram feed. See
+  [Store services](#store-services).
 
 ### Elements
 
@@ -59,92 +59,18 @@ its Custom-list source.
 
 ## Store services
 
-Five modules that exist to take plugins off the site, not to add features.
-Each is a tab under **WP Admin → Products For Home**.
+Two feeds, each a tab under **WP Admin → Products For Home**.
 
-| Tab | Replaces | Off by default? |
+| Tab | What it feeds | Off by default? |
 | --- | --- | --- |
-| **Cookie consent** | Complianz Privacy Suite | No — on, with blocking |
-| **Permalinks** | Premmerce Permalink Manager | No — defaults match the live URLs |
-| **WebwinkelKeur** | WebwinkelKeur | Badge is off; credentials empty |
-| **Instagram** | Smash Balloon / Spotlight | Token empty — the strip falls back to Bricks |
-| **Invoices** | PDF Invoices & Packing Slips | No — but nothing is numbered until an invoice is opened |
+| **WebwinkelKeur** | Review slider, checkout reviews, rating badges, sticky badge | Badge is off; credentials empty |
+| **Instagram** | The Instagram strip | Token empty — the strip falls back to Bricks |
 
-### Cookie consent
-
-A bottom bar with **no overlay and no scroll lock** — the visitor can keep
-shopping while it is up. Corner-card variants are available.
-
-What makes it a consent layer rather than a banner:
-
-* Matching `<script>` and `<iframe>` tags are rewritten server-side to
-  `type="text/plain"` before they reach the browser, so Klaviyo, the Meta
-  pixel, Triple Whale and PixelYourSite genuinely cannot run before consent.
-  The lists are editable per category.
-* **Google Consent Mode v2** defaults are published inline at the very top of
-  `<head>`, before any Google tag loads. Google's tags are governed by those
-  signals rather than by blocking — which is why `googletagmanager` is *not*
-  in the blocklist by default. Blocking it outright loses conversion modelling
-  in Google Ads; there is a switch for it if legal asks.
-* Each choice is recorded (timestamp, categories, policy version, truncated
-  IP) in `{prefix}pfh_consent_log`, so consent can be evidenced.
-
-Cache-safe by construction: the markup is identical for every visitor and the
-state lives in a cookie read by JavaScript, so LiteSpeed or Kinsta full-page
-caching changes nothing.
-
-Category descriptions sit behind a disclosure so the panel stays about three
-rows tall. *Category descriptions → show them expanded* opens them all.
-
-Reopen the panel from anywhere with `[pfh_cookie_settings]`, a link to
-`#pfh-cookie-settings`, or `window.pfhConsentApi.open()`. Other code can ask
-`pfhConsentApi.has('marketing')` or listen for the `pfh:consent` event.
-
-**What this does not replace:** Complianz's generated legal documents. The
-cookie and privacy policy pages stay as they are and still need an owner.
-
-### Permalinks
-
-Defaults reproduce the configuration live on productsforhome.nl — **full
-category path**, **bare product slug**, **Yoast primary category** — so
-switching over changes no URL.
-
-Because the brief's §4 says any URL that resolves today must resolve after
-launch, every legacy shape still resolves and then 301s to the canonical one:
-
-| Requested | Result |
-| --- | --- |
-| `/rauwe-honing/` | 200 — canonical |
-| `/product/rauwe-honing/` | 301 → `/rauwe-honing/` |
-| `/griekse-producten/honing/rauwe-honing/` | 301 → `/rauwe-honing/` |
-| `/griekse-producten/honing/` | 200 — canonical category |
-| `/honing/` | 301 → `/griekse-producten/honing/` |
-| `/product-category/griekse-producten/honing/` | 301 → canonical |
-| `/made/up/path/` | 404, as it should |
-
-Pagination, feeds and embeds survive. Pages and posts keep precedence over
-products, always.
-
-The tab shows two live panels: the real URLs a few products and categories
-resolve to right now, and a slug-collision scan. The sample line under each
-dropdown is only a mock-up — the example panel is what confirms a setting took
-effect.
-
-The archive's filter state travels in the URL under namespaced names —
-`pfh_cat`, `pfh_page`, `pfh_sort`, `pfh_min`, `pfh_max`, `pfh_sale`,
-`pfh_stock`, `pfh_tax_<taxonomy>`. That is not decoration: WordPress reserves
-`page`, `cat`, `order` and `orderby` as public query vars, and a bare `?page=3`
-on a page means "the third page of the post content", which empties the archive
-instead of paging it. PHP publishes the map to the browser so the two halves
-cannot drift.
-
-**Before go-live:** run the slug-collision scanner on the tab. With the product
-base removed, a product and a page can claim the same URL — the page wins and
-the product silently disappears.
-
-Resolution happens in `parse_request` rather than through a catch-all rewrite
-rule, because a rule broad enough to match a bare product slug also swallows
-every page on the site.
+Cookie consent, the permalink manager and PDF invoices were part of this
+plugin until 1.48.0 and have been taken out; the site uses other tools for
+those. Their stored settings (`pfh_consent`, `pfh_permalinks`, `pfh_docs`),
+the `{prefix}pfh_consent_log` table and the invoice numbers on orders are
+left in the database untouched — invoice numbers are bookkeeping records.
 
 ### WebwinkelKeur
 
@@ -195,33 +121,6 @@ which is used when both are empty. Prefer a transparent PNG or an SVG: a JPEG
 carries its background with it and shows as a solid square against the white
 panel. **Tab background** and **Tab score colour** are there so a light icon can
 sit on a dark tab or the other way round.
-
-### Invoices
-
-Self-contained PDF writer — no library bundled. Standard Helvetica with real
-font metrics, so wrapping is accurate; multi-page with repeating table headers
-and page numbers; logo embedded through GD.
-
-Totals are read back from WooCommerce's own `get_order_item_totals()` rather
-than recalculated, so the staffel discount, loyalty redemption, shipping and
-VAT on the invoice are exactly what the customer saw at checkout.
-
-* Invoice and packing-slip buttons on the order screen, bulk export from the
-  orders list, attachment to the configured WooCommerce emails, and a download
-  in My Account.
-* Numbers are allocated **once** and never change. The counter is incremented
-  inside MySQL (`LAST_INSERT_ID(option_value + 1)`), so two orders completing
-  in the same second cannot be handed the same number.
-* Documents are rendered on request and streamed — nothing is written under
-  `wp-content`, so there is no directory of customer invoices at a guessable
-  URL. Email attachments go to the system temp directory and are unlinked on
-  shutdown.
-
-**Before go-live:** set **Start at** to continue the existing series. Leaving
-it at 1 produces duplicate invoice numbers in the books.
-
-Text is encoded to CP1252 (WinAnsi), which covers Dutch and English. Greek or
-Cyrillic in a product name would need an embedded TrueType font.
 
 ---
 

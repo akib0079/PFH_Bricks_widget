@@ -514,14 +514,10 @@ define( 'PFH_WIDGETS_URL', './' );
 require PFH_WIDGETS_DIR . 'includes/class-pfh-helpers.php';
 require PFH_WIDGETS_DIR . 'includes/class-pfh-reviews.php';
 require PFH_WIDGETS_DIR . 'includes/class-pfh-settings.php';
-require PFH_WIDGETS_DIR . 'includes/class-pfh-consent.php';
-require PFH_WIDGETS_DIR . 'includes/class-pfh-permalinks.php';
 // The badge resolves its mark through the asset layer, which is where the
 // artwork's hosted location is decided.
 require PFH_WIDGETS_DIR . 'includes/class-pfh-assets.php';
 require PFH_WIDGETS_DIR . 'includes/class-pfh-badge.php';
-require PFH_WIDGETS_DIR . 'includes/class-pfh-pdf.php';
-require PFH_WIDGETS_DIR . 'includes/class-pfh-documents.php';
 
 /**
  * Minimal WP request object, as parse_request hands it over.
