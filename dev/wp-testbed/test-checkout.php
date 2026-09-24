@@ -131,6 +131,7 @@ $js = $inline();
 ok( 'on the checkout it runs just before WooCommerce\'s address script', false !== strpos( $js, 'wc_address_i18n_params' ) );
 ok( '  once', 1 === substr_count( $js, 'var params = window.wc_address_i18n_params' ) );
 ok( '  it notes labels as served and puts back only the shop\'s own', false !== strpos( $js, 'country_to_state_changing' ) && false !== strpos( $js, '! theirs[ name ]' ) );
+ok( '  listening on the document, which exists even when scripts are printed in the head', false !== strpos( $js, "$( document ).on( 'country_to_state_changing'" ) && false === strpos( $js, 'document.body' ) );
 ok( 'the script is the plugin\'s file, so the checks run over what ships', PFH_Widgets_Checkout_Labels::script() === trim( file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/js/pfh-checkout-labels.js' ) ) );
 
 echo "\n$pass passed, $fail failed\n";

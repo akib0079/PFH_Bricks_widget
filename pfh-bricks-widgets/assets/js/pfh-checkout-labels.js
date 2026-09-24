@@ -92,7 +92,10 @@
 	$( remember );
 
 	// Its rewrite happens inside this event; put ours back once it is done.
-	$( document.body ).on( 'country_to_state_changing', function () {
+	// Bound on the document, not the body: some checkouts (FunnelKit's) print
+	// their scripts in the head, where there is no body yet to bind to. The
+	// event is triggered on the body and bubbles up here either way.
+	$( document ).on( 'country_to_state_changing', function () {
 		window.setTimeout( restore, 0 );
 	} );
 }( window.jQuery ) );
