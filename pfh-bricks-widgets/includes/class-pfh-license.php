@@ -343,6 +343,20 @@ class PFH_Widgets_License extends PFH_Settings_Module {
 	/**
 	 * @return string
 	 */
+	/**
+	 * The stand-alone locked notice an element renders in place of itself,
+	 * when the render-tree filter is not the mechanism doing the gating.
+	 *
+	 * @return string
+	 */
+	public static function locked_markup() {
+		if ( ! self::locked() ) {
+			return '';
+		}
+
+		return '<section class="pfh-license-locked pfh-scope">' . self::notice_html() . '</section>';
+	}
+
 	public static function notice_html() {
 		$text = (string) apply_filters(
 			'pfh_license_notice',

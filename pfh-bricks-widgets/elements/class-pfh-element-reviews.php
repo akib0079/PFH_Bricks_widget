@@ -1231,6 +1231,12 @@ class PFH_Element_Reviews extends \Bricks\Element {
 	 * ------------------------------------------------------------------ */
 
 	public function render() {
+		if ( class_exists( 'PFH_Widgets_License' ) && PFH_Widgets_License::locked() ) {
+			echo PFH_Widgets_License::locked_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built escaped in locked_markup().
+
+			return;
+		}
+
 		$cards = $this->cards();
 
 		$classes = [ 'pfh-rev', 'pfh-scope' ];

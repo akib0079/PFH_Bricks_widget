@@ -140,6 +140,38 @@ ok( 'a fresh valid token unlocks again', false === PFH_Widgets_License::locked()
 $same = PFH_Widgets_License::gate( $tree, 'content' );
 ok( '  the gate is a pure function — the input tree is not mutated', 'pfh-hero' === $tree[1]['name'] );
 
+echo "\n── an element withholds itself when locked ──\n";
+
+foreach ( glob( WP_PLUGIN_DIR . '/pfh-bricks-widgets/elements/*.php' ) as $ef ) { require_once $ef; }
+
+$render = static function ( $class ) {
+	$e           = new $class( [ 'id' => 'lk' . wp_rand( 1, 99999 ) ] );
+	$e->settings = [];
+	ob_start();
+	try { $e->render(); } catch ( \Throwable $t ) { echo 'ERR ' . $t->getMessage(); }
+	return (string) ob_get_clean();
+};
+
+$arm( $mint( '*', $past ) ); // locked
+$hero = $render( 'PFH_Element_Hero' );
+ok( 'a locked hero shows the notice in place of its content', false !== strpos( $hero, 'pfh-license-locked' ) && false !== strpos( $hero, 'niet beschikbaar' ) );
+ok( '  and none of its own slider markup', false === strpos( $hero, 'pfh-hero__slide' ) );
+
+$prods = $render( 'PFH_Element_Products' );
+ok( 'a locked product slider is withheld too', false !== strpos( $prods, 'pfh-license-locked' ) && false === strpos( $prods, 'pfh-prod__card' ) );
+
+$header = $render( 'PFH_Element_Header' );
+ok( 'the header renders as usual even when locked', false === strpos( $header, 'pfh-license-locked' ) );
+
+$arm( $mint( '*', $future ) ); // active again
+$hero2 = $render( 'PFH_Element_Hero' );
+ok( 'a licensed hero renders its content again', false === strpos( $hero2, 'pfh-license-locked' ) );
+
+delete_option( 'pfh_license' );
+PFH_Widgets_License::forget();
+$hero3 = $render( 'PFH_Element_Hero' );
+ok( 'dormant, the hero renders normally', false === strpos( $hero3, 'pfh-license-locked' ) );
+
 echo "\n── the constants win over the screen ──\n";
 
 $arm( 'not-a-token' );

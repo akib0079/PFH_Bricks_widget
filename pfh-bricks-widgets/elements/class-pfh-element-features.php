@@ -828,6 +828,12 @@ class PFH_Element_Features extends \Bricks\Element {
 	 * ------------------------------------------------------------------ */
 
 	public function render() {
+		if ( class_exists( 'PFH_Widgets_License' ) && PFH_Widgets_License::locked() ) {
+			echo PFH_Widgets_License::locked_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built escaped in locked_markup().
+
+			return;
+		}
+
 		$tiles = $this->get( 'tiles', [] );
 		$tiles = is_array( $tiles ) ? array_values( $tiles ) : [];
 

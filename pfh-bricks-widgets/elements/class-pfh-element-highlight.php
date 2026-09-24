@@ -517,6 +517,12 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * be hidden on its own page.
 	 */
 	public function render() {
+		if ( class_exists( 'PFH_Widgets_License' ) && PFH_Widgets_License::locked() ) {
+			echo PFH_Widgets_License::locked_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built escaped in locked_markup().
+
+			return;
+		}
+
 		$this->own   = null;
 		$this->offer = null;
 
