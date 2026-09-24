@@ -68,7 +68,7 @@ class PFH_Element_Recent extends PFH_Element_Products {
 
 		// The slider's heading is one field, with <em> marking the accent.
 		if ( isset( $this->controls['heading'] ) ) {
-			$this->controls['heading']['default'] = 'Recently <em>viewed</em>';
+			$this->controls['heading']['default'] = 'Recent <em>bekeken</em>';
 		}
 
 		if ( isset( $this->controls['limit'] ) ) {
@@ -95,7 +95,7 @@ class PFH_Element_Recent extends PFH_Element_Products {
 			'group'       => 'source',
 			'label'       => esc_html__( 'Heading for the best sellers', 'pfh-widgets' ),
 			'type'        => 'text',
-			'default'     => 'Most <em>popular</em>',
+			'default'     => 'Meest <em>populair</em>',
 			'description' => esc_html__( 'The recently viewed heading would be untrue over products nobody viewed, so they get their own.', 'pfh-widgets' ),
 		];
 
@@ -174,7 +174,7 @@ class PFH_Element_Recent extends PFH_Element_Products {
 
 		$heading = array_key_exists( 'fallbackHeading', (array) $this->settings )
 			? (string) $this->settings['fallbackHeading']
-			: 'Most <em>popular</em>';
+			: 'Meest <em>populair</em>';
 
 		return $this->draw( 'best', [ 'heading' => $heading ] );
 	}
@@ -269,13 +269,13 @@ class PFH_Element_Recent extends PFH_Element_Products {
 		$id = isset( $_POST['element'] ) ? sanitize_key( wp_unslash( $_POST['element'] ) ) : '';
 
 		if ( ! $id ) {
-			wp_send_json_error( [ 'message' => __( 'That request did not say which slider it was for.', 'pfh-widgets' ) ], 400 );
+			wp_send_json_error( [ 'message' => __( 'Dit verzoek hoort bij geen enkele slider.', 'pfh-widgets' ) ], 400 );
 		}
 
 		$settings = get_transient( self::CONFIG . $id );
 
 		if ( ! is_array( $settings ) ) {
-			wp_send_json_error( [ 'message' => __( 'That slider is no longer on the page.', 'pfh-widgets' ) ], 404 );
+			wp_send_json_error( [ 'message' => __( 'Deze slider staat niet meer op de pagina.', 'pfh-widgets' ) ], 404 );
 		}
 
 		$element           = new self( [ 'id' => $id ] );

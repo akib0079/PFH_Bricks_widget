@@ -62,7 +62,7 @@ class PFH_Element_Rating extends \Bricks\Element {
 			'label'   => esc_html__( 'Label', 'pfh-widgets' ),
 			'type'    => 'text',
 			'inline'  => true,
-			'default' => 'Excellent',
+			'default' => 'Uitstekend',
 		];
 
 		$this->controls['score'] = [
@@ -90,7 +90,7 @@ class PFH_Element_Rating extends \Bricks\Element {
 			'group'       => 'content',
 			'label'       => esc_html__( 'Count text', 'pfh-widgets' ),
 			'type'        => 'text',
-			'default'     => '%s reviews on',
+			'default'     => '%s reviews op',
 			'description' => esc_html__( '%s is replaced with the number.', 'pfh-widgets' ),
 		];
 
@@ -281,7 +281,7 @@ class PFH_Element_Rating extends \Bricks\Element {
 			echo '<span class="pfh-rating__sep" aria-hidden="true">' . esc_html( $sep ) . '</span>';
 		}
 
-		$text = (string) $this->get( 'countText', '%s reviews on' );
+		$text = (string) $this->get( 'countText', '%s reviews op' );
 
 		if ( '' !== trim( $text ) ) {
 			printf(

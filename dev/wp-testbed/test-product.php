@@ -113,7 +113,7 @@ ok( 'the description can be left off', false === strpos( pdp( $variable->ID, [ '
 echo "\n── the shop's rating, not this product's ──\n";
 ok( 'the row is drawn', false !== strpos( $html, 'pfh-pdp__rating' ) );
 ok( 'with the score', false !== strpos( $html, '<span class="pfh-pdp__score">9,7</span>' ) || false !== strpos( $html, '<span class="pfh-pdp__score">9.7</span>' ) );
-ok( 'and how many reviews', false !== strpos( $html, '396 Reviews' ) );
+ok( 'and how many reviews', false !== strpos( $html, '396 reviews' ) );
 
 /*
  * The row reads the shop's figures, not the API alone: on the live site the
@@ -254,7 +254,7 @@ $shipped_hidden = array_filter( $navs[0], static function ( $tag ) {
 } );
 ok( 'both start hidden, until the row overflows', 2 === count( $navs[0] ) && 2 === count( $shipped_hidden ) );
 ok( 'every thumbnail is an item on it', 3 === substr_count( $html, 'pfh-pdp__thumbs-item' ) );
-ok( 'and each says which image it opens', false !== strpos( $html, 'aria-label="Show image 1"' ) );
+ok( 'and each says which image it opens', false !== strpos( $html, 'aria-label="Toon afbeelding 1"' ) );
 
 echo "\n── the promises ──\n";
 ok( 'all three are drawn', 3 === substr_count( $html, 'pfh-pdp__usp-item' ) );

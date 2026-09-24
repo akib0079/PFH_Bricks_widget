@@ -240,7 +240,7 @@ class PFH_Element_Header extends \Bricks\Element {
 			'titleProperty' => 'text',
 			'required'      => [ 'topbarEnable', '=', true ],
 			'default'       => [
-				[ 'text' => 'Get 35% off on your first order and FREE Delivery with ZERO Cost!!' ],
+				[ 'text' => '35% korting op je eerste bestelling én GRATIS bezorging!' ],
 			],
 			'fields'        => [
 				'text' => [

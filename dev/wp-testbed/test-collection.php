@@ -462,7 +462,7 @@ unset( $_COOKIE['woocommerce_recently_viewed'] );
 $first = recent();
 
 ok( 'a first visit is not an empty gap', false !== strpos( $first, 'pfh-prod__card' ) );
-ok( '  it shows the best sellers', false !== strpos( $first, 'popular' ) );
+ok( '  it shows the best sellers', false !== strpos( $first, 'populair' ) );
 ok( '  under their own heading, not "recently viewed"', false === strpos( $first, 'viewed' ), 'the best sellers were labelled as history' );
 ok( 'or nothing, when that is what is asked for', '' === recent( [ 'fallback' => 'none' ] ) );
 
@@ -473,7 +473,7 @@ $history = recent();
 
 ok( 'with a history, it shows that history', ! array_diff( shown( $history ), $some ) && count( shown( $history ) ) === count( $some ), implode( ',', shown( $history ) ) );
 ok( '  newest first', shown( $history ) && end( $some ) === shown( $history )[0] );
-ok( '  under the recently viewed heading', false !== strpos( $history, 'viewed' ) );
+ok( '  under the recently viewed heading', false !== strpos( $history, 'bekeken' ) );
 ok( 'the product being looked at is left out of its own list', ! in_array( $some[1], shown( recent( [], $some[1] ) ), true ) );
 
 unset( $_COOKIE['woocommerce_recently_viewed'] );

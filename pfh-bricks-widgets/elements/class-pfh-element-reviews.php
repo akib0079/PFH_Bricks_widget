@@ -171,7 +171,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 			'label'       => esc_html__( 'Fallback / custom text', 'pfh-widgets' ),
 			'type'        => 'text',
 			'inline'      => true,
-			'default'     => 'Verified customer',
+			'default'     => 'Geverifieerde klant',
 			'description' => esc_html__( 'Used when the chosen field is empty, and for every card in “Same text” mode.', 'pfh-widgets' ),
 			'required'    => [ 'subLabel', '!=', 'none' ],
 		];
@@ -227,13 +227,13 @@ class PFH_Element_Reviews extends \Bricks\Element {
 	}
 
 	private function default_reviews() {
-		$text = 'The quality feels incredibly authentic, from the rich honey to the perfectly balanced juices. Every order feels thoughtfully curated.';
+		$text = 'De kwaliteit voelt ongelooflijk authentiek, van de rijke honing tot de perfect uitgebalanceerde sappen. Elke bestelling voelt zorgvuldig samengesteld.';
 		$out  = [];
 
 		foreach ( [ 'Annette Black', 'Cameron Williamson', 'Darlene Robertson', 'Marvin McKinney' ] as $name ) {
 			$out[] = [
 				'name'   => $name,
-				'role'   => 'Mother',
+				'role'   => 'Moeder',
 				'rating' => 4.5,
 				'text'   => $text,
 			];
@@ -252,7 +252,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 			'group'       => 'head',
 			'label'       => esc_html__( 'Heading', 'pfh-widgets' ),
 			'type'        => 'textarea',
-			'default'     => "Voices gathered from sunlit\n<em>mediterranean tables</em>",
+			'default'     => "Stemmen, verzameld aan zonovergoten\n<em>mediterrane tafels</em>",
 			'description' => esc_html__( 'Line breaks are kept. Wrap the italic underlined part in <em>…</em>.', 'pfh-widgets' ),
 		];
 
@@ -261,7 +261,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 			'group'   => 'head',
 			'label'   => esc_html__( 'Intro text', 'pfh-widgets' ),
 			'type'    => 'textarea',
-			'default' => 'Thoughts and experiences shared by those who found comfort, flavor, and authenticity in every carefully crafted product',
+			'default' => 'Gedachten en ervaringen van mensen die troost, smaak en authenticiteit vonden in elk zorgvuldig gemaakt product',
 		];
 
 		$this->controls['railSide'] = [
@@ -1137,7 +1137,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 			$name = trim( (string) $row['name'] );
 
 			$out[] = [
-				'name'   => '' !== $name ? $name : esc_html__( 'Anonymous', 'pfh-widgets' ),
+				'name'   => '' !== $name ? $name : esc_html__( 'Anoniem', 'pfh-widgets' ),
 				'role'   => $this->sub_label( $row ),
 				'stars'  => PFH_Widgets_Reviews::stars( $row['rating10'], $scale, $stars ),
 				'text'   => (string) $row['text'],
@@ -1252,7 +1252,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 		echo '<div class="pfh-rev__slider">';
 
 		if ( $cards ) {
-			echo '<div class="pfh-rev__viewport" data-pfh-viewport tabindex="0" role="group" aria-label="' . esc_attr__( 'Customer reviews', 'pfh-widgets' ) . '">';
+			echo '<div class="pfh-rev__viewport" data-pfh-viewport tabindex="0" role="group" aria-label="' . esc_attr__( 'Klantreviews', 'pfh-widgets' ) . '">';
 			echo '<div class="pfh-rev__track" data-pfh-track>';
 
 			foreach ( $cards as $index => $card ) {
@@ -1266,7 +1266,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 				printf(
 					'<div class="pfh-rev__dots" data-pfh-dots data-pfh-max-dots="%d" data-pfh-dot-label="%s"></div>',
 					max( 1, (int) $this->get( 'maxDots', 8 ) ),
-					esc_attr__( 'Go to slide %d', 'pfh-widgets' )
+					esc_attr__( 'Ga naar dia %d', 'pfh-widgets' )
 				);
 			}
 		} else {
@@ -1313,13 +1313,13 @@ class PFH_Element_Reviews extends \Bricks\Element {
 
 			printf(
 				'<button type="button" class="pfh-rev__arrow pfh-rev__arrow--prev" data-pfh-prev aria-label="%s">%s</button>',
-				esc_attr__( 'Previous reviews', 'pfh-widgets' ),
+				esc_attr__( 'Vorige reviews', 'pfh-widgets' ),
 				$glyph // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- inline SVG or escaped <img>.
 			);
 
 			printf(
 				'<button type="button" class="pfh-rev__arrow pfh-rev__arrow--next" data-pfh-next aria-label="%s">%s</button>',
-				esc_attr__( 'More reviews', 'pfh-widgets' ),
+				esc_attr__( 'Meer reviews', 'pfh-widgets' ),
 				$glyph // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- inline SVG or escaped <img>.
 			);
 
@@ -1365,7 +1365,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 	 */
 	private function render_avatar( $card ) {
 		$photo = (string) $card['avatar'];
-		$alt   = $card['name'] ? sprintf( /* translators: %s: reviewer name. */ esc_attr__( 'Photo of %s', 'pfh-widgets' ), $card['name'] ) : '';
+		$alt   = $card['name'] ? sprintf( /* translators: %s: reviewer name. */ esc_attr__( 'Foto van %s', 'pfh-widgets' ), $card['name'] ) : '';
 
 		if ( $photo ) {
 			printf(
@@ -1428,7 +1428,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 			esc_attr(
 				sprintf(
 					/* translators: 1: rating, 2: maximum. */
-					__( '%1$s out of %2$s stars', 'pfh-widgets' ),
+					__( '%1$s van %2$s sterren', 'pfh-widgets' ),
 					number_format_i18n( $stars, 1 ),
 					$count
 				)

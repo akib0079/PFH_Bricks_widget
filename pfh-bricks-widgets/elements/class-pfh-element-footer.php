@@ -54,7 +54,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 	public function set_control_groups() {
 		$this->control_groups['layout']     = [ 'title' => esc_html__( 'Layout', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['columns']    = [ 'title' => esc_html__( 'Link columns', 'pfh-widgets' ), 'tab' => 'content' ];
-		$this->control_groups['newsletter'] = [ 'title' => esc_html__( 'Newsletter', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['newsletter'] = [ 'title' => esc_html__( 'Nieuwsbrief', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['brand']      = [ 'title' => esc_html__( 'Brand & social', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['bottom']     = [ 'title' => esc_html__( 'Reviews & copyright', 'pfh-widgets' ), 'tab' => 'content' ];
 	}
@@ -348,7 +348,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 			'group'    => 'newsletter',
 			'label'    => esc_html__( 'Heading', 'pfh-widgets' ),
 			'type'     => 'text',
-			'default'  => 'Newsletter',
+			'default'  => 'Nieuwsbrief',
 			'required' => [ 'newsletterEnable', '=', true ],
 		];
 
@@ -390,7 +390,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 			'label'    => esc_html__( 'Email field name', 'pfh-widgets' ),
 			'type'     => 'text',
 			'inline'   => true,
-			'default'  => 'EMAIL',
+			'default'  => 'E-MAIL',
 			'required' => [ [ 'newsletterEnable', '=', true ], [ 'newsletterMode', '=', 'builtin' ] ],
 		];
 
@@ -399,7 +399,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 			'group'    => 'newsletter',
 			'label'    => esc_html__( 'Placeholder', 'pfh-widgets' ),
 			'type'     => 'text',
-			'default'  => 'E-mail here',
+			'default'  => 'Je e-mailadres',
 			'required' => [ [ 'newsletterEnable', '=', true ], [ 'newsletterMode', '=', 'builtin' ] ],
 		];
 
@@ -409,7 +409,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 			'label'    => esc_html__( 'Button text', 'pfh-widgets' ),
 			'type'     => 'text',
 			'inline'   => true,
-			'default'  => 'Subscribe',
+			'default'  => 'Aanmelden',
 			'required' => [ [ 'newsletterEnable', '=', true ], [ 'newsletterMode', '=', 'builtin' ] ],
 		];
 
@@ -676,7 +676,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 			'label'    => esc_html__( 'Label', 'pfh-widgets' ),
 			'type'     => 'text',
 			'inline'   => true,
-			'default'  => 'Excellent',
+			'default'  => 'Uitstekend',
 			'required' => [ 'reviewsEnable', '=', true ],
 		];
 
@@ -695,7 +695,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 			'group'    => 'bottom',
 			'label'       => esc_html__( 'Count text', 'pfh-widgets' ),
 			'type'        => 'text',
-			'default'     => '%s reviews on',
+			'default'     => '%s reviews op',
 			'description' => esc_html__( '%s is replaced with the live review count. If you leave a plain number in here instead, that number is replaced — so "270 reviews on" becomes the real count.', 'pfh-widgets' ),
 			'required'    => [ 'reviewsEnable', '=', true ],
 		];
@@ -746,7 +746,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 			'group'       => 'bottom',
 			'label'       => esc_html__( 'Copyright', 'pfh-widgets' ),
 			'type'        => 'text',
-			'default'     => 'COPYRIGHT © {year} ALL RIGHT RESERVED',
+			'default'     => 'COPYRIGHT © {year} ALLE RECHTEN VOORBEHOUDEN',
 			'description' => esc_html__( 'Use {year} for the current year.', 'pfh-widgets' ),
 		];
 
@@ -815,24 +815,24 @@ class PFH_Element_Footer extends \Bricks\Element {
 	private function default_columns() {
 		return [
 			[
-				'heading' => 'Categories',
+				'heading' => 'Categorieën',
 				'source'  => 'manual',
-				'links'   => "Gia giamas lemonade | #\nHoney | #\nOlive oil | #\nBeeswax | #\nSales and bundles | #",
+				'links'   => "Gia Giamas limonade | #\nHoning | #\nOlijfolie | #\nBijenwas | #\nAanbiedingen en bundels | #",
 			],
 			[
-				'heading' => 'Quick links',
+				'heading' => 'Snelle links',
 				'source'  => 'manual',
-				'links'   => "Home | #\nShop | #\nAbout us | #\nBlog | #\nContact | #",
+				'links'   => "Home | #\nShop | #\nOver ons | #\nBlog | #\nContact | #",
 			],
 			[
-				'heading' => 'Useful links',
+				'heading' => 'Handige links',
 				'source'  => 'manual',
-				'links'   => "Shopping cart | #\nTo settle | #\nMy account | #",
+				'links'   => "Winkelwagen | #\nAfrekenen | #\nMijn account | #",
 			],
 			[
-				'heading' => 'Policy',
+				'heading' => 'Klantenservice',
 				'source'  => 'manual',
-				'links'   => "General Terms and Conditions | #\nPayment and delivery | #\nPrivacy Policy | #\nReturns or defects | #\nComplaints | #",
+				'links'   => "Algemene voorwaarden | #\nBetalen en bezorgen | #\nPrivacybeleid | #\nRetourneren of defecten | #\nKlachten | #",
 			],
 		];
 	}
@@ -1036,9 +1036,9 @@ class PFH_Element_Footer extends \Bricks\Element {
 		}
 
 		$action = (string) $this->get( 'newsletterAction', '' );
-		$field  = (string) $this->get( 'newsletterField', 'EMAIL' );
+		$field  = (string) $this->get( 'newsletterField', 'E-MAIL' );
 		$field  = preg_replace( '/[^A-Za-z0-9_\-\[\]]/', '', $field );
-		$field  = $field ? $field : 'EMAIL';
+		$field  = $field ? $field : 'E-MAIL';
 		$id     = 'pfh-news-' . $this->uid();
 
 		// Only open a new tab when the form actually posts somewhere else.
@@ -1055,7 +1055,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 				autocomplete="email"
 				placeholder="<?php echo esc_attr( $this->get( 'newsletterPlaceholder', '' ) ); ?>"
 			/>
-			<button type="submit" class="pfh-footer__submit"><?php echo esc_html( $this->get( 'newsletterButton', 'Subscribe' ) ); ?></button>
+			<button type="submit" class="pfh-footer__submit"><?php echo esc_html( $this->get( 'newsletterButton', 'Aanmelden' ) ); ?></button>
 		</form>
 		<?php
 		echo '</div>';

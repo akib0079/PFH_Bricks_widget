@@ -140,7 +140,7 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 			'label'       => esc_html__( 'Dropdown wording', 'pfh-widgets' ),
 			'type'        => 'text',
 			'inline'      => true,
-			'default'     => 'Select',
+			'default'     => 'Kies',
 			'description' => esc_html__( 'Put before the attribute, as "Select Type". Empty uses the attribute on its own.', 'pfh-widgets' ),
 		];
 
@@ -369,7 +369,7 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 
 		printf(
 			'<p class="pfh-bcart__notice" data-pfh-notice data-fallback="%s" hidden></p>',
-			esc_attr__( 'That did not work. Please try again.', 'pfh-widgets' )
+			esc_attr__( 'Dat lukte niet. Probeer het opnieuw.', 'pfh-widgets' )
 		);
 	}
 

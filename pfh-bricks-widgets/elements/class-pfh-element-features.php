@@ -94,7 +94,7 @@ class PFH_Element_Features extends \Bricks\Element {
 			'group'       => 'head',
 			'label'       => esc_html__( 'Heading', 'pfh-widgets' ),
 			'type'        => 'textarea',
-			'default'     => "Whispers of the Aegean,\nCrafted in <em>pure harmony</em>",
+			'default'     => "Fluisteringen van de Egeïsche Zee,\nvervaardigd in <em>pure harmonie</em>",
 			'description' => esc_html__( 'Line breaks are kept. Wrap the italic underlined part in <em>…</em>.', 'pfh-widgets' ),
 		];
 
@@ -103,7 +103,7 @@ class PFH_Element_Features extends \Bricks\Element {
 			'group'   => 'head',
 			'label'   => esc_html__( 'Intro text', 'pfh-widgets' ),
 			'type'    => 'textarea',
-			'default' => 'A curated selection inspired by sun-drenched Greek landscapes — where olives, honey, and fresh juices meet timeless craftsmanship and natural elegance.',
+			'default' => 'Een zorgvuldig samengestelde selectie, geïnspireerd op zonovergoten Griekse landschappen — waar olijven, honing en verse sappen samenkomen met tijdloos vakmanschap en natuurlijke elegantie.',
 		];
 
 		$this->controls['headingTag'] = [
@@ -259,8 +259,8 @@ class PFH_Element_Features extends \Bricks\Element {
 			[
 				'image'      => [ 'url' => self::CARD_HONEY ],
 				'imagePos'   => 'right center',
-				'title'      => "Pure Goodness\n<em>from nature</em>",
-				'text'       => 'Fresh juices, raw honey, and handpicked olives delivered with authentic taste and natural quality for every home.',
+				'title'      => "Puur goed\n<em>uit de natuur</em>",
+				'text'       => 'Verse sappen, rauwe honing en met de hand geplukte olijven: authentieke smaak en natuurlijke kwaliteit voor elk huis.',
 				'titleColor' => [ 'hex' => '#49492b' ],
 				'textColor'  => [ 'hex' => '#49492b' ],
 				'colSpan'    => '1',
@@ -270,8 +270,8 @@ class PFH_Element_Features extends \Bricks\Element {
 			[
 				'image'      => [ 'url' => self::CARD_LEMON ],
 				'imagePos'   => 'right center',
-				'title'      => "Crafted For\n<em>healthy living</em>",
-				'text'       => 'Discover everyday essentials made with care — rich flavors, clean ingredients, and products inspired by nature.',
+				'title'      => "Gemaakt voor\n<em>gezond leven</em>",
+				'text'       => 'Ontdek met zorg gemaakte dagelijkse producten — rijke smaken, pure ingrediënten en producten geïnspireerd door de natuur.',
 				'titleColor' => [ 'hex' => $light ],
 				'textColor'  => [ 'rgb' => $body ],
 				'bgColor'    => [ 'hex' => '#3d868c' ],
@@ -281,27 +281,27 @@ class PFH_Element_Features extends \Bricks\Element {
 			],
 			[
 				'image'   => [ 'url' => self::PHOTO_OIL ],
-				'alt'     => 'Greek extra virgin olive oil',
+				'alt'     => 'Griekse extra vierge olijfolie',
 				'colSpan' => '1',
 				'rowSpan' => '2',
 			],
 			[
-				'alt'     => 'Fresh juices raised to the sky',
+				'alt'     => 'Verse sappen, geheven naar de hemel',
 				'bgColor' => [ 'hex' => '#cfe2ef' ],
 				'colSpan' => '1',
 				'rowSpan' => '2',
 			],
 			[
 				'image'   => [ 'url' => self::PHOTO_JARS ],
-				'alt'     => 'Jars of raw Greek honey',
+				'alt'     => 'Potten met rauwe Griekse honing',
 				'colSpan' => '1',
 				'rowSpan' => '1',
 			],
 			[
 				'image'      => [ 'url' => self::CARD_OLIVE ],
 				'imagePos'   => 'right center',
-				'title'      => "Pure goodness\n<em>from nature</em>",
-				'text'       => 'Fresh juices, raw honey, and handpicked olives delivered with authentic taste and natural quality for every home.',
+				'title'      => "Puur goed\n<em>uit de natuur</em>",
+				'text'       => 'Verse sappen, rauwe honing en met de hand geplukte olijven: authentieke smaak en natuurlijke kwaliteit voor elk huis.',
 				'titleColor' => [ 'hex' => $light ],
 				'textColor'  => [ 'rgb' => $body ],
 				'bgColor'    => [ 'hex' => '#697c66' ],
@@ -311,7 +311,7 @@ class PFH_Element_Features extends \Bricks\Element {
 			],
 			[
 				'image'   => [ 'url' => self::PHOTO_JUICE ],
-				'alt'     => 'Three fresh fruit juices',
+				'alt'     => 'Drie verse vruchtensappen',
 				'colSpan' => '1',
 				'rowSpan' => '1',
 			],

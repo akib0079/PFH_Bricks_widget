@@ -76,7 +76,7 @@ class PFH_Element_Featured extends \Bricks\Element {
 			'group'   => 'content',
 			'label'   => esc_html__( 'Heading', 'pfh-widgets' ),
 			'type'    => 'textarea',
-			'default' => 'Greek products',
+			'default' => 'Griekse producten',
 		];
 
 		$this->controls['text'] = [
@@ -84,7 +84,7 @@ class PFH_Element_Featured extends \Bricks\Element {
 			'group'       => 'content',
 			'label'       => esc_html__( 'Text', 'pfh-widgets' ),
 			'type'        => 'textarea',
-			'default'     => 'Thanks to our family and friends in Greece, we can offer an exclusive range of <a href="#">Greek products online</a>. From traditional honey to organic olive oil, here you will find the best Greek products that you can order from us.',
+			'default'     => 'Dankzij onze familie en vrienden in Griekenland kunnen we een exclusief assortiment <a href="#">Griekse producten online</a> aanbieden. Van traditionele honing tot biologische olijfolie: hier vind je de beste Griekse producten, die je eenvoudig bij ons bestelt.',
 			'description' => esc_html__( 'Accepts links and <strong> — the highlighted phrase in the design is a link.', 'pfh-widgets' ),
 		];
 
@@ -94,7 +94,7 @@ class PFH_Element_Featured extends \Bricks\Element {
 			'label'   => esc_html__( 'Button label', 'pfh-widgets' ),
 			'type'    => 'text',
 			'inline'  => true,
-			'default' => 'Shop Now',
+			'default' => 'Shop nu',
 		];
 
 		$this->controls['btnLink'] = [
@@ -797,7 +797,7 @@ class PFH_Element_Featured extends \Bricks\Element {
 			'group'       => 'marquee',
 			'label'       => esc_html__( 'Items', 'pfh-widgets' ),
 			'type'        => 'textarea',
-			'default'     => 'Free Shipping on order over $40',
+			'default'     => 'Gratis verzending bij bestellingen boven €40',
 			'description' => esc_html__( 'One item per line. A single line repeats across the bar.', 'pfh-widgets' ),
 			'required'    => [ 'mqEnable', '=', true ],
 		];

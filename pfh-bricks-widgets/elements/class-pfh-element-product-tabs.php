@@ -304,7 +304,7 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 
 		/* ---- the tab strip ---- */
 
-		printf( '<div class="pfh-tabs__nav" role="tablist" aria-label="%s">', esc_attr__( 'Product information', 'pfh-widgets' ) );
+		printf( '<div class="pfh-tabs__nav" role="tablist" aria-label="%s">', esc_attr__( 'Productinformatie', 'pfh-widgets' ) );
 
 		$first = true;
 

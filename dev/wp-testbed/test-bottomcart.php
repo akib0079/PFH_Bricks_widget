@@ -58,8 +58,8 @@ ok( 'the saving can be switched off', false !== strpos( bar( $fixture_id, [ 'sho
 echo "\n── choosing ──\n";
 ok( 'a dropdown for each attribute', 2 === substr_count( $html, 'pfh-bcart__select' ) );
 ok( 'each is a real select that posts', 2 === substr_count( $html, 'data-pfh-attr-field' ) );
-ok( 'the first says what it is for', false !== strpos( $html, '>Select Type</option>' ), 'no "Select Type"' );
-ok( 'and the second likewise', false !== strpos( $html, '>Select Smaak</option>' ) );
+ok( 'the first says what it is for', false !== strpos( $html, '>Kies Type</option>' ), 'no "Kies Type"' );
+ok( 'and the second likewise', false !== strpos( $html, '>Kies Smaak</option>' ) );
 ok( 'the wording is the client\'s', false !== strpos( bar( $fixture_id, [ 'choosePrefix' => 'Kies' ] ), '>Kies Type</option>' ) );
 ok( 'left empty it is the attribute alone', false !== strpos( bar( $fixture_id, [ 'choosePrefix' => '' ] ), '>Type</option>' ) );
 ok( 'the options read as the shop writes them', false !== strpos( $html, '>Traditioneel 1000ml</option>' ) && false !== strpos( $html, '>Mandarijn</option>' ) );

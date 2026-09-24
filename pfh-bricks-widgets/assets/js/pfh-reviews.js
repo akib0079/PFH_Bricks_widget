@@ -203,7 +203,7 @@
 		var max = parseInt( this.dots.getAttribute( 'data-pfh-max-dots' ), 10 );
 		max = isNaN( max ) || max < 1 ? 8 : max;
 
-		var label = this.dots.getAttribute( 'data-pfh-dot-label' ) || 'Go to slide %d';
+		var label = this.dots.getAttribute( 'data-pfh-dot-label' ) || 'Ga naar dia %d';
 
 		this.dots.innerHTML = '';
 		this.counter = null;

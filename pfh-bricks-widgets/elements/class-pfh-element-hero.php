@@ -63,7 +63,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 	}
 
 	public function get_keywords() {
-		return [ 'hero', 'slider', 'banner', 'carousel', 'slideshow', 'pfh' ];
+		return [ 'hero', 'slider', 'banner', 'carrousel', 'slideshow', 'pfh' ];
 	}
 
 	public function enqueue_scripts() {
@@ -71,7 +71,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 	}
 
 	public function set_control_groups() {
-		$this->control_groups['slides']  = [ 'title' => esc_html__( 'Slides', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['slides']  = [ 'title' => esc_html__( 'Dia\'s', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['layout']  = [ 'title' => esc_html__( 'Layout & background', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['type']    = [ 'title' => esc_html__( 'Typography', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['rating']  = [ 'title' => esc_html__( 'Rating row', 'pfh-widgets' ), 'tab' => 'content' ];
@@ -132,7 +132,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 		$this->controls['slides'] = [
 			'tab'           => 'content',
 			'group'         => 'slides',
-			'label'         => esc_html__( 'Slides', 'pfh-widgets' ),
+			'label'         => esc_html__( 'Dia\'s', 'pfh-widgets' ),
 			'type'          => 'repeater',
 			'titleProperty' => 'title',
 			'default'       => $this->default_slides(),
@@ -333,8 +333,8 @@ class PFH_Element_Hero extends \Bricks\Element {
 			'image'       => [ 'url' => self::PRODUCT_URL ],
 			'imageCutout' => '',
 			'imageWidth'  => 100,
-			'btn1Label'   => 'Shop Now',
-			'btn2Label'   => 'Learn More',
+			'btn1Label'   => 'Shop nu',
+			'btn2Label'   => 'Meer informatie',
 		];
 
 		return [
@@ -1434,7 +1434,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 			'group'       => 'marquee',
 			'label'       => esc_html__( 'Items', 'pfh-widgets' ),
 			'type'        => 'textarea',
-			'default'     => "NATURALLY REFRESHING\nINSPIRED BY GREECE\nLIGHT & VIBRANT FLAVORS\nMADE FOR SHARING\nMEDITERRANEAN FRESHNESS\nGIA GIAMAS",
+			'default'     => "HEERLIJK VERFRISSEND\nGEÏNSPIREERD DOOR GRIEKENLAND\nLICHTE & LEVENDIGE SMAKEN\nOM SAMEN TE DELEN\nMEDITERRANE FRISHEID\nGIA GIAMAS",
 			'description' => esc_html__( 'One item per line.', 'pfh-widgets' ),
 			'required'    => [ 'marqueeEnable', '=', true ],
 		];
@@ -1799,8 +1799,8 @@ class PFH_Element_Hero extends \Bricks\Element {
 		$this->set_attribute( '_root', 'data-pfh-hero', $this->uid() );
 		$this->set_attribute( '_root', 'data-pfh-config', wp_json_encode( $this->js_config( count( $slides ) ) ) );
 		$this->set_attribute( '_root', 'role', 'region' );
-		$this->set_attribute( '_root', 'aria-roledescription', esc_attr__( 'carousel', 'pfh-widgets' ) );
-		$this->set_attribute( '_root', 'aria-label', esc_attr__( 'Hero slider', 'pfh-widgets' ) );
+		$this->set_attribute( '_root', 'aria-roledescription', esc_attr__( 'carrousel', 'pfh-widgets' ) );
+		$this->set_attribute( '_root', 'aria-label', esc_attr__( 'Slider', 'pfh-widgets' ) );
 
 		echo '<section ' . $this->render_attributes( '_root' ) . '>';
 
@@ -1940,8 +1940,8 @@ class PFH_Element_Hero extends \Bricks\Element {
 			$active ? ' is-active' : '',
 			(int) $index,
 			$bg ? ' data-pfh-slide-bg="' . esc_url( $bg ) . '"' : '',
-			esc_attr__( 'slide', 'pfh-widgets' ),
-			esc_attr( sprintf( /* translators: 1: current slide, 2: total slides. */ __( '%1$d of %2$d', 'pfh-widgets' ), $index + 1, $total ) ),
+			esc_attr__( 'dia', 'pfh-widgets' ),
+			esc_attr( sprintf( /* translators: 1: current slide, 2: total slides. */ __( '%1$d van %2$d', 'pfh-widgets' ), $index + 1, $total ) ),
 			$active ? '' : ' aria-hidden="true"',
 			$style ? ' style="' . esc_attr( $style ) . '"' : ''
 		);
@@ -2065,7 +2065,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 			esc_attr(
 				sprintf(
 					/* translators: %s: star rating out of five. */
-					__( '%s out of 5 stars', 'pfh-widgets' ),
+					__( '%s van 5 sterren', 'pfh-widgets' ),
 					number_format_i18n( (float) $stars, 1 )
 				)
 			),
@@ -2255,7 +2255,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 
 		$progress = $this->is_on( 'dotsProgress' ) && $this->is_on( 'autoplay' );
 
-		echo '<div class="pfh-hero__dots' . ( $progress ? ' has-progress' : '' ) . '" role="tablist" aria-label="' . esc_attr__( 'Slides', 'pfh-widgets' ) . '">';
+		echo '<div class="pfh-hero__dots' . ( $progress ? ' has-progress' : '' ) . '" role="tablist" aria-label="' . esc_attr__( 'Dia\'s', 'pfh-widgets' ) . '">';
 
 		for ( $i = 0; $i < $total; $i++ ) {
 			printf(
@@ -2263,7 +2263,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 				0 === $i ? ' is-active' : '',
 				$i,
 				0 === $i ? 'true' : 'false',
-				esc_attr( sprintf( /* translators: %d: slide number. */ __( 'Go to slide %d', 'pfh-widgets' ), $i + 1 ) )
+				esc_attr( sprintf( /* translators: %d: slide number. */ __( 'Ga naar dia %d', 'pfh-widgets' ), $i + 1 ) )
 			);
 		}
 
@@ -2519,7 +2519,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 			'progress'     => $this->is_on( 'dotsProgress' ) && $this->is_on( 'autoplay' ),
 			'parallax'     => $this->is_on( 'floatParallax', false ),
 			'crossfade'    => (int) $this->get( 'crossfade', 600 ),
-			'slideLabel'   => __( 'Slide %1$d of %2$d', 'pfh-widgets' ),
+			'slideLabel'   => __( 'Dia %1$d van %2$d', 'pfh-widgets' ),
 		];
 	}
 }

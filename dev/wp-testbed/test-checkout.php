@@ -59,7 +59,7 @@ ok( 'a low rating is not chosen for the column', false === strpos( $html, 'besch
 ok( 'a rating without words is not a review to show', false === strpos( $html, '>Sanne<' ) );
 ok( 'a long review is cut at a word', (bool) preg_match( '/houdt\.?…|[a-z]…/u', $html ) && substr_count( $html, 'Echt een aanrader' ) < 8 );
 ok( 'the typed testimonial is not shown beside real ones', false === strpos( $html, 'Jessica' ) );
-ok( 'the stars say the rating out loud', false !== strpos( $html, 'aria-label="' . esc_attr( sprintf( __( '%s out of 5 stars', 'pfh-widgets' ), number_format_i18n( 5, 1 ) ) ) . '"' ) );
+ok( 'the stars say the rating out loud', false !== strpos( $html, 'aria-label="' . esc_attr( sprintf( __( '%s van 5 sterren', 'pfh-widgets' ), number_format_i18n( 5, 1 ) ) ) . '"' ) );
 
 echo "\n── the shop's score ──\n";
 

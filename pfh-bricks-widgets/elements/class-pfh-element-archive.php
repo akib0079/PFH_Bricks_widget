@@ -109,7 +109,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$this->control_groups['filters'] = [ 'title' => esc_html__( 'Filters', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['panel']   = [ 'title' => esc_html__( 'Filter panel', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['grid']    = [ 'title' => esc_html__( 'Grid', 'pfh-widgets' ), 'tab' => 'content' ];
-		$this->control_groups['pager']   = [ 'title' => esc_html__( 'Pagination', 'pfh-widgets' ), 'tab' => 'content' ];
+		$this->control_groups['pager']   = [ 'title' => esc_html__( 'Paginanavigatie', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['badge']   = [ 'title' => esc_html__( 'Sale badge', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['cart']    = [ 'title' => esc_html__( 'Add to cart', 'pfh-widgets' ), 'tab' => 'content' ];
 		$this->control_groups['reviews'] = [ 'title' => esc_html__( 'Reviews', 'pfh-widgets' ), 'tab' => 'content' ];
@@ -293,7 +293,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$this->controls['catsManual'] = [
 			'tab'         => 'content',
 			'group'       => 'cats',
-			'label'       => esc_html__( 'Categories', 'pfh-widgets' ),
+			'label'       => esc_html__( 'Categorieën', 'pfh-widgets' ),
 			'type'        => 'select',
 			'multiple'    => true,
 			'searchable'  => true,
@@ -639,17 +639,17 @@ class PFH_Element_Archive extends \Bricks\Element {
 			'label'    => esc_html__( 'Previous', 'pfh-widgets' ),
 			'type'     => 'text',
 			'inline'   => true,
-			'default'  => 'Back',
+			'default'  => 'Vorige',
 			'required' => [ 'pagerEnable', '=', true ],
 		];
 
 		$this->controls['pagerNext'] = [
 			'tab'      => 'content',
 			'group'    => 'pager',
-			'label'    => esc_html__( 'Next', 'pfh-widgets' ),
+			'label'    => esc_html__( 'Volgende', 'pfh-widgets' ),
 			'type'     => 'text',
 			'inline'   => true,
-			'default'  => 'Next',
+			'default'  => 'Volgende',
 			'required' => [ 'pagerEnable', '=', true ],
 		];
 
@@ -1055,11 +1055,11 @@ class PFH_Element_Archive extends \Bricks\Element {
 
 		printf(
 			'<button type="button" class="pfh-arch__cats-nav pfh-arch__cats-nav--prev" data-pfh-cats-prev aria-label="%s" tabindex="-1">%s</button>',
-			esc_attr__( 'Earlier categories', 'pfh-widgets' ),
+			esc_attr__( 'Vorige categorieën', 'pfh-widgets' ),
 			PFH_Widgets_Icons::get( 'nav-left' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 		);
 
-		echo '<div class="pfh-arch__pills" role="group" data-pfh-cats-track aria-label="' . esc_attr__( 'Categories', 'pfh-widgets' ) . '">';
+		echo '<div class="pfh-arch__pills" role="group" data-pfh-cats-track aria-label="' . esc_attr__( 'Categorieën', 'pfh-widgets' ) . '">';
 
 		if ( $this->is_on( 'catsAll' ) ) {
 			printf(
@@ -1091,7 +1091,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 
 		printf(
 			'<button type="button" class="pfh-arch__cats-nav pfh-arch__cats-nav--next" data-pfh-cats-next aria-label="%s" tabindex="-1">%s</button>',
-			esc_attr__( 'More categories', 'pfh-widgets' ),
+			esc_attr__( 'Meer categorieën', 'pfh-widgets' ),
 			PFH_Widgets_Icons::get( 'nav-right' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 		);
 
@@ -1150,7 +1150,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 	private function render_sort( array $state, array $config ) {
 		$current = '' !== $state['orderby'] ? $state['orderby'] : $config['orderby'];
 
-		echo '<label class="pfh-arch__sort"><span class="pfh-sr-only">' . esc_html__( 'Sort by', 'pfh-widgets' ) . '</span>';
+		echo '<label class="pfh-arch__sort"><span class="pfh-sr-only">' . esc_html__( 'Sorteer op', 'pfh-widgets' ) . '</span>';
 		echo '<select data-pfh-arch-sort>';
 
 		foreach ( PFH_Widgets_Archive::order_options() as $key => $label ) {
@@ -1215,7 +1215,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$to   = min( $total, $from + $range - 1 );
 		$from = max( 1, $to - $range + 1 );
 
-		echo '<nav class="pfh-arch__pager" aria-label="' . esc_attr__( 'Pagination', 'pfh-widgets' ) . '">';
+		echo '<nav class="pfh-arch__pager" aria-label="' . esc_attr__( 'Paginanavigatie', 'pfh-widgets' ) . '">';
 
 		printf(
 			'<a class="pfh-arch__page pfh-arch__page--prev%1$s" href="%2$s" data-pfh-arch-page="%3$d"%4$s>%5$s<span>%6$s</span></a>',
@@ -1224,7 +1224,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 			max( 1, $current - 1 ),
 			$current <= 1 ? ' aria-disabled="true"' : '',
 			PFH_Widgets_Icons::get( 'chevron', 'pfh-arch__page-icon' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
-			esc_html( (string) $this->get( 'pagerPrev', 'Back' ) )
+			esc_html( (string) $this->get( 'pagerPrev', 'Vorige' ) )
 		);
 
 		for ( $i = $from; $i <= $to; $i++ ) {
@@ -1244,7 +1244,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 			esc_url( $this->url( [ PFH_Widgets_Archive::WIRE['page'] => min( $total, $current + 1 ) ] ) ),
 			min( $total, $current + 1 ),
 			$current >= $total ? ' aria-disabled="true"' : '',
-			esc_html( (string) $this->get( 'pagerNext', 'Next' ) ),
+			esc_html( (string) $this->get( 'pagerNext', 'Volgende' ) ),
 			PFH_Widgets_Icons::get( 'chevron', 'pfh-arch__page-icon' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 		);
 
@@ -1279,7 +1279,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 
 		printf(
 			'<button type="button" class="pfh-arch__panel-close" data-pfh-arch-close aria-label="%s">%s</button>',
-			esc_attr__( 'Close', 'pfh-widgets' ),
+			esc_attr__( 'Sluiten', 'pfh-widgets' ),
 			PFH_Widgets_Icons::get( 'close' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 		);
 
@@ -1311,7 +1311,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$facets = PFH_Widgets_Archive::facets( $config, $state );
 
 		if ( ! $facets ) {
-			echo '<p class="pfh-arch__facets-empty">' . esc_html__( 'Nothing left to filter on.', 'pfh-widgets' ) . '</p>';
+			echo '<p class="pfh-arch__facets-empty">' . esc_html__( 'Er is niets meer om op te filteren.', 'pfh-widgets' ) . '</p>';
 
 			return;
 		}
@@ -1432,9 +1432,9 @@ class PFH_Element_Archive extends \Bricks\Element {
 			$min,
 			$max,
 			$from,
-			esc_attr__( 'Lowest price', 'pfh-widgets' ),
+			esc_attr__( 'Laagste prijs', 'pfh-widgets' ),
 			$to,
-			esc_attr__( 'Highest price', 'pfh-widgets' )
+			esc_attr__( 'Hoogste prijs', 'pfh-widgets' )
 		);
 	}
 

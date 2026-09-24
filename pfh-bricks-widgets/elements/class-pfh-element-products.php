@@ -82,7 +82,7 @@ class PFH_Element_Products extends \Bricks\Element {
 			'group'       => 'head',
 			'label'       => esc_html__( 'Heading', 'pfh-widgets' ),
 			'type'        => 'textarea',
-			'default'     => 'Our best <em>sellers</em>',
+			'default'     => 'Onze <em>bestsellers</em>',
 			'description' => esc_html__( 'Wrap words in <em>…</em> for the underlined italic accent.', 'pfh-widgets' ),
 		];
 
@@ -150,7 +150,7 @@ class PFH_Element_Products extends \Bricks\Element {
 			'label'   => esc_html__( 'Button label', 'pfh-widgets' ),
 			'type'    => 'text',
 			'inline'  => true,
-			'default' => 'Shop More',
+			'default' => 'Bekijk meer',
 		];
 
 		$this->controls['btnLink'] = [

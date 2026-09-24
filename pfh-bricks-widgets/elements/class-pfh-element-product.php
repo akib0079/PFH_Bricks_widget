@@ -242,7 +242,7 @@ class PFH_Element_Product extends \Bricks\Element {
 			'reviews',
 			esc_html__( 'Count wording', 'pfh-widgets' ),
 			[
-				'default'     => '%s Reviews',
+				'default'     => '%s reviews',
 				'description' => esc_html__( '%s becomes the number of reviews.', 'pfh-widgets' ),
 			]
 		);
@@ -472,7 +472,7 @@ class PFH_Element_Product extends \Bricks\Element {
 		$sep  = (string) $this->setting( 'crumbsSep', '>' );
 		$last = count( $crumbs ) - 1;
 
-		echo '<nav class="pfh-pdp__crumbs" aria-label="' . esc_attr__( 'Breadcrumb', 'pfh-widgets' ) . '"><ol>';
+		echo '<nav class="pfh-pdp__crumbs" aria-label="' . esc_attr__( 'Kruimelpad', 'pfh-widgets' ) . '"><ol>';
 
 		foreach ( $crumbs as $i => $crumb ) {
 			echo '<li>';
@@ -531,12 +531,12 @@ class PFH_Element_Product extends \Bricks\Element {
 		if ( $arrows ) {
 			printf(
 				'<button type="button" class="pfh-pdp__nav pfh-pdp__nav--prev" data-pfh-shot-step="-1" aria-label="%s">%s</button>',
-				esc_attr__( 'Previous image', 'pfh-widgets' ),
+				esc_attr__( 'Vorige afbeelding', 'pfh-widgets' ),
 				PFH_Widgets_Icons::get( 'nav-left' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 			);
 			printf(
 				'<button type="button" class="pfh-pdp__nav pfh-pdp__nav--next" data-pfh-shot-step="1" aria-label="%s">%s</button>',
-				esc_attr__( 'Next image', 'pfh-widgets' ),
+				esc_attr__( 'Volgende afbeelding', 'pfh-widgets' ),
 				PFH_Widgets_Icons::get( 'nav-right' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 			);
 		}
@@ -554,7 +554,7 @@ class PFH_Element_Product extends \Bricks\Element {
 
 			printf(
 				'<button type="button" class="pfh-pdp__thumbs-nav pfh-pdp__thumbs-nav--prev" data-pfh-thumbs-step="-1" aria-label="%s" hidden>%s</button>',
-				esc_attr__( 'Scroll thumbnails back', 'pfh-widgets' ),
+				esc_attr__( 'Miniaturen terugschuiven', 'pfh-widgets' ),
 				PFH_Widgets_Icons::get( 'nav-left' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 			);
 
@@ -565,7 +565,7 @@ class PFH_Element_Product extends \Bricks\Element {
 					'<li class="pfh-pdp__thumbs-item"><button type="button" class="pfh-pdp__thumb%s" data-pfh-shot-go="%d" aria-label="%s"><img src="%s" alt="%s" loading="lazy" /></button></li>',
 					0 === $i ? ' is-active' : '',
 					(int) $i,
-					esc_attr( sprintf( /* translators: image number */ __( 'Show image %d', 'pfh-widgets' ), (int) $i + 1 ) ),
+					esc_attr( sprintf( /* translators: image number */ __( 'Toon afbeelding %d', 'pfh-widgets' ), (int) $i + 1 ) ),
 					esc_url( $image['thumb'] ),
 					esc_attr( $image['alt'] )
 				);
@@ -575,7 +575,7 @@ class PFH_Element_Product extends \Bricks\Element {
 
 			printf(
 				'<button type="button" class="pfh-pdp__thumbs-nav pfh-pdp__thumbs-nav--next" data-pfh-thumbs-step="1" aria-label="%s" hidden>%s</button>',
-				esc_attr__( 'Scroll thumbnails on', 'pfh-widgets' ),
+				esc_attr__( 'Miniaturen verder schuiven', 'pfh-widgets' ),
 				PFH_Widgets_Icons::get( 'nav-right' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 			);
 
@@ -701,7 +701,7 @@ class PFH_Element_Product extends \Bricks\Element {
 			echo '<span class="pfh-pdp__rule" aria-hidden="true"></span>';
 			printf(
 				'<span class="pfh-pdp__count">%s</span>',
-				esc_html( sprintf( (string) $this->setting( 'reviewsCountText', '%s Reviews' ), number_format_i18n( $count ) ) )
+				esc_html( sprintf( (string) $this->setting( 'reviewsCountText', '%s reviews' ), number_format_i18n( $count ) ) )
 			);
 		}
 
@@ -860,7 +860,7 @@ class PFH_Element_Product extends \Bricks\Element {
 
 			// The real field, for a form post and for anything reading the
 			// page — the pills drive it rather than replacing it.
-			printf( '<select class="pfh-pdp__select" name="%s" data-pfh-attr-field><option value="">%s</option>', esc_attr( $key ), esc_html__( 'Choose', 'pfh-widgets' ) );
+			printf( '<select class="pfh-pdp__select" name="%s" data-pfh-attr-field><option value="">%s</option>', esc_attr( $key ), esc_html__( 'Kies', 'pfh-widgets' ) );
 
 			foreach ( $options as $option ) {
 				$value = taxonomy_exists( $name ) ? $option : $option;
@@ -998,18 +998,18 @@ class PFH_Element_Product extends \Bricks\Element {
 			echo '<div class="pfh-pdp__qty">';
 			printf(
 				'<button type="button" class="pfh-pdp__step" data-pfh-qty="-1" aria-label="%s">%s</button>',
-				esc_attr__( 'One fewer', 'pfh-widgets' ),
+				esc_attr__( 'Eén minder', 'pfh-widgets' ),
 				PFH_Widgets_Icons::get( 'step-minus' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 			);
 			printf(
 				'<input class="pfh-pdp__qty-input" type="number" name="quantity" value="1" min="1"%s inputmode="numeric" aria-label="%s" data-pfh-qty-field%s />',
 				$max > 0 ? ' max="' . (int) $max . '"' : '',
-				esc_attr__( 'Quantity', 'pfh-widgets' ),
+				esc_attr__( 'Aantal', 'pfh-widgets' ),
 				$this->switched_on( 'padQty' ) ? ' data-pfh-qty-pad' : ''
 			);
 			printf(
 				'<button type="button" class="pfh-pdp__step" data-pfh-qty="1" aria-label="%s">%s</button>',
-				esc_attr__( 'One more', 'pfh-widgets' ),
+				esc_attr__( 'Eén meer', 'pfh-widgets' ),
 				PFH_Widgets_Icons::get( 'step-plus' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 			);
 			echo '</div>';

@@ -40,7 +40,7 @@ echo "── nothing viewed: the best sellers, under their own heading ──\n"
 unset( $_COOKIE['woocommerce_recently_viewed'] );
 $html = recent( [ 'deferred' => false ] );
 ok( 'a first visit gets products, not a gap', false !== strpos( $html, 'pfh-prod__card' ), substr( trim( $html ), 0, 80 ) );
-ok( 'they are not passed off as history', false === strpos( $html, 'Recently' ) && false !== strpos( $html, 'popular' ) );
+ok( 'they are not passed off as history', false === strpos( $html, 'Recent' ) && false !== strpos( $html, 'populair' ) );
 
 echo "── nothing viewed, switched to nothing ──\n";
 $none = [ 'deferred' => false, 'fallback' => 'none' ];
@@ -88,7 +88,7 @@ $el->set_control_groups();
 $el->set_controls();
 ok( 'the source is not offered — it is what this element is', ! isset( $el->controls['source'] ) );
 ok( 'nor are the other sources\' settings', ! isset( $el->controls['productIds'] ) && ! isset( $el->controls['category'] ) );
-ok( 'the heading defaults to the design', 'Recently <em>viewed</em>' === $el->controls['heading']['default'] );
+ok( 'the heading defaults to the design', 'Recent <em>bekeken</em>' === $el->controls['heading']['default'] );
 ok( 'but every style control is still there', isset( $el->controls['cardGap'] ) && isset( $el->controls['perView'] ) );
 
 echo "\n── a cached page can never carry one visitor's history ──\n";

@@ -91,7 +91,7 @@ class PFH_Element_Cta extends \Bricks\Element {
 			'group'       => 'content',
 			'label'       => esc_html__( 'Heading', 'pfh-widgets' ),
 			'type'        => 'textarea',
-			'default'     => "Bring the essence of the\n<em>mediterranean home</em>",
+			'default'     => "Haal de essentie van het\n<em>mediterrane leven</em> in huis",
 			'description' => esc_html__( 'Line breaks are kept. Wrap the italic underlined part in <em>…</em>.', 'pfh-widgets' ),
 		];
 
@@ -100,7 +100,7 @@ class PFH_Element_Cta extends \Bricks\Element {
 			'group'   => 'content',
 			'label'   => esc_html__( 'Text', 'pfh-widgets' ),
 			'type'    => 'textarea',
-			'default' => 'Discover thoughtfully crafted flavors inspired by timeless coastal traditions — from golden honey and handpicked olives to refreshing natural juices made for everyday moments.',
+			'default' => 'Ontdek zorgvuldig gemaakte smaken, geïnspireerd op tijdloze kusttradities — van gouden honing en handgeplukte olijven tot verfrissende natuurlijke sappen voor elk moment van de dag.',
 		];
 
 		$this->controls['headingTag'] = [
@@ -123,7 +123,7 @@ class PFH_Element_Cta extends \Bricks\Element {
 			'label'   => esc_html__( 'Button label', 'pfh-widgets' ),
 			'type'    => 'text',
 			'inline'  => true,
-			'default' => 'Explore the Collection',
+			'default' => 'Ontdek de collectie',
 		];
 
 		$this->controls['btnLink'] = [
@@ -456,7 +456,7 @@ class PFH_Element_Cta extends \Bricks\Element {
 			'group'   => 'media',
 			'label'   => esc_html__( 'Photo alt text', 'pfh-widgets' ),
 			'type'    => 'text',
-			'default' => 'Three fresh Greek juices raised together',
+			'default' => 'Drie verse Griekse sappen, samen geheven',
 		];
 
 		$this->controls['imageHeight'] = [

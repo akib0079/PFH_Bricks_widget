@@ -167,7 +167,7 @@ class PFH_Element_Post extends \Bricks\Element {
 		$this->controls['productsArrows'] = $this->switch_field( 'products', esc_html__( 'Show slider arrows', 'pfh-widgets' ) );
 		$this->controls['bestsellerLabel'] = $this->text( 'products', esc_html__( 'Bestseller badge', 'pfh-widgets' ), 'Bestseller' );
 		$this->controls['newLabel'] = $this->text( 'products', esc_html__( 'New badge', 'pfh-widgets' ), 'Nieuw' );
-		$this->controls['saleLabel'] = $this->text( 'products', esc_html__( 'Sale badge', 'pfh-widgets' ), 'Sale' );
+		$this->controls['saleLabel'] = $this->text( 'products', esc_html__( 'Sale badge', 'pfh-widgets' ), 'Actie' );
 		$this->controls['productBg'] = $this->colour( 'products', esc_html__( 'Card background', 'pfh-widgets' ), '#ffffff' );
 		$this->controls['productMediaBg'] = $this->colour( 'products', esc_html__( 'Picture background', 'pfh-widgets' ), '#f6f1e7' );
 		$this->controls['productBorder'] = $this->colour( 'products', esc_html__( 'Card border', 'pfh-widgets' ), '#e3cbbd' );

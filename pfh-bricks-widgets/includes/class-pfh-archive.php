@@ -208,12 +208,12 @@ class PFH_Widgets_Archive {
 	 */
 	public static function order_options() {
 		return [
-			'menu_order' => esc_html__( 'Default', 'pfh-widgets' ),
-			'popularity' => esc_html__( 'Most popular', 'pfh-widgets' ),
-			'rating'     => esc_html__( 'Best rated', 'pfh-widgets' ),
-			'date'       => esc_html__( 'Newest', 'pfh-widgets' ),
-			'price'      => esc_html__( 'Price, low to high', 'pfh-widgets' ),
-			'price-desc' => esc_html__( 'Price, high to low', 'pfh-widgets' ),
+			'menu_order' => esc_html__( 'Standaard', 'pfh-widgets' ),
+			'popularity' => esc_html__( 'Populairste', 'pfh-widgets' ),
+			'rating'     => esc_html__( 'Best beoordeeld', 'pfh-widgets' ),
+			'date'       => esc_html__( 'Nieuwste', 'pfh-widgets' ),
+			'price'      => esc_html__( 'Prijs: laag naar hoog', 'pfh-widgets' ),
+			'price-desc' => esc_html__( 'Prijs: hoog naar laag', 'pfh-widgets' ),
 		];
 	}
 
@@ -712,7 +712,7 @@ class PFH_Widgets_Archive {
 		$id = isset( $_POST['element'] ) ? sanitize_key( wp_unslash( $_POST['element'] ) ) : '';
 
 		if ( ! $id ) {
-			wp_send_json_error( [ 'message' => __( 'That filter request did not say which archive it was for.', 'pfh-widgets' ) ], 400 );
+			wp_send_json_error( [ 'message' => __( 'Dit filterverzoek hoort bij geen enkel productoverzicht.', 'pfh-widgets' ) ], 400 );
 		}
 
 		// The filter state arrives as ordinary form fields, exactly as it
@@ -733,7 +733,7 @@ class PFH_Widgets_Archive {
 		$payload = apply_filters( 'pfh_archive_ajax', null, $id, $raw );
 
 		if ( ! is_array( $payload ) ) {
-			wp_send_json_error( [ 'message' => __( 'That archive is no longer on the page.', 'pfh-widgets' ) ], 404 );
+			wp_send_json_error( [ 'message' => __( 'Dit productoverzicht staat niet meer op de pagina.', 'pfh-widgets' ) ], 404 );
 		}
 
 		wp_send_json_success( $payload );

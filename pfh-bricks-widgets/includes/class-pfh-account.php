@@ -37,7 +37,7 @@ class PFH_Widgets_Account {
 		$id = isset( $_POST['order'] ) ? absint( $_POST['order'] ) : 0;
 
 		if ( ! $id || ! is_user_logged_in() || ! function_exists( 'wc_get_order' ) ) {
-			wp_send_json_error( [ 'message' => __( 'That order could not be opened.', 'pfh-widgets' ) ], 400 );
+			wp_send_json_error( [ 'message' => __( 'Deze bestelling kon niet worden geopend.', 'pfh-widgets' ) ], 400 );
 		}
 
 		$order = wc_get_order( $id );
@@ -48,11 +48,11 @@ class PFH_Widgets_Account {
 		 * WooCommerce's own check and covers shop managers too.
 		 */
 		if ( ! $order || ! current_user_can( 'view_order', $id ) ) {
-			wp_send_json_error( [ 'message' => __( 'That order could not be opened.', 'pfh-widgets' ) ], 403 );
+			wp_send_json_error( [ 'message' => __( 'Deze bestelling kon niet worden geopend.', 'pfh-widgets' ) ], 403 );
 		}
 
 		if ( ! class_exists( 'PFH_Element_Account' ) && ! class_exists( '\Bricks\Element' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Account details are temporarily unavailable.', 'pfh-widgets' ) ], 503 );
+			wp_send_json_error( [ 'message' => __( 'Accountgegevens zijn tijdelijk niet beschikbaar.', 'pfh-widgets' ) ], 503 );
 		}
 
 		if ( ! class_exists( 'PFH_Element_Account' ) && defined( 'PFH_WIDGETS_DIR' ) ) {

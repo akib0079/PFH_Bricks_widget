@@ -98,7 +98,7 @@ class PFH_Element_Categories extends \Bricks\Element {
 			'group'       => 'head',
 			'label'       => esc_html__( 'Heading', 'pfh-widgets' ),
 			'type'        => 'textarea',
-			'default'     => "Whispers of the Aegean,\nCrafted in <em>pure harmony</em>",
+			'default'     => "Fluisteringen van de Egeïsche Zee,\nvervaardigd in <em>pure harmonie</em>",
 			'description' => esc_html__( 'Line breaks are kept. Wrap words in <em>…</em> for the underlined italic accent.', 'pfh-widgets' ),
 		];
 
@@ -107,7 +107,7 @@ class PFH_Element_Categories extends \Bricks\Element {
 			'group'   => 'head',
 			'label'   => esc_html__( 'Intro text', 'pfh-widgets' ),
 			'type'    => 'textarea',
-			'default' => 'A curated selection inspired by sun-drenched Greek landscapes — where olives, honey, and fresh juices meet timeless craftsmanship and natural elegance.',
+			'default' => 'Een zorgvuldig samengestelde selectie, geïnspireerd op zonovergoten Griekse landschappen — waar olijven, honing en verse sappen samenkomen met tijdloos vakmanschap en natuurlijke elegantie.',
 		];
 
 		$this->controls['headFamily'] = [
@@ -289,7 +289,7 @@ class PFH_Element_Categories extends \Bricks\Element {
 					'label'   => esc_html__( 'Link label', 'pfh-widgets' ),
 					'type'    => 'text',
 					'inline'  => true,
-					'default' => 'Get Now',
+					'default' => 'Bekijk nu',
 				],
 				'link'     => [
 					'label' => esc_html__( 'Link', 'pfh-widgets' ),
@@ -305,11 +305,11 @@ class PFH_Element_Categories extends \Bricks\Element {
 
 	private function default_slides() {
 		$cards = [
-			[ 'Gia Giamas', "Easily discover your\n<strong>favorite flavor</strong>", 'Card-10.jpg' ],
-			[ 'Olive oil', "Source of <strong>higher\nantioxidant</strong>", 'Card-5.jpg' ],
-			[ 'Pine honey', "Just like our Greek\n<strong>grandma makes</strong>", 'Card-4.jpg' ],
-			[ 'Skin Care', "Natuurlijke verzorging\n<strong>Pure care for your skin</strong>", 'Card-9.jpg' ],
-			[ 'Beeswax', "Made with love\n<strong>pure beeswax</strong>", 'Card-8.jpg' ],
+			[ 'Gia Giamas', "Ontdek eenvoudig je\n<strong>favoriete smaak</strong>", 'Card-10.jpg' ],
+			[ 'Olijfolie', "Bron van <strong>extra\nantioxidanten</strong>", 'Card-5.jpg' ],
+			[ 'Pijnboomhoning', "Zoals onze Griekse\n<strong>oma het maakt</strong>", 'Card-4.jpg' ],
+			[ 'Huidverzorging', "Natuurlijke verzorging\n<strong>puur voor je huid</strong>", 'Card-9.jpg' ],
+			[ 'Bijenwas', "Met liefde gemaakt\n<strong>pure bijenwas</strong>", 'Card-8.jpg' ],
 		];
 
 		$out = [];
@@ -319,7 +319,7 @@ class PFH_Element_Categories extends \Bricks\Element {
 				'eyebrow'  => $card[0],
 				'title'    => $card[1],
 				'image'    => [ 'url' => self::CARD_BASE . $card[2] ],
-				'ctaLabel' => 'Get Now',
+				'ctaLabel' => 'Bekijk nu',
 			];
 		}
 

@@ -79,7 +79,7 @@ class PFH_Element_Product_Grid extends \Bricks\Element {
 			'group'       => 'head',
 			'label'       => esc_html__( 'Heading', 'pfh-widgets' ),
 			'type'        => 'textarea',
-			'default'     => "SILVER AWARD amsterdam\ninternational <em>olive oil competition</em>",
+			'default'     => "ZILVEREN ONDERSCHEIDING Amsterdam\ninternationale <em>olijfoliecompetitie</em>",
 			'description' => esc_html__( 'Line breaks are kept. Wrap words in <em>…</em> for the underlined italic accent.', 'pfh-widgets' ),
 		];
 
@@ -88,7 +88,7 @@ class PFH_Element_Product_Grid extends \Bricks\Element {
 			'group'   => 'head',
 			'label'   => esc_html__( 'Intro text', 'pfh-widgets' ),
 			'type'    => 'textarea',
-			'default' => 'Naturally, we only use the best natural products. Our olive oil has therefore earned medals!',
+			'default' => 'Uiteraard gebruiken we alleen de beste natuurlijke producten. Onze olijfolie heeft daarom medailles gewonnen!',
 		];
 
 		$this->controls['headAlign'] = [

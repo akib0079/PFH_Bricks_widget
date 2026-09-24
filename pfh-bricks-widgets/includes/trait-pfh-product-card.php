@@ -660,7 +660,7 @@ trait PFH_Product_Card_Trait {
 
 		// The shop grid is drawn with the count alone; the slider shows stars.
 		if ( $this->is_on( 'reviewShowStars' ) ) {
-			echo '<span class="pfh-prod__stars" role="img" aria-label="' . esc_attr( sprintf( /* translators: %s: rating out of five. */ __( '%s out of 5', 'pfh-widgets' ), number_format_i18n( $stars, 1 ) ) ) . '">';
+			echo '<span class="pfh-prod__stars" role="img" aria-label="' . esc_attr( sprintf( /* translators: %s: rating out of five. */ __( '%s van 5', 'pfh-widgets' ), number_format_i18n( $stars, 1 ) ) ) . '">';
 
 			for ( $i = 1; $i <= 5; $i++ ) {
 				$fill = max( 0, min( 1, $stars - $i + 1 ) );
@@ -726,7 +726,7 @@ trait PFH_Product_Card_Trait {
 			printf(
 				'<a class="pfh-prod__cart" href="%s" aria-label="%s">%s</a>',
 				esc_url( $href ),
-				esc_attr( sprintf( /* translators: %s: product name. */ __( 'View %s', 'pfh-widgets' ), $card['title'] ) ),
+				esc_attr( sprintf( /* translators: %s: product name. */ __( 'Bekijk %s', 'pfh-widgets' ), $card['title'] ) ),
 				$glyph // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above.
 			);
 
@@ -758,7 +758,7 @@ trait PFH_Product_Card_Trait {
 			printf(
 				'<a class="pfh-prod__cart" href="%s" aria-label="%s">%s</a>',
 				esc_url( $product->get_permalink() ),
-				esc_attr( sprintf( /* translators: %s: product name. */ __( 'View %s', 'pfh-widgets' ), $product->get_name() ) ),
+				esc_attr( sprintf( /* translators: %s: product name. */ __( 'Bekijk %s', 'pfh-widgets' ), $product->get_name() ) ),
 				$glyph // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above.
 			);
 
@@ -781,8 +781,8 @@ trait PFH_Product_Card_Trait {
 			esc_attr( $product->get_id() ),
 			esc_attr(
 				$variable
-					? sprintf( /* translators: %s: product name. */ __( 'Choose options for %s', 'pfh-widgets' ), $product->get_name() )
-					: sprintf( /* translators: %s: product name. */ __( 'Add %s to your cart', 'pfh-widgets' ), $product->get_name() )
+					? sprintf( /* translators: %s: product name. */ __( 'Kies opties voor %s', 'pfh-widgets' ), $product->get_name() )
+					: sprintf( /* translators: %s: product name. */ __( 'Voeg %s toe aan je winkelwagen', 'pfh-widgets' ), $product->get_name() )
 			),
 			$glyph // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above.
 		);
@@ -1033,7 +1033,7 @@ trait PFH_Product_Card_Trait {
 			'label'    => esc_html__( 'Label', 'pfh-widgets' ),
 			'type'     => 'text',
 			'inline'   => true,
-			'default'  => 'SALES',
+			'default'  => 'ACTIE',
 			'required' => [ 'badgeEnable', '=', true ],
 		];
 
@@ -1568,7 +1568,7 @@ trait PFH_Product_Card_Trait {
 			'label'       => esc_html__( 'Price suffix', 'pfh-widgets' ),
 			'type'        => 'text',
 			'inline'      => true,
-			'default'     => 'incl. VAT',
+			'default'     => 'incl. btw',
 			'required'    => [ [ 'source', '!=', 'manual' ], [ 'priceMode', '=', 'split' ] ],
 			'description' => esc_html__( 'Appended to both prices.', 'pfh-widgets' ),
 		];

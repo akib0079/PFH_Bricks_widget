@@ -30,7 +30,7 @@ class PFH_Element_Info extends \Bricks\Element {
 	const TWO_URL   = self::BASE . 'Frame-469976-1.jpg';
 
 	/** Body copy shared by both designed rows. */
-	const COPY = "At Products for Home, you will find the very best Greek delicacies. From our Greek raw honey to organic extra virgin olive oil, every product is carefully selected for the highest quality and authenticity.\n\nAt Products for Home, you will find the very best Greek delicacies. From our Greek raw honey to organic extra virgin olive oil, every product.";
+	const COPY = "Bij Products for Home vind je de allerbeste Griekse delicatessen. Van onze rauwe Griekse honing tot biologische extra vierge olijfolie: elk product is zorgvuldig geselecteerd op de hoogste kwaliteit en authenticiteit.\n\nOf je nu zoekt naar een cadeau of iets lekkers voor jezelf, bij ons vind je het echte Griekenland.";
 
 	public function get_label() {
 		return esc_html__( 'PFH Info Section', 'pfh-widgets' );
@@ -136,7 +136,7 @@ class PFH_Element_Info extends \Bricks\Element {
 					'label'   => esc_html__( 'Button label', 'pfh-widgets' ),
 					'type'    => 'text',
 					'inline'  => true,
-					'default' => 'Shop Now',
+					'default' => 'Shop nu',
 				],
 				'link'     => [
 					'label' => esc_html__( 'Button link', 'pfh-widgets' ),
@@ -147,22 +147,22 @@ class PFH_Element_Info extends \Bricks\Element {
 	}
 
 	private function default_rows() {
-		$title = "The tastiest Greek\n<em>delicatessen shop</em>";
+		$title = "De lekkerste Griekse\n<em>delicatessenwinkel</em>";
 
 		return [
 			[
 				'image'    => [ 'url' => self::ONE_URL ],
-				'alt'      => 'Greek pine honey',
+				'alt'      => 'Griekse pijnboomhoning',
 				'title'    => $title,
 				'text'     => self::COPY,
-				'btnLabel' => 'Shop Now',
+				'btnLabel' => 'Shop nu',
 			],
 			[
 				'image'    => [ 'url' => self::TWO_URL ],
-				'alt'      => 'Greek lemonade',
+				'alt'      => 'Griekse limonade',
 				'title'    => $title,
 				'text'     => self::COPY,
-				'btnLabel' => 'Shop Now',
+				'btnLabel' => 'Shop nu',
 			],
 		];
 	}

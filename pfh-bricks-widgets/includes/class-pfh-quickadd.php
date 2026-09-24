@@ -34,7 +34,7 @@ class PFH_Widgets_Quickadd {
 		check_ajax_referer( PFH_Widgets_Ajax::NONCE, 'nonce' );
 
 		if ( ! PFH_Widgets_Helpers::has_woocommerce() || ! function_exists( 'WC' ) || ! WC()->cart ) {
-			wp_send_json_error( [ 'message' => __( 'The shop is not available right now.', 'pfh-widgets' ) ] );
+			wp_send_json_error( [ 'message' => __( 'De winkel is op dit moment niet beschikbaar.', 'pfh-widgets' ) ] );
 		}
 
 		$product_id   = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
@@ -53,7 +53,7 @@ class PFH_Widgets_Quickadd {
 		$product = $product_id ? wc_get_product( $product_id ) : null;
 
 		if ( ! $product ) {
-			wp_send_json_error( [ 'message' => __( 'That product could not be found.', 'pfh-widgets' ) ] );
+			wp_send_json_error( [ 'message' => __( 'Dit product is niet gevonden.', 'pfh-widgets' ) ] );
 		}
 
 		/*
@@ -67,7 +67,7 @@ class PFH_Widgets_Quickadd {
 			if ( ! $variation_id ) {
 				wp_send_json_error(
 					[
-						'message' => __( 'Please choose an option for each field.', 'pfh-widgets' ),
+						'message' => __( 'Kies een optie voor elk veld.', 'pfh-widgets' ),
 						'needs'   => 'variation',
 					]
 				);
@@ -92,7 +92,7 @@ class PFH_Widgets_Quickadd {
 			}
 
 			wp_send_json_error(
-				[ 'message' => $message ? $message : __( 'That could not be added to your cart.', 'pfh-widgets' ) ]
+				[ 'message' => $message ? $message : __( 'Dit kon niet aan je winkelwagen worden toegevoegd.', 'pfh-widgets' ) ]
 			);
 		}
 
@@ -157,14 +157,14 @@ class PFH_Widgets_Quickadd {
 		check_ajax_referer( PFH_Widgets_Ajax::NONCE, 'nonce' );
 
 		if ( ! PFH_Widgets_Helpers::has_woocommerce() ) {
-			wp_send_json_error( [ 'message' => __( 'The shop is not available right now.', 'pfh-widgets' ) ] );
+			wp_send_json_error( [ 'message' => __( 'De winkel is op dit moment niet beschikbaar.', 'pfh-widgets' ) ] );
 		}
 
 		$product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
 		$product    = $product_id ? wc_get_product( $product_id ) : null;
 
 		if ( ! $product || ! $product->is_type( 'variable' ) ) {
-			wp_send_json_error( [ 'message' => __( 'That product has no options.', 'pfh-widgets' ) ] );
+			wp_send_json_error( [ 'message' => __( 'Dit product heeft geen opties.', 'pfh-widgets' ) ] );
 		}
 
 		$attributes = [];

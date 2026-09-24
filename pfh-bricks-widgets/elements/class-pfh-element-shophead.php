@@ -362,7 +362,7 @@ class PFH_Element_Shophead extends \Bricks\Element {
 
 		$sep = (string) $this->get( 'crumbsSep', '/' );
 
-		echo '<nav class="pfh-shophead__crumbs" aria-label="' . esc_attr__( 'Breadcrumb', 'pfh-widgets' ) . '"><ol>';
+		echo '<nav class="pfh-shophead__crumbs" aria-label="' . esc_attr__( 'Kruimelpad', 'pfh-widgets' ) . '"><ol>';
 
 		$last = count( $crumbs ) - 1;
 

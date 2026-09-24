@@ -387,7 +387,7 @@ class PFH_Widgets_Badge extends PFH_Settings_Module {
 					<?php
 					printf(
 						/* translators: %s: shop rating. */
-						esc_html__( 'Reviews, score %s. Open panel.', 'pfh-widgets' ),
+						esc_html__( 'Reviews, score %s. Paneel openen.', 'pfh-widgets' ),
 						esc_html( $data['rating'] )
 					);
 					?>
@@ -409,7 +409,7 @@ class PFH_Widgets_Badge extends PFH_Settings_Module {
 						aria-label="<?php
 						printf(
 							/* translators: 1: star rating, 2: maximum. */
-							esc_attr__( '%1$s out of %2$s stars', 'pfh-widgets' ),
+							esc_attr__( '%1$s van %2$s sterren', 'pfh-widgets' ),
 							esc_attr( number_format_i18n( $data['stars'], 1 ) ),
 							'5'
 						);

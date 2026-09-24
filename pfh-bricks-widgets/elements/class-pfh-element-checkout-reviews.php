@@ -303,7 +303,7 @@ class PFH_Element_Checkout_Reviews extends \Bricks\Element {
 		return sprintf(
 			'<span class="pfh-ckrev__stars" role="img" aria-label="%1$s"><span class="pfh-ckrev__stars-base" aria-hidden="true">%2$s</span><span class="pfh-ckrev__stars-fill" aria-hidden="true" style="width:%3$s%%">%2$s</span></span>',
 			/* translators: %s: rating out of five. */
-			esc_attr( sprintf( __( '%s out of 5 stars', 'pfh-widgets' ), number_format_i18n( $value, 1 ) ) ),
+			esc_attr( sprintf( __( '%s van 5 sterren', 'pfh-widgets' ), number_format_i18n( $value, 1 ) ) ),
 			$row,
 			esc_attr( (string) round( $value / 5 * 100, 2 ) )
 		);

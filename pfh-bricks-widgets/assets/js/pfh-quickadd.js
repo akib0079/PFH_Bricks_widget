@@ -133,7 +133,7 @@
 			root.innerHTML =
 				'<div class="pfh-qa__scrim" data-pfh-qa-close></div>' +
 				'<div class="pfh-qa__panel" role="document">' +
-				'<button type="button" class="pfh-qa__close" data-pfh-qa-close aria-label="Close">' +
+				'<button type="button" class="pfh-qa__close" data-pfh-qa-close aria-label="Sluiten">' +
 				'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>' +
 				'</button>' +
 				'<div class="pfh-qa__body"></div>' +
@@ -247,7 +247,7 @@
 		error: function ( message ) {
 			this.open(
 				'<p class="pfh-qa__error">' +
-					escapeHtml( message || 'Something went wrong. Please try again.' ) +
+					escapeHtml( message || 'Er ging iets mis. Probeer het opnieuw.' ) +
 					'</p>'
 			);
 		}
@@ -304,7 +304,7 @@
 				'<label class="pfh-qa__field">' +
 				'<span class="pfh-qa__label">' + escapeHtml( attr.label ) + '</span>' +
 				'<select class="pfh-qa__select" data-pfh-qa-attr="' + escapeHtml( attr.name ) + '">' +
-				'<option value="">' + escapeHtml( 'Choose ' + attr.label.toLowerCase() ) + '</option>';
+				'<option value="">' + escapeHtml( 'Kies ' + attr.label.toLowerCase() ) + '</option>';
 
 			attr.options.forEach( function ( option ) {
 				html +=
@@ -322,11 +322,11 @@
 		html +=
 			'<div class="pfh-qa__actions">' +
 			'<div class="pfh-qa__qty">' +
-			'<button type="button" class="pfh-qa__step" data-pfh-qa-step="-1" aria-label="Fewer">&minus;</button>' +
-			'<input class="pfh-qa__qty-input" type="number" min="1" value="1" data-pfh-qa-qty aria-label="Quantity" />' +
-			'<button type="button" class="pfh-qa__step" data-pfh-qa-step="1" aria-label="More">+</button>' +
+			'<button type="button" class="pfh-qa__step" data-pfh-qa-step="-1" aria-label="Minder">&minus;</button>' +
+			'<input class="pfh-qa__qty-input" type="number" min="1" value="1" data-pfh-qa-qty aria-label="Aantal" />' +
+			'<button type="button" class="pfh-qa__step" data-pfh-qa-step="1" aria-label="Meer">+</button>' +
 			'</div>' +
-			'<button type="button" class="pfh-qa__submit" data-pfh-qa-submit disabled>Add to cart</button>' +
+			'<button type="button" class="pfh-qa__submit" data-pfh-qa-submit disabled>In winkelwagen</button>' +
 			'</div>' +
 			'<p class="pfh-qa__note" data-pfh-qa-note></p>';
 
@@ -410,7 +410,7 @@
 
 		if ( ! match ) {
 			submitBtn.disabled = true;
-			note.textContent = 'That combination is not available.';
+			note.textContent = 'Deze combinatie is niet beschikbaar.';
 			reset();
 
 			return;
@@ -418,7 +418,7 @@
 
 		if ( ! match.inStock ) {
 			submitBtn.disabled = true;
-			note.textContent = 'Out of stock.';
+			note.textContent = 'Uitverkocht.';
 
 			if ( match.price && price ) {
 				price.innerHTML = match.price;

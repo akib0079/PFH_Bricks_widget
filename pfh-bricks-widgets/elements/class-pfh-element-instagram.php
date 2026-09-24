@@ -319,13 +319,13 @@ class PFH_Element_Instagram extends \Bricks\Element {
 
 		printf(
 			'<button type="button" class="pfh-ig__arrow pfh-ig__arrow--prev" data-pfh-ig-step="-1" aria-label="%s">%s</button>',
-			esc_attr__( 'Previous pictures', 'pfh-widgets' ),
+			esc_attr__( 'Vorige foto\'s', 'pfh-widgets' ),
 			PFH_Widgets_Icons::get( 'nav-left' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 		);
 
 		printf(
 			'<button type="button" class="pfh-ig__arrow pfh-ig__arrow--next" data-pfh-ig-step="1" aria-label="%s">%s</button>',
-			esc_attr__( 'More pictures', 'pfh-widgets' ),
+			esc_attr__( 'Meer foto\'s', 'pfh-widgets' ),
 			PFH_Widgets_Icons::get( 'nav-right' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 		);
 

@@ -405,7 +405,7 @@ class PFH_Widgets_Blog {
 		// phpcs:enable
 
 		if ( ! is_array( $raw ) || $page < 2 ) {
-			wp_send_json_error( [ 'message' => __( 'There was nothing more to fetch.', 'pfh-widgets' ) ], 400 );
+			wp_send_json_error( [ 'message' => __( 'Er is niets meer om te laden.', 'pfh-widgets' ) ], 400 );
 		}
 
 		/*

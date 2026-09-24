@@ -291,7 +291,7 @@ class PFH_Widgets_Cart_Page {
 
 			case 'coupon':
 				if ( '' === $code ) {
-					wc_add_notice( __( 'Please enter a coupon code.', 'woocommerce' ), 'error' ); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- WooCommerce's own string.
+					wc_add_notice( __( 'Vul een kortingscode in.', 'pfh-widgets' ), 'error' );
 				} else {
 					$cart->apply_coupon( $code );
 				}
@@ -300,7 +300,7 @@ class PFH_Widgets_Cart_Page {
 
 			case 'uncoupon':
 				if ( '' !== $code && $cart->remove_coupon( $code ) ) {
-					wc_add_notice( __( 'Coupon has been removed.', 'woocommerce' ) ); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- WooCommerce's own string.
+					wc_add_notice( __( 'De kortingscode is verwijderd.', 'pfh-widgets' ) );
 				}
 
 				return null;
@@ -709,7 +709,7 @@ class PFH_Widgets_Cart_Page {
 		echo '</ul>';
 
 		if ( ! $preview ) {
-			echo '<noscript><button type="submit" class="pfh-cartp__update" name="update_cart" value="1">' . esc_html__( 'Update cart', 'woocommerce' ) . '</button></noscript>'; // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- WooCommerce's own string.
+			echo '<noscript><button type="submit" class="pfh-cartp__update" name="update_cart" value="1">' . esc_html__( 'Winkelwagen bijwerken', 'pfh-widgets' ) . '</button></noscript>';
 			wp_nonce_field( 'woocommerce-cart', 'woocommerce-cart-nonce' );
 		}
 
