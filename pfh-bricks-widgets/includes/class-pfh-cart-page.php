@@ -702,8 +702,8 @@ class PFH_Widgets_Cart_Page {
 
 		echo '<ul class="pfh-cartp__items">';
 
-		foreach ( $rows as $row ) {
-			self::render_row( $opts, $row );
+		foreach ( $rows as $i => $row ) {
+			self::render_row( $opts, $row, $i < 3 );
 		}
 
 		echo '</ul>';
@@ -725,10 +725,12 @@ class PFH_Widgets_Cart_Page {
 	 * template uses, so a plugin that renames, reprices or locks a line
 	 * (bundles, gifts, subscriptions) is respected here.
 	 *
-	 * @param array $opts Options.
-	 * @param array $row  Line.
+	 * @param array $opts  Options.
+	 * @param array $row   Line.
+	 * @param bool  $first Among the first lines, on screen as the page opens:
+	 *                     their pictures load straight away, not lazily.
 	 */
-	private static function render_row( array $opts, array $row ) {
+	private static function render_row( array $opts, array $row, $first = false ) {
 		$key     = $row['key'];
 		$item    = $row['item'];
 		$product = $row['product'];
@@ -737,7 +739,7 @@ class PFH_Widgets_Cart_Page {
 
 		$link  = $product->is_visible() ? $product->get_permalink( $item ) : '';
 		$link  = $preview ? $link : (string) apply_filters( 'woocommerce_cart_item_permalink', $link, $item, $key );
-		$thumb = $product->get_image( 'woocommerce_thumbnail', [ 'class' => 'pfh-cartp__img', 'loading' => 'lazy' ] );
+		$thumb = $product->get_image( 'woocommerce_thumbnail', [ 'class' => 'pfh-cartp__img', 'loading' => $first ? 'eager' : 'lazy', 'decoding' => 'async' ] );
 		$thumb = $preview ? $thumb : apply_filters( 'woocommerce_cart_item_thumbnail', $thumb, $item, $key );
 		$name  = $link ? sprintf( '<a href="%s">%s</a>', esc_url( $link ), esc_html( $product->get_name() ) ) : esc_html( $product->get_name() );
 		$name  = $preview ? $name : apply_filters( 'woocommerce_cart_item_name', $name, $item, $key );

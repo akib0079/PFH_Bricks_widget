@@ -121,6 +121,7 @@ ok( 'the subtotal and total are WooCommerce\'s', false !== strpos( $html, WC()->
 ok( '  the subtotal sits in its own row, not printed loose', (bool) preg_match( '#<tr class="pfh-cartp__row subtotal"><th scope="row">Subtotaal</th><td>.*?woocommerce-Price-amount#s', $html ) );
 ok( 'shipping shows the rate WooCommerce chose', (bool) preg_match( '#<tr class="pfh-cartp__row shipping">.*?5,00#s', $html ) );
 ok( 'the checkout button goes to checkout', false !== strpos( $html, 'class="pfh-cartp__checkout" href="' . esc_url( wc_get_checkout_url() ) . '"' ) );
+ok( 'the first pictures load straight away, not lazily', 2 === substr_count( $html, 'loading="eager"' ) || ( false !== strpos( $html, 'loading="eager"' ) && false === strpos( $html, 'pfh-cartp__img" loading="lazy"' ) ) );
 ok( 'the three reasons are there', 3 === substr_count( $html, 'pfh-cartp__reason-icon' ) );
 ok( 'the summary is labelled by its heading', false !== strpos( $html, 'aria-labelledby="pfh-cartp-summary-title"' ) && false !== strpos( $html, 'id="pfh-cartp-summary-title"' ) );
 ok( 'the root carries the signed words and the cart hash', (bool) preg_match( '/data-pfh-cartp="[A-Za-z0-9+\/=]+\.[0-9a-f]{64}"/', $html ) && false !== strpos( $html, 'data-pfh-cartp-hash="' . WC()->cart->get_cart_hash() . '"' ) );
