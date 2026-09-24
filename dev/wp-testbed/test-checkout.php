@@ -107,4 +107,30 @@ $own = el( 'PFH_Element_Checkout_Trust', [ 'rows' => [ [ 'icon' => 'nope', 'titl
 
 ok( 'an unknown icon falls back to a tick rather than nothing', false !== strpos( $own, 'Eigen reden' ) && 1 === substr_count( $own, '<svg' ) );
 
+echo "\n── address labels on the checkout ──\n";
+
+if ( ! wp_script_is( 'wc-address-i18n', 'registered' ) ) {
+	wp_register_script( 'wc-address-i18n', 'https://example.test/address-i18n.js', [ 'jquery' ], '1', true );
+}
+
+$inline = static function () {
+	$data = wp_scripts()->get_data( 'wc-address-i18n', 'before' );
+
+	return is_array( $data ) ? implode( "\n", array_filter( $data, 'is_string' ) ) : '';
+};
+
+PFH_Widgets_Checkout_Labels::attach();
+ok( 'nothing is added to a page that is not a checkout', false === strpos( $inline(), 'wc_address_i18n_params' ) );
+
+add_filter( 'woocommerce_is_checkout', '__return_true' );
+PFH_Widgets_Checkout_Labels::attach();
+remove_filter( 'woocommerce_is_checkout', '__return_true' );
+
+$js = $inline();
+
+ok( 'on the checkout it runs just before WooCommerce\'s address script', false !== strpos( $js, 'wc_address_i18n_params' ) );
+ok( '  once', 1 === substr_count( $js, 'var params = window.wc_address_i18n_params' ) );
+ok( '  it notes labels as served and puts back only the shop\'s own', false !== strpos( $js, 'country_to_state_changing' ) && false !== strpos( $js, '! theirs[ name ]' ) );
+ok( 'the script is the plugin\'s file, so the checks run over what ships', PFH_Widgets_Checkout_Labels::script() === trim( file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/js/pfh-checkout-labels.js' ) ) );
+
 echo "\n$pass passed, $fail failed\n";

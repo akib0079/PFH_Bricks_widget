@@ -291,6 +291,7 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Blog::init();
 		PFH_Widgets_Collection::init();
 		PFH_Widgets_Recent::init();
+		PFH_Widgets_Checkout_Labels::init();
 		PFH_Widgets_Documents::init();
 		PFH_Widgets_Diagnostics::init();
 	}
