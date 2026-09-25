@@ -999,6 +999,14 @@ saved as a character reference instead of the save failing. Sorting by name
 ignores a leading emoji, so values keep their alphabetical order ("Aardbei"
 before "Citroen") in the admin list, on the product and in shop filters.
 
+A **custom product attribute** (typed into one product, "Appel / granaatappel
+| Perzik | …") cannot hold an emoji safely: its variations are tied to the
+exact text. It borrows instead: a custom "Smaak" looks up the global Smaak,
+matching values on their letters and digits ("Appel / granaatappel" finds
+"Appel & Granaatappel"), or failing that the longest global value it starts
+with ("Citroen 2.0" finds "Citroen"). Only the product page shows it; nothing
+on the product changes. `pfh_widgets_borrow_attribute_emoji` turns it off.
+
 ### Adding to the cart
 
 Goes through the same endpoint the product cards use, so the cart drawer and

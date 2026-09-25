@@ -102,6 +102,71 @@ foreach ( (array) get_terms( [ 'taxonomy' => $sorted, 'hide_empty' => false ] ) 
 	wp_delete_term( $x->term_id, $sorted );
 }
 
+echo "\n── a custom attribute borrows from its global namesake ──\n";
+
+$attr_id = wc_create_attribute( [ 'name' => 'Proefsmaak', 'slug' => 'proefsmaak', 'type' => 'select', 'order_by' => 'name' ] );
+$gtax    = 'pa_proefsmaak';
+register_taxonomy( $gtax, 'product', [ 'hierarchical' => false, 'show_ui' => false ] );
+delete_transient( 'wc_attribute_taxonomies' );
+if ( class_exists( 'WC_Cache_Helper' ) ) { WC_Cache_Helper::invalidate_cache_group( 'woocommerce-attributes' ); }
+foreach ( [ "\u{1F34E} Appel & Granaatappel", "\u{1F34B} Citroen", "\u{1F353} Aardbei & Citroen", 'Kers' ] as $n ) {
+	wp_insert_term( $n, $gtax );
+}
+
+$b = [ PFH_Widgets_Attribute_Emoji::class, 'borrowed' ];
+ok( 'same words, other punctuation and case', "\u{1F34E}" === $b( 'Proefsmaak', 'Appel / granaatappel' ) );
+ok( 'the attribute found by its label in any case', "\u{1F34B}" === $b( 'proefsmaak', 'citroen' ) );
+ok( 'a longer name takes the value it starts with', "\u{1F34B}" === $b( 'Proefsmaak', 'Citroen 2.0' ) );
+ok( '  the longest one', "\u{1F353}" === $b( 'Proefsmaak', 'Aardbei / citroen 2.0' ) );
+ok( 'a global value without emoji lends nothing', '' === $b( 'Proefsmaak', 'Kers' ) );
+ok( 'an unknown value gets nothing', '' === $b( 'Proefsmaak', 'Onbekend' ) );
+ok( 'an attribute with no global namesake gets nothing', '' === $b( 'Iets anders', 'Appel / granaatappel' ) );
+ok( 'a global attribute never borrows (it has its own)', '' === $b( $gtax, 'Appel / granaatappel' ) );
+add_filter( 'pfh_widgets_borrow_attribute_emoji', '__return_false' );
+ok( 'it can be switched off', '' === $b( 'Proefsmaak', 'Citroen' ) );
+remove_filter( 'pfh_widgets_borrow_attribute_emoji', '__return_false' );
+
+// A real product with the attribute typed into it, drawn by the element.
+foreach ( glob( WP_PLUGIN_DIR . '/pfh-bricks-widgets/elements/*.php' ) as $ef ) { require_once $ef; }
+$local = new WC_Product_Attribute();
+$local->set_name( 'Proefsmaak' );
+$local->set_options( [ 'Appel / granaatappel', 'Citroen 2.0', 'Onbekend' ] );
+$local->set_visible( true );
+$local->set_variation( true );
+$vp = new WC_Product_Variable();
+$vp->set_name( 'PFH emoji borrow test' );
+$vp->set_slug( 'pfh-fixture-emoji-borrow' );
+$vp->set_status( 'publish' );
+$vp->set_attributes( [ $local ] );
+$vp_id = $vp->save();
+foreach ( [ 'Appel / granaatappel', 'Citroen 2.0', 'Onbekend' ] as $v ) {
+	$var = new WC_Product_Variation();
+	$var->set_parent_id( $vp_id );
+	$var->set_attributes( [ 'proefsmaak' => $v ] );
+	$var->set_regular_price( '10' );
+	$var->save();
+}
+WC_Product_Variable::sync( $vp_id );
+wc_delete_product_transients( $vp_id );
+
+$el           = new PFH_Element_Product( [ 'id' => 'emo' ] );
+$el->name     = 'pfh-product';
+$el->settings = [ 'previewId' => (string) $vp_id ];
+ob_start();
+$el->render();
+$page = (string) ob_get_clean();
+
+ok( 'the product page draws the borrowed emoji', (bool) preg_match( '#data-pfh-pill="Appel / granaatappel"[^>]*><span class="pfh-pdp__pill-emoji" aria-hidden="true">\x{1F34E}</span><span class="pfh-pdp__pill-text" data-pfh-pill-text>Appel / granaatappel</span>#u', $page ) );
+ok( '  and the one for "Citroen 2.0"', (bool) preg_match( '#data-pfh-pill="Citroen 2.0"[^>]*><span class="pfh-pdp__pill-emoji" aria-hidden="true">\x{1F34B}</span>#u', $page ) );
+ok( '  and none where there is no match', (bool) preg_match( '#data-pfh-pill="Onbekend" aria-pressed="(true|false)"><span class="pfh-pdp__pill-text"#', $page ) );
+ok( 'the value itself is untouched, so the variations still match', false !== strpos( $page, 'value="Citroen 2.0"' ) && 'Citroen 2.0' === wc_get_product( $vp_id )->get_attributes()['proefsmaak']->get_options()[1] );
+
+foreach ( wc_get_product( $vp_id )->get_children() as $child ) { wp_delete_post( $child, true ); }
+wp_delete_post( $vp_id, true );
+foreach ( (array) get_terms( [ 'taxonomy' => $gtax, 'hide_empty' => false ] ) as $x ) { wp_delete_term( $x->term_id, $gtax ); }
+wc_delete_attribute( $attr_id );
+delete_transient( 'wc_attribute_taxonomies' );
+
 foreach ( [ $tax, 'pfh_not_an_attribute' ] as $t ) {
 	foreach ( (array) get_terms( [ 'taxonomy' => $t, 'hide_empty' => false ] ) as $x ) {
 		if ( ! is_wp_error( $x ) ) { wp_delete_term( $x->term_id, $t ); }

@@ -26,6 +26,14 @@
  * On the product page the element also draws a leading emoji apart from the
  * words (see split()), so the heading above can read "Smaak — Perzik".
  *
+ * A product can also have its own attribute typed into it ("Custom product
+ * attribute": "Appel / granaatappel | Perzik | ..."). Those values are plain
+ * text on the product, and each variation is tied to that exact text, so an
+ * emoji cannot be typed into them without unhooking the variations. Instead
+ * they borrow one (see borrowed()): a custom "Smaak" looks up the global
+ * Smaak, and "Appel / granaatappel" finds "<emoji> Appel & Granaatappel".
+ * Only the product page shows it; nothing is written anywhere.
+ *
  * @package PFH_Widgets
  */
 
@@ -266,6 +274,110 @@ class PFH_Widgets_Attribute_Emoji {
 
 		// A list keyed by term id stays keyed by term id.
 		return array_values( $items ) === $items ? $out : array_combine( $order, $out );
+	}
+
+	/**
+	 * The emoji a custom attribute's value borrows from the global attribute
+	 * of the same name, or ''.
+	 *
+	 * Matched on letters and digits only, so "Appel / granaatappel" and
+	 * "Appel & Granaatappel" are the same value. Failing an exact match, the
+	 * longest global value the custom one starts with: "Citroen 2.0" takes
+	 * Citroen's, "Aardbei / citroen 2.0" takes Aardbei & Citroen's.
+	 *
+	 * @param string $attribute Attribute name as the product has it ("Smaak").
+	 * @param string $value     Value as the product has it.
+	 * @return string Emoji, as plain characters.
+	 */
+	public static function borrowed( $attribute, $value ) {
+		/**
+		 * Filter whether custom attributes borrow emoji from global ones.
+		 *
+		 * @param bool $borrow Default true.
+		 */
+		if ( taxonomy_exists( (string) $attribute ) || ! apply_filters( 'pfh_widgets_borrow_attribute_emoji', true ) ) {
+			return '';
+		}
+
+		$map  = self::emoji_map( (string) $attribute );
+		$want = self::key( self::split( (string) $value )[1] );
+
+		if ( ! $map || '' === $want ) {
+			return '';
+		}
+
+		if ( isset( $map[ $want ] ) ) {
+			return $map[ $want ];
+		}
+
+		$best = '';
+
+		foreach ( $map as $key => $emoji ) {
+			if ( strlen( $key ) > strlen( $best ) && strlen( $key ) >= 3 && 0 === strpos( $want, (string) $key ) ) {
+				$best = (string) $key;
+			}
+		}
+
+		return '' === $best ? '' : $map[ $best ];
+	}
+
+	/**
+	 * Words → emoji for every value of the global attribute that carries
+	 * the given name (by its label or its slug). Once per request.
+	 *
+	 * @param string $attribute Attribute name.
+	 * @return array<string,string>
+	 */
+	private static function emoji_map( $attribute ) {
+		static $maps = [];
+
+		$name = self::key( $attribute );
+
+		if ( isset( $maps[ $name ] ) ) {
+			return $maps[ $name ];
+		}
+
+		$maps[ $name ] = [];
+
+		if ( '' === $name || ! function_exists( 'wc_get_attribute_taxonomies' ) ) {
+			return [];
+		}
+
+		$taxonomy = '';
+
+		foreach ( (array) wc_get_attribute_taxonomies() as $row ) {
+			if ( self::key( $row->attribute_label ) === $name || self::key( $row->attribute_name ) === $name ) {
+				$taxonomy = wc_attribute_taxonomy_name( $row->attribute_name );
+				break;
+			}
+		}
+
+		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+			return [];
+		}
+
+		$terms = get_terms( [ 'taxonomy' => $taxonomy, 'hide_empty' => false ] );
+
+		foreach ( is_array( $terms ) ? $terms : [] as $term ) {
+			list( $emoji, $words ) = self::split( $term->name );
+			$key                   = self::key( $words );
+
+			if ( '' !== $emoji && '' !== $key && ! isset( $maps[ $name ][ $key ] ) ) {
+				$maps[ $name ][ $key ] = $emoji;
+			}
+		}
+
+		return $maps[ $name ];
+	}
+
+	/**
+	 * @param string $text Words.
+	 * @return string Lower-case letters and digits only.
+	 */
+	private static function key( $text ) {
+		$text = html_entity_decode( (string) $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+
+		return preg_replace( '/[^a-z0-9]+/', '', strtolower( remove_accents( $text ) ) );
 	}
 
 	/**

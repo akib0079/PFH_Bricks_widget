@@ -886,6 +886,12 @@ class PFH_Element_Product extends \Bricks\Element {
 					? PFH_Widgets_Attribute_Emoji::split( $this->option_label( $name, $option ) )
 					: [ '', $this->option_label( $name, $option ) ];
 
+				// A custom attribute typed into the product borrows the emoji
+				// its global namesake has for the same value.
+				if ( '' === $emoji && class_exists( 'PFH_Widgets_Attribute_Emoji' ) ) {
+					$emoji = PFH_Widgets_Attribute_Emoji::borrowed( $name, $words );
+				}
+
 				printf(
 					'<button type="button" class="pfh-pdp__pill%s" data-pfh-pill="%s" aria-pressed="%s">%s<span class="pfh-pdp__pill-text" data-pfh-pill-text>%s</span></button>',
 					( (string) $chosen === (string) $option ? ' is-chosen' : '' ) . ( '' !== $emoji ? ' has-emoji' : '' ),
