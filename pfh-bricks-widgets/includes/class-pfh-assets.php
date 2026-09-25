@@ -36,6 +36,8 @@ class PFH_Widgets_Assets {
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'register' ], 5 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'register' ], 5 );
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'maybe_quickadd' ], 20 );
+		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'maybe_fkcart' ], 100 );
+		add_action( 'wp_footer', [ __CLASS__, 'maybe_fkcart' ], 1 );
 	}
 
 	/**
@@ -467,6 +469,14 @@ class PFH_Widgets_Assets {
 			true
 		);
 
+		// FunnelKit's cart, restyled; see maybe_fkcart().
+		wp_register_style(
+			'pfh-fkcart',
+			PFH_WIDGETS_URL . 'assets/css/pfh-fkcart.css',
+			wp_style_is( 'pfh-font-outfit', 'registered' ) ? [ 'fkcart-style', 'pfh-font-outfit' ] : [ 'fkcart-style' ],
+			PFH_WIDGETS_VERSION
+		);
+
 		wp_register_script(
 			'pfh-footer',
 			PFH_WIDGETS_URL . 'assets/js/pfh-footer.js',
@@ -501,6 +511,36 @@ class PFH_Widgets_Assets {
 		}
 
 		self::quickadd();
+	}
+
+	/**
+	 * Dress FunnelKit's slide-in cart in the shop's own style.
+	 *
+	 * Only where FunnelKit itself has put its cart on the page: the sheet
+	 * depends on FunnelKit's, so it prints after it, and when FunnelKit
+	 * leaves a page out (the checkout, a page it is switched off for) this
+	 * adds nothing. It runs late on wp_enqueue_scripts and once more at the
+	 * top of the footer, for a FunnelKit that enqueues after the head.
+	 *
+	 * Filter `pfh_widgets_fkcart_style` to switch it off.
+	 */
+	public static function maybe_fkcart() {
+		if ( is_admin() || ! wp_style_is( 'fkcart-style', 'enqueued' ) || wp_style_is( 'pfh-fkcart', 'enqueued' ) ) {
+			return;
+		}
+
+		/**
+		 * Filter whether FunnelKit Cart is restyled to match the shop.
+		 *
+		 * @param bool $load Default true.
+		 */
+		if ( ! apply_filters( 'pfh_widgets_fkcart_style', true ) ) {
+			return;
+		}
+
+		self::register();
+
+		wp_enqueue_style( 'pfh-fkcart' );
 	}
 
 	/**

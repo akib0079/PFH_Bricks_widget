@@ -1,0 +1,847 @@
+/**
+ * FunnelKit Cart, in the shop's own style.
+ *
+ * FunnelKit's slide-in cart (its "Vaak samen gekocht" column, the lines,
+ * the coupon, the totals and the checkout button) keeps all of its own
+ * behaviour: this only restyles it to match the rest of the shop — Outfit,
+ * the deep green ink and sage primary (#6d8465), the band colour, rounded steppers and
+ * buttons, and the same easing as every other panel the plugin draws.
+ *
+ * Selectors name #fkcart-modal twice: FunnelKit scopes its rules under that
+ * id plus a few classes, and a doubled id outranks all of them without
+ * !important. FunnelKit's colour variables are re-pointed at the brand
+ * too, where that is all a piece needs.
+ */
+
+#fkcart-modal {
+	--pfh-fk-ink: #22301c;
+	--pfh-fk-body: #5c6657;
+	--pfh-fk-muted: #8d9589;
+	--pfh-fk-accent: #6d8465;
+	/* The same sage, deepened for small text on white (5.5:1). */
+	--pfh-fk-accent-ink: #56704f;
+	--pfh-fk-hover: #22301c;
+	--pfh-fk-band: #f6f8f5;
+	--pfh-fk-line: #e3e8e0;
+	--pfh-fk-tint: #edf1ea;
+	--pfh-fk-danger: #a63a2f;
+	--pfh-fk-ease: cubic-bezier(.22, .61, .36, 1);
+	--pfh-fk-bin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M10 11v6M14 11v6M5.5 7l1 12a2 2 0 0 0 2 1.8h7a2 2 0 0 0 2-1.8l1-12M9 7V4.8A.8.8 0 0 1 9.8 4h4.4a.8.8 0 0 1 .8.8V7'/%3E%3C/svg%3E");
+
+	/* FunnelKit's own palette, pointed at the brand. */
+	--fkcart-primary-bg-color: var(--pfh-fk-accent);
+	--fkcart-primary-font-color: #ffffff;
+	--fkcart-primary-text-color: var(--pfh-fk-ink);
+	--fkcart-secondary-text-color: var(--pfh-fk-muted);
+	--fkcart-strike-through-price-text-color: var(--pfh-fk-muted);
+	--fkcart-saving-text-price-color: var(--pfh-fk-accent-ink);
+	--fkcart-coupon-text-price-color: var(--pfh-fk-accent-ink);
+	--fkcart-accent-color: var(--pfh-fk-accent);
+	--fkcart-border-color: var(--pfh-fk-line);
+	--fkcart-success-color: var(--pfh-fk-accent);
+	--fkcart-success-bg-color: var(--pfh-fk-tint);
+	--fkcart-progress-bar-active-color: var(--pfh-fk-accent);
+	--fkcart-progressbar-active-color: var(--pfh-fk-accent);
+	--fkcart-progress-bar-bg-color-active-icon: var(--pfh-fk-accent);
+	--fkcart-panel-color: var(--pfh-fk-band);
+	--fkcart-border-radius: 12px;
+	--fkcart-animation-duration: .45s;
+
+	font-family: Outfit, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+
+#fkcart-modal#fkcart-modal *,
+#fkcart-modal#fkcart-modal input,
+#fkcart-modal#fkcart-modal button {
+	font-family: inherit;
+}
+
+/* ------------------------------------------------------------------ *
+ * Backdrop and panels
+ * ------------------------------------------------------------------ */
+
+#fkcart-modal#fkcart-modal .fkcart-modal-backdrop {
+	background: rgba(34, 48, 28, .55);
+	-webkit-backdrop-filter: blur(3px);
+	backdrop-filter: blur(3px);
+}
+
+/* FunnelKit fades its backdrop to .3; the colour above carries the depth. */
+#fkcart-modal#fkcart-modal.fkcart-show .fkcart-modal-backdrop { opacity: 1; }
+
+#fkcart-modal#fkcart-modal .fkcart-preview-ui {
+	background: #ffffff;
+	box-shadow: -24px 0 60px -30px rgba(34, 48, 28, .45);
+	transition-timing-function: var(--pfh-fk-ease);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-drawer,
+#fkcart-modal#fkcart-modal .fkcart-drawer-container {
+	transition-timing-function: var(--pfh-fk-ease);
+}
+
+/* ------------------------------------------------------------------ *
+ * Header
+ * ------------------------------------------------------------------ */
+
+#fkcart-modal#fkcart-modal .fkcart-slider-heading {
+	padding: 22px 24px 18px;
+	border-bottom: 1px solid var(--pfh-fk-line);
+	background: #ffffff;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-title {
+	color: var(--pfh-fk-ink);
+	font-size: 20px;
+	font-weight: 600;
+	letter-spacing: -.01em;
+	line-height: 1.2;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-title span {
+	margin-left: 4px;
+	color: var(--pfh-fk-muted);
+	font-weight: 400;
+}
+
+/* Only the header's ×: FunnelKit gives the empty cart's "Nu winkelen" button
+   the same class, and it must not become a 38px disc. */
+#fkcart-modal#fkcart-modal .fkcart-slider-heading .fkcart-modal-close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	color: var(--pfh-fk-ink);
+	cursor: pointer;
+	transition: background-color .2s ease, transform .3s var(--pfh-fk-ease);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-slider-heading .fkcart-modal-close:hover {
+	background: var(--pfh-fk-band);
+	transform: rotate(90deg);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-slider-heading .fkcart-modal-close svg {
+	width: 18px;
+	height: 18px;
+}
+
+/* ------------------------------------------------------------------ *
+ * The lines
+ * ------------------------------------------------------------------ */
+
+#fkcart-modal#fkcart-modal .fkcart-slider-body {
+	padding: 4px 24px 8px;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart--item {
+	position: relative;
+	gap: 16px;
+	padding: 18px 0;
+	border-bottom: 1px solid var(--pfh-fk-line);
+	background: transparent;
+	animation: pfh-fk-rise .5s var(--pfh-fk-ease) both;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart--item:last-child { border-bottom: 0; }
+
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart--item:nth-child(2) { animation-delay: .04s; }
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart--item:nth-child(3) { animation-delay: .08s; }
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart--item:nth-child(4) { animation-delay: .12s; }
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart--item:nth-child(n+5) { animation-delay: .16s; }
+
+@keyframes pfh-fk-rise {
+	from { opacity: 0; transform: translateY(8px); }
+	to { opacity: 1; transform: none; }
+}
+
+/* Picture: on the band colour, rounded, the product contained. */
+#fkcart-modal#fkcart-modal .fkcart-thumb-wrap {
+	position: static;
+	flex: none;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-image-wrapper {
+	display: block;
+	flex: 0 0 76px;
+	width: 76px;
+	height: 76px;
+	overflow: hidden;
+	border: 0;
+	border-radius: 12px;
+	background: var(--pfh-fk-band);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-image-wrapper img,
+#fkcart-modal#fkcart-modal .fkcart-image {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	border: 0;
+	border-radius: 0;
+	transition: transform .4s var(--pfh-fk-ease);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-image-wrapper:hover img { transform: scale(1.05); }
+
+/* Remove: a quiet bin at the line's bottom right, as in the header drawer. */
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-remove-item {
+	position: absolute;
+	top: auto;
+	right: -6px;
+	bottom: 20px;
+	left: auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	margin: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--pfh-fk-muted);
+	box-shadow: none;
+	cursor: pointer;
+	transition: background-color .2s ease, color .2s ease;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-remove-item:hover {
+	background: #fbefed;
+	color: var(--pfh-fk-danger);
+}
+
+/* FunnelKit draws a cross in a grey disc; a bin in the text colour replaces it. */
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-remove-item span {
+	display: block;
+	width: 17px;
+	height: 17px;
+	border-radius: 0;
+	background: currentColor;
+	-webkit-mask: var(--pfh-fk-bin) center / contain no-repeat;
+	mask: var(--pfh-fk-bin) center / contain no-repeat;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-remove-item svg { display: none; }
+
+/* Name, options, price. */
+#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-item-info { padding-right: 0; }
+
+#fkcart-modal#fkcart-modal .fkcart-item-title {
+	color: var(--pfh-fk-ink);
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1.35;
+	text-decoration: none;
+	transition: color .2s ease;
+}
+
+#fkcart-modal#fkcart-modal a.fkcart-item-title:hover { color: var(--pfh-fk-accent-ink); }
+
+#fkcart-modal#fkcart-modal .fkcart-item-meta-content,
+#fkcart-modal#fkcart-modal .fkcart-item-meta-content * {
+	color: var(--pfh-fk-muted);
+	font-size: 12.5px;
+	line-height: 1.5;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-item-price,
+#fkcart-modal#fkcart-modal .fkcart-item-price .amount {
+	color: var(--pfh-fk-ink);
+	font-size: 15px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-item-price del,
+#fkcart-modal#fkcart-modal .fkcart-item-price del .amount {
+	color: var(--pfh-fk-muted);
+	font-size: 12.5px;
+	font-weight: 400;
+	opacity: .85;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-item-price ins { text-decoration: none; }
+
+#fkcart-modal#fkcart-modal .woocommerce-price-suffix {
+	color: var(--pfh-fk-muted);
+	font-size: 11px;
+	font-weight: 400;
+}
+
+/* Quantity: a pill with round steps, as everywhere else in the shop. */
+#fkcart-modal#fkcart-modal .fkcart-quantity-selector {
+	display: inline-flex;
+	align-items: center;
+	height: 38px;
+	padding: 0 3px;
+	border: 1px solid var(--pfh-fk-line);
+	border-radius: 999px;
+	background: #ffffff;
+	overflow: visible;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-quantity-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--pfh-fk-ink);
+	cursor: pointer;
+	transition: background-color .2s ease, color .2s ease;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-quantity-button:hover {
+	background: var(--pfh-fk-band);
+	color: var(--pfh-fk-accent-ink);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-quantity-button svg {
+	width: 12px;
+	height: 12px;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-quantity-button svg path { fill: currentColor; stroke: currentColor; }
+
+#fkcart-modal#fkcart-modal input.fkcart-quantity__input {
+	width: 32px;
+	height: 30px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--pfh-fk-ink);
+	font-size: 14px;
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+	text-align: center;
+	box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * "Vaak samen gekocht"
+ * ------------------------------------------------------------------ */
+
+#fkcart-modal#fkcart-modal .fkcart-drawer-container {
+	background: var(--pfh-fk-band);
+	border-right: 1px solid var(--pfh-fk-line);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-drawer-heading {
+	padding: 24px 14px 10px;
+	color: var(--pfh-fk-ink);
+	font-family: "Playfair Display", Georgia, serif;
+	font-size: 17px;
+	font-style: italic;
+	font-weight: 400;
+	line-height: 1.25;
+	text-align: center;
+}
+
+/* The cards take the column's full width; it is narrow enough already. */
+#fkcart-modal#fkcart-modal .fkcart-drawer-items .fkcart-item-wrap { padding: 0; }
+
+#fkcart-modal#fkcart-modal .fkcart-drawer .fkcart-drawer-wrap { padding: 16px 14px; }
+
+#fkcart-modal#fkcart-modal .fkcart-drawer-items .fkcart--item {
+	margin: 0 0 12px;
+	padding: 14px 10px 16px;
+	border: 1px solid var(--pfh-fk-line);
+	border-radius: 14px;
+	background: #ffffff;
+	box-shadow: 0 1px 2px rgba(34, 48, 28, .04);
+	transition: transform .3s var(--pfh-fk-ease), box-shadow .3s ease;
+	animation: pfh-fk-rise .5s var(--pfh-fk-ease) both;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-drawer-items .fkcart--item:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 12px 24px -16px rgba(34, 48, 28, .35);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-drawer-items .fkcart-image-wrapper {
+	flex-basis: 72px;
+	width: 72px;
+	height: 72px;
+	margin: 0 auto 10px;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-drawer-items .fkcart-item-title {
+	font-size: 13.5px;
+	line-height: 1.3;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-drawer-items .fkcart-item-price,
+#fkcart-modal#fkcart-modal .fkcart-drawer-items .fkcart-item-price .amount { font-size: 14px; }
+
+/* The column is narrow: "incl. BTW" is left to the cart lines and totals. */
+#fkcart-modal#fkcart-modal .fkcart-drawer-items .woocommerce-price-suffix { display: none; }
+
+#fkcart-modal#fkcart-modal .fkcart-item-price .amount { white-space: nowrap; }
+
+/* "Voeg toe": an outline pill that fills on hover. */
+#fkcart-modal#fkcart-modal .fkcart-add-product-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 84px;
+	min-height: 34px;
+	margin-top: 10px;
+	padding: 6px 16px;
+	border: 1px solid var(--pfh-fk-accent-ink);
+	border-radius: 999px;
+	background: transparent;
+	color: var(--pfh-fk-accent-ink);
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color .2s ease, color .2s ease, transform .2s var(--pfh-fk-ease);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-add-product-button:hover {
+	background: var(--pfh-fk-accent);
+	color: #ffffff;
+	transform: translateY(-1px);
+}
+
+/* ------------------------------------------------------------------ *
+ * "Vaak samen gekocht" on a phone
+ *
+ * At 1000px and below (FunnelKit's own breakpoint) the column becomes a
+ * one-card carousel inside the cart body. Its geometry is FunnelKit's: the
+ * track pulls 15px left and every slide is 100% wide with a 15px gutter as
+ * left padding. None of that is touched, or the next card starts to peek
+ * in. The white card is drawn on a ::before inset by the gutter, so it
+ * sits exactly inside the slide.
+ * ------------------------------------------------------------------ */
+
+@media screen and (max-width: 1000px) {
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-container {
+		border-right: 0;
+		background: transparent;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-wrap {
+		padding: 4px 32px 14px;
+		border-radius: 16px;
+		background: var(--pfh-fk-band);
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-heading {
+		margin: 0;
+		padding: 18px 0 14px;
+		font-size: 18px;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-item-wrap { padding: 0; }
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart--item,
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart--item:hover {
+		align-items: center;
+		gap: 12px;
+		margin: 0;
+		padding: 12px 12px 12px 27px;
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		box-shadow: none;
+		transform: none;
+		animation: none;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart--item::before {
+		content: "";
+		position: absolute;
+		inset: 0 0 0 15px;
+		z-index: 0;
+		border: 1px solid var(--pfh-fk-line);
+		border-radius: 14px;
+		background: #ffffff;
+		box-shadow: 0 1px 2px rgba(34, 48, 28, .04);
+		pointer-events: none;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart--item > * {
+		position: relative;
+		z-index: 1;
+		min-width: 0;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-image-wrapper {
+		flex: 0 0 64px;
+		width: 64px;
+		height: 64px;
+		margin: 0;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-item-info { flex: 1 1 0; }
+
+	/* The price keeps its width; the name wraps instead. */
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-item-misc {
+		flex: none;
+		align-self: flex-start;
+		padding-top: 1px;
+		white-space: nowrap;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-item-title { font-size: 14px; }
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-add-product-button {
+		min-height: 32px;
+		margin-top: 8px;
+	}
+
+	/* Arrows: round, in the gutters either side of the card. */
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-nav-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border: 1px solid var(--pfh-fk-line);
+		border-radius: 50%;
+		background: #ffffff;
+		color: var(--pfh-fk-ink);
+		box-shadow: 0 4px 12px -6px rgba(34, 48, 28, .3);
+		cursor: pointer;
+		transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-nav-btn:hover {
+		border-color: var(--pfh-fk-accent);
+		background: var(--pfh-fk-accent);
+		color: #ffffff;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-nav-btn svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-nav-btn svg path { fill: currentColor; }
+
+	/* Dots: small rounds; the current one stretches into a sage pill. */
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-carousel-dots { padding-top: 10px; }
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-carousel-dot {
+		justify-content: center;
+		width: auto;
+		min-width: 14px;
+		height: 20px;
+		margin: 0 2px;
+		cursor: pointer;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-carousel-dot::after {
+		width: 6px;
+		height: 6px;
+		border-radius: 999px;
+		background: var(--pfh-fk-line);
+		transition: width .3s var(--pfh-fk-ease), background-color .3s ease;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-carousel-dot.is-selected::after {
+		width: 18px;
+		background: var(--pfh-fk-accent);
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * Footer: coupon, totals, checkout
+ * ------------------------------------------------------------------ */
+
+#fkcart-modal#fkcart-modal .fkcart-slider-footer {
+	padding: 0 24px 22px;
+	border-top: 1px solid var(--pfh-fk-line);
+	background: #ffffff;
+	box-shadow: 0 -18px 30px -24px rgba(34, 48, 28, .18);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-coupon-area {
+	padding: 0;
+	border-bottom: 1px solid var(--pfh-fk-line);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-coupon-head {
+	padding: 16px 0;
+	background: transparent;
+	cursor: pointer;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-coupon-title {
+	color: var(--pfh-fk-accent-ink);
+	font-size: 14px;
+	font-weight: 500;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-coupon-icon { color: var(--pfh-fk-accent-ink); }
+#fkcart-modal#fkcart-modal .fkcart-coupon-icon svg path { fill: currentColor; }
+
+#fkcart-modal#fkcart-modal .fkcart-coupon-body {
+	padding: 0 0 16px;
+	background: transparent;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-coupon-input-wrap {
+	display: flex;
+	gap: 8px;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-coupon-input-wrap input,
+#fkcart-modal#fkcart-modal #fkcart-coupon__input {
+	flex: 1;
+	min-width: 0;
+	height: 44px;
+	max-height: none;
+	padding: 0 14px;
+	border: 1px solid var(--pfh-fk-line);
+	border-radius: 10px;
+	background: #ffffff;
+	color: var(--pfh-fk-ink);
+	font-size: 14px;
+	box-shadow: none;
+	transition: border-color .2s ease;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-coupon-input-wrap input:focus,
+#fkcart-modal#fkcart-modal #fkcart-coupon__input:focus {
+	border-color: var(--pfh-fk-accent);
+	outline: none;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-coupon-button {
+	display: inline-flex;
+	align-items: center;
+	flex: none;
+	height: 44px;
+	max-height: none;
+	padding: 0 18px;
+	border: 0;
+	border-radius: 10px;
+	background: var(--pfh-fk-ink);
+	color: #ffffff;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1;
+	transition: background-color .2s ease;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-coupon-button:hover { background: var(--pfh-fk-accent); }
+
+#fkcart-modal#fkcart-modal .fkcart-order-summary {
+	padding: 16px 0 4px;
+	background: transparent;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-summary-line-item { align-items: baseline; }
+
+#fkcart-modal#fkcart-modal .fkcart-summary-text,
+#fkcart-modal#fkcart-modal .fkcart-summary-text strong {
+	color: var(--pfh-fk-ink);
+	font-size: 16px;
+	font-weight: 600;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-summary-amount,
+#fkcart-modal#fkcart-modal .fkcart-summary-amount strong,
+#fkcart-modal#fkcart-modal .fkcart-summary-amount .amount {
+	color: var(--pfh-fk-ink);
+	font-size: 20px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-shipping-tax-calculation-text,
+#fkcart-modal#fkcart-modal .fkcart-text-light {
+	color: var(--pfh-fk-muted);
+	font-size: 12.5px;
+	font-weight: 400;
+	line-height: 1.5;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-checkout-wrap {
+	padding: 12px 0 0;
+	background: transparent;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-checkout-info a {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	min-height: 54px;
+	border: 0;
+	border-radius: 12px;
+	background: var(--pfh-fk-accent);
+	color: #ffffff;
+	font-size: 16.5px;
+	font-weight: 600;
+	letter-spacing: .005em;
+	text-decoration: none;
+	box-shadow: 0 10px 22px -14px rgba(109, 132, 101, .7);
+	transition: background-color .2s ease, transform .2s var(--pfh-fk-ease), box-shadow .2s ease;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-checkout-info a:hover {
+	background: var(--pfh-fk-hover);
+	transform: translateY(-1px);
+	box-shadow: 0 14px 26px -14px rgba(34, 48, 28, .6);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-checkout--text,
+#fkcart-modal#fkcart-modal .fkcart-checkout--price,
+#fkcart-modal#fkcart-modal .fkcart-checkout--price .amount {
+	color: #ffffff;
+	font-size: inherit;
+	font-weight: inherit;
+}
+
+#fkcart-modal#fkcart-modal a.fkcart-shopping-link {
+	display: block;
+	margin-top: 12px;
+	color: var(--pfh-fk-body);
+	font-size: 14px;
+	font-weight: 500;
+	text-align: center;
+	text-decoration: underline;
+	text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+	text-underline-offset: 4px;
+	transition: color .2s ease, text-decoration-color .2s ease;
+}
+
+#fkcart-modal#fkcart-modal a.fkcart-shopping-link:hover {
+	color: var(--pfh-fk-accent-ink);
+	text-decoration-color: currentColor;
+}
+
+/* ------------------------------------------------------------------ *
+ * Empty cart
+ * ------------------------------------------------------------------ */
+
+/* An empty cart has no totals; its footer drops its rule and shadow. */
+#fkcart-modal#fkcart-modal .has-zero-state .fkcart-slider-footer {
+	border-top: 0;
+	box-shadow: none;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-zero-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 40px 28px;
+	text-align: center;
+	animation: pfh-fk-rise .5s var(--pfh-fk-ease) both;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-icon-cart {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 88px;
+	height: 88px;
+	margin: 0 0 8px;
+	border-radius: 50%;
+	background: var(--pfh-fk-band);
+	color: var(--pfh-fk-accent-ink);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-icon-cart svg {
+	width: 38px;
+	height: 38px;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-icon-cart svg path { fill: currentColor; }
+
+#fkcart-modal#fkcart-modal .fkcart-zero-state-title {
+	margin: 0;
+	color: var(--pfh-fk-ink);
+	font-size: 22px;
+	font-weight: 600;
+	letter-spacing: -.01em;
+	line-height: 1.25;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-zero-state-text {
+	max-width: 30ch;
+	margin: 0;
+	color: var(--pfh-fk-body);
+	font-size: 14.5px;
+	line-height: 1.55;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-zero-state .fkcart-shop-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: auto;
+	min-width: 200px;
+	height: auto;
+	min-height: 50px;
+	margin: 14px 0 0;
+	padding: 0 32px;
+	border: 0;
+	border-radius: 999px;
+	background: var(--pfh-fk-accent);
+	color: #ffffff;
+	font-size: 15.5px;
+	font-weight: 600;
+	line-height: 1;
+	white-space: nowrap;
+	text-decoration: none;
+	box-shadow: 0 10px 22px -14px rgba(109, 132, 101, .7);
+	transition: background-color .2s ease, transform .2s var(--pfh-fk-ease);
+}
+
+#fkcart-modal#fkcart-modal .fkcart-zero-state .fkcart-shop-button:hover {
+	background: var(--pfh-fk-hover);
+	color: #ffffff;
+	transform: translateY(-1px);
+}
+
+/* ------------------------------------------------------------------ *
+ * Focus, scrollbars, motion
+ * ------------------------------------------------------------------ */
+
+#fkcart-modal#fkcart-modal a:focus-visible,
+#fkcart-modal#fkcart-modal button:focus-visible,
+#fkcart-modal#fkcart-modal input:focus-visible,
+#fkcart-modal#fkcart-modal [role="button"]:focus-visible,
+#fkcart-modal#fkcart-modal .fkcart-quantity-button:focus-visible,
+#fkcart-modal#fkcart-modal .fkcart-add-product-button:focus-visible {
+	outline: 2px solid var(--pfh-fk-accent);
+	outline-offset: 2px;
+}
+
+#fkcart-modal#fkcart-modal .fkcart-slider-body,
+#fkcart-modal#fkcart-modal .fkcart-drawer-container {
+	scrollbar-width: thin;
+	scrollbar-color: var(--pfh-fk-line) transparent;
+}
+
+@media (max-width: 767px) {
+	#fkcart-modal#fkcart-modal .fkcart-slider-heading { padding: 18px 18px 14px; }
+	#fkcart-modal#fkcart-modal .fkcart-slider-body { padding: 0 18px 8px; }
+	#fkcart-modal#fkcart-modal .fkcart-slider-footer { padding: 0 18px 18px; }
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-image-wrapper { flex-basis: 68px; width: 68px; height: 68px; }
+	#fkcart-modal#fkcart-modal #fkcart-coupon__input { font-size: 16px; } /* no zoom-on-focus on iOS */
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#fkcart-modal#fkcart-modal *,
+	#fkcart-modal#fkcart-modal *::before,
+	#fkcart-modal#fkcart-modal *::after {
+		animation: none !important;
+		transition: none !important;
+	}
+}

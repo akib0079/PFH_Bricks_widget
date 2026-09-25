@@ -179,6 +179,17 @@ stays correct even when a product is added by another plugin's script.
 
 Set **Cart icon behaviour → Go to cart page** to skip the drawer entirely.
 
+### FunnelKit Cart
+
+With **Cart icon behaviour → FunnelKit Cart** the icon opens FunnelKit's
+slide-in cart instead. Wherever FunnelKit puts that cart on a page, the plugin
+restyles it to match the shop (`assets/css/pfh-fkcart.css`): Outfit type, the
+green ink and sage primary (#6d8465), rounded pictures on the band colour, pill steppers,
+a bin to remove a line, cards in the "Vaak samen gekocht" column and the same
+easing as the header drawer. FunnelKit keeps all of its own behaviour. The
+texts ("Subtotal", "Add") come from FunnelKit's own settings. Return false
+from `pfh_widgets_fkcart_style` to keep FunnelKit's default look.
+
 ---
 
 ## PFH Hero Slider
