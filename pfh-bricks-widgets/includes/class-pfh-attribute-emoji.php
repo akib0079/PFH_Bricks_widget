@@ -19,6 +19,10 @@
  *   slug made that way, so "<emoji> Appel" gets "appel". An existing value
  *   keeps its slug when renamed, which is what its variations match on.
  *
+ *   The order. Values sorted by name would sort by their emoji — every
+ *   orange before every lemon. Wherever attribute values are sorted by
+ *   name, the leading emoji is ignored, so "Aardbei" still comes first.
+ *
  * On the product page the element also draws a leading emoji apart from the
  * words (see split()), so the heading above can read "Smaak — Perzik".
  *
@@ -40,6 +44,8 @@ class PFH_Widgets_Attribute_Emoji {
 		add_filter( 'pre_insert_term', [ __CLASS__, 'encode_name' ], 10, 2 );
 		add_filter( 'wp_update_term_data', [ __CLASS__, 'encode_update' ], 10, 4 );
 		add_filter( 'wp_insert_term_data', [ __CLASS__, 'clean_slug' ], 10, 3 );
+		add_filter( 'get_terms', [ __CLASS__, 'sort_terms' ], 20, 3 );
+		add_filter( 'woocommerce_get_product_terms', [ __CLASS__, 'sort_product_terms' ], 20, 4 );
 	}
 
 	/**
@@ -136,6 +142,130 @@ class PFH_Widgets_Attribute_Emoji {
 		$encode = (bool) apply_filters( 'pfh_widgets_encode_attribute_emoji', is_string( $charset ) && 'utf8mb4' !== $charset, $charset );
 
 		return $encode ? wp_encode_emoji( $name ) : $name;
+	}
+
+	/**
+	 * Attribute values asked for by name, re-sorted on their words.
+	 *
+	 * Only a list of whole terms from attribute taxonomies, ordered by name:
+	 * anything ordered otherwise (the shop's own custom order, by id, by
+	 * count) is left exactly as the database returned it.
+	 *
+	 * @param array $terms      Terms found.
+	 * @param array $taxonomies Taxonomies asked for.
+	 * @param array $args       Query arguments.
+	 * @return array
+	 */
+	public static function sort_terms( $terms, $taxonomies, $args ) {
+		if ( ! is_array( $terms ) || count( $terms ) < 2 || ! self::by_name( $args ) || ( isset( $args['fields'] ) && 'all' !== $args['fields'] ) ) {
+			return $terms;
+		}
+
+		foreach ( (array) $taxonomies as $taxonomy ) {
+			if ( ! self::is_attribute( $taxonomy ) ) {
+				return $terms;
+			}
+		}
+
+		foreach ( $terms as $term ) {
+			if ( ! $term instanceof WP_Term ) {
+				return $terms;
+			}
+		}
+
+		return self::sorted( $terms, $args, static function ( $term ) {
+			return $term->name;
+		} );
+	}
+
+	/**
+	 * The same for WooCommerce's own lookup of a product's values, which
+	 * can hand back names, slugs or ids rather than whole terms.
+	 *
+	 * @param array  $terms      Values found.
+	 * @param int    $product_id Product.
+	 * @param string $taxonomy   Attribute taxonomy.
+	 * @param array  $args       Query arguments.
+	 * @return array
+	 */
+	public static function sort_product_terms( $terms, $product_id, $taxonomy, $args ) {
+		if ( ! is_array( $terms ) || count( $terms ) < 2 || ! self::is_attribute( $taxonomy ) || ! self::by_name( $args ) ) {
+			return $terms;
+		}
+
+		$fields = isset( $args['fields'] ) ? (string) $args['fields'] : 'all';
+
+		return self::sorted( $terms, $args, static function ( $value ) use ( $fields, $taxonomy ) {
+			if ( $value instanceof WP_Term ) {
+				return $value->name;
+			}
+
+			if ( 'names' === $fields ) {
+				return (string) $value;
+			}
+
+			$term = 'slugs' === $fields ? get_term_by( 'slug', (string) $value, $taxonomy ) : get_term( (int) $value, $taxonomy );
+
+			return ( $term && ! is_wp_error( $term ) ) ? $term->name : (string) $value;
+		} );
+	}
+
+	/**
+	 * @param array $args Query arguments.
+	 * @return bool Whether they ask for an order by name.
+	 */
+	private static function by_name( $args ) {
+		$orderby = isset( $args['orderby'] ) ? strtolower( (string) $args['orderby'] ) : 'name';
+
+		return in_array( $orderby, [ 'name', 'name_num' ], true );
+	}
+
+	/**
+	 * Sort on the words of each name, keeping the order asked for.
+	 *
+	 * Only when a name actually starts with an emoji: without one this
+	 * returns the list untouched, so nothing about a shop without emoji
+	 * changes at all.
+	 *
+	 * @param array    $items Items.
+	 * @param array    $args  Query arguments (orderby, order).
+	 * @param callable $name  Item → its name.
+	 * @return array
+	 */
+	private static function sorted( array $items, $args, callable $name ) {
+		$keys  = [];
+		$emoji = false;
+
+		foreach ( $items as $i => $item ) {
+			list( $mark, $words ) = self::split( (string) call_user_func( $name, $item ) );
+			$emoji                = $emoji || '' !== $mark;
+			$keys[ $i ]           = strtolower( remove_accents( $words ) );
+		}
+
+		if ( ! $emoji ) {
+			return $items;
+		}
+
+		// WooCommerce's "name (numeric)" arrives as name_num, or as name with
+		// force_numeric_name once it has rewritten the query.
+		$natural = ( isset( $args['orderby'] ) && 'name_num' === strtolower( (string) $args['orderby'] ) ) || ! empty( $args['force_numeric_name'] );
+		$desc    = isset( $args['order'] ) && 'DESC' === strtoupper( (string) $args['order'] );
+		$order   = array_keys( $items );
+
+		usort( $order, static function ( $a, $b ) use ( $keys, $natural, $desc ) {
+			$c = $natural ? strnatcmp( $keys[ $a ], $keys[ $b ] ) : strcmp( $keys[ $a ], $keys[ $b ] );
+
+			return $desc ? -$c : $c;
+		} );
+
+		$out = [];
+
+		foreach ( $order as $i ) {
+			$out[] = $items[ $i ];
+		}
+
+		// A list keyed by term id stays keyed by term id.
+		return array_values( $items ) === $items ? $out : array_combine( $order, $out );
 	}
 
 	/**

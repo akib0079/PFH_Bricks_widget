@@ -995,7 +995,9 @@ This works for every attribute. The plugin keeps it from going wrong: a new
 value's slug leaves the emoji out ("perzik", not "%f0%9f%8d%91-perzik"), an
 existing value keeps its slug when renamed (its variations match on it), and
 on a database whose terms table cannot hold four-byte characters the emoji is
-saved as a character reference instead of the save failing.
+saved as a character reference instead of the save failing. Sorting by name
+ignores a leading emoji, so values keep their alphabetical order ("Aardbei"
+before "Citroen") in the admin list, on the product and in shop filters.
 
 ### Adding to the cart
 

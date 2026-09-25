@@ -77,6 +77,31 @@ ok( 'an emoji only after the words is left in place', [ '', "Kers $apple" ] === 
 ok( 'an emoji alone is kept whole, so there is something to read', [ '', $apple ] === $s( $apple ) );
 ok( 'an escaped ampersand is read as one', [ $apple, 'Appel & Granaatappel' ] === $s( "$apple Appel &amp; Granaatappel" ) );
 
+echo "\n── sorted by the words, not the emoji ──\n";
+
+$sorted = 'pa_pfhemojisort';
+register_taxonomy( $sorted, 'product', [ 'hierarchical' => false, 'show_ui' => false ] );
+// Orange sorts before lemon before apple by code point; the words say otherwise.
+foreach ( [ "\u{1F34A} Mandarijn", "\u{1F34B} Citroen", "\u{1F34E} Appel", 'Kers' ] as $n ) {
+	wp_insert_term( $n, $sorted );
+}
+$words = static function ( $terms ) {
+	return array_map( static function ( $t ) { return PFH_Widgets_Attribute_Emoji::split( is_object( $t ) ? $t->name : $t )[1]; }, array_values( (array) $terms ) );
+};
+ok( 'a list by name follows the words', [ 'Appel', 'Citroen', 'Kers', 'Mandarijn' ] === $words( get_terms( [ 'taxonomy' => $sorted, 'hide_empty' => false, 'orderby' => 'name' ] ) ), implode( ',', $words( get_terms( [ 'taxonomy' => $sorted, 'hide_empty' => false, 'orderby' => 'name' ] ) ) ) );
+ok( '  and backwards when asked', [ 'Mandarijn', 'Kers', 'Citroen', 'Appel' ] === $words( get_terms( [ 'taxonomy' => $sorted, 'hide_empty' => false, 'orderby' => 'name', 'order' => 'DESC' ] ) ) );
+$by_id = wp_list_pluck( get_terms( [ 'taxonomy' => $sorted, 'hide_empty' => false, 'orderby' => 'term_id' ] ), 'term_id' );
+ok( 'any other order is left alone', $by_id === array_values( array_map( 'intval', $by_id ) ) && $by_id == array_values( array_filter( $by_id ) ) && $by_id === array_values( ( static function ( $a ) { sort( $a ); return $a; } )( $by_id ) ) );
+ok( 'lists of names or slugs are not touched', 4 === count( get_terms( [ 'taxonomy' => $sorted, 'hide_empty' => false, 'fields' => 'names' ] ) ) );
+ok( 'WooCommerce\'s product lookup by name follows the words too', [ 'Appel', 'Citroen', 'Mandarijn' ] === $words( PFH_Widgets_Attribute_Emoji::sort_product_terms( [ "\u{1F34A} Mandarijn", "\u{1F34E} Appel", "\u{1F34B} Citroen" ], 0, $sorted, [ 'orderby' => 'name', 'fields' => 'names' ] ) ) );
+$slugs = PFH_Widgets_Attribute_Emoji::sort_product_terms( [ 'mandarijn', 'appel', 'citroen' ], 0, $sorted, [ 'orderby' => 'name', 'fields' => 'slugs' ] );
+ok( '  also when it asks for slugs', [ 'appel', 'citroen', 'mandarijn' ] === $slugs, implode( ',', $slugs ) );
+ok( '  and not when the shop set its own order', [ 'mandarijn', 'appel' ] === PFH_Widgets_Attribute_Emoji::sort_product_terms( [ 'mandarijn', 'appel' ], 0, $sorted, [ 'orderby' => 'menu_order', 'fields' => 'slugs' ] ) );
+ok( 'without any emoji the database order stands', [ 'b', 'a' ] === PFH_Widgets_Attribute_Emoji::sort_product_terms( [ 'b', 'a' ], 0, $sorted, [ 'orderby' => 'name', 'fields' => 'names' ] ) );
+foreach ( (array) get_terms( [ 'taxonomy' => $sorted, 'hide_empty' => false ] ) as $x ) {
+	wp_delete_term( $x->term_id, $sorted );
+}
+
 foreach ( [ $tax, 'pfh_not_an_attribute' ] as $t ) {
 	foreach ( (array) get_terms( [ 'taxonomy' => $t, 'hide_empty' => false ] ) as $x ) {
 		if ( ! is_wp_error( $x ) ) { wp_delete_term( $x->term_id, $t ); }
