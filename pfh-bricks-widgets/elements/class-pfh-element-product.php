@@ -877,12 +877,22 @@ class PFH_Element_Product extends \Bricks\Element {
 			echo '<div class="pfh-pdp__pills" role="group">';
 
 			foreach ( $options as $option ) {
+				/*
+				 * A value named "<emoji> Appel" draws its emoji apart from the
+				 * words, so the two can be spaced, and the heading above
+				 * repeats only the words: "Smaak — Appel".
+				 */
+				list( $emoji, $words ) = class_exists( 'PFH_Widgets_Attribute_Emoji' )
+					? PFH_Widgets_Attribute_Emoji::split( $this->option_label( $name, $option ) )
+					: [ '', $this->option_label( $name, $option ) ];
+
 				printf(
-					'<button type="button" class="pfh-pdp__pill%s" data-pfh-pill="%s" aria-pressed="%s">%s</button>',
-					(string) $chosen === (string) $option ? ' is-chosen' : '',
+					'<button type="button" class="pfh-pdp__pill%s" data-pfh-pill="%s" aria-pressed="%s">%s<span class="pfh-pdp__pill-text" data-pfh-pill-text>%s</span></button>',
+					( (string) $chosen === (string) $option ? ' is-chosen' : '' ) . ( '' !== $emoji ? ' has-emoji' : '' ),
 					esc_attr( $option ),
 					(string) $chosen === (string) $option ? 'true' : 'false',
-					esc_html( $this->option_label( $name, $option ) )
+					'' !== $emoji ? '<span class="pfh-pdp__pill-emoji" aria-hidden="true">' . esc_html( $emoji ) . '</span>' : '',
+					esc_html( $words )
 				);
 			}
 

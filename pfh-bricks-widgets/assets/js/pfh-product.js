@@ -420,7 +420,9 @@
 					}
 
 					if ( on && label ) {
-						label.textContent = ' — ' + pill.textContent.trim();
+						var text = pill.querySelector( '[data-pfh-pill-text]' ) || pill;
+
+						label.textContent = ' — ' + text.textContent.trim();
 					}
 				} );
 

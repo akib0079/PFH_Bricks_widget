@@ -387,6 +387,22 @@
 	transition: border-color .2s ease, background-color .2s ease, color .2s ease;
 }
 
+/* With an emoji in front: the two sit on one line, the emoji a touch larger
+   and in the system's colour emoji face. */
+.pfh-pdp__pill.has-emoji {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+}
+
+.pfh-pdp__pill-emoji {
+	flex: none;
+	font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", sans-serif;
+	font-size: 1.15em;
+	font-style: normal;
+	line-height: 1;
+}
+
 .pfh-pdp__pill:hover { border-color: var(--pfh-pdp-accent); }
 
 .pfh-pdp__pill.is-chosen {

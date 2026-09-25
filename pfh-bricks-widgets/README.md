@@ -983,6 +983,20 @@ groups in **Groups using the soft selected colour** decides it by name instead
 of by position — "smaak" in the design.
 Name them the way the panel shows them; the taxonomy name works too.
 
+### Emoji on the pills
+
+Type an emoji in front of an attribute value's name — under **Products →
+Attributes → Configure terms**, e.g. a peach before "Perzik". No extra field:
+it is part of the name, so it also shows in the cart, the checkout and the
+order. On the pills the emoji is drawn apart from the words, and the group
+heading repeats only the words ("Smaak — Perzik").
+
+This works for every attribute. The plugin keeps it from going wrong: a new
+value's slug leaves the emoji out ("perzik", not "%f0%9f%8d%91-perzik"), an
+existing value keeps its slug when renamed (its variations match on it), and
+on a database whose terms table cannot hold four-byte characters the emoji is
+saved as a character reference instead of the save failing.
+
 ### Adding to the cart
 
 Goes through the same endpoint the product cards use, so the cart drawer and

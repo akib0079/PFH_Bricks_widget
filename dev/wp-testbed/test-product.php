@@ -400,6 +400,29 @@ pdp( $variable->ID );
 $cost = get_num_queries() - $before;
 ok( 'a render stays reasonable on queries', $cost <= 40, "$cost queries" );
 
+echo "\n── an emoji in a value's name ──\n";
+
+// "🍑 Perzik", typed into the value's name the way the shop does it.
+$peach   = get_term_by( 'name', 'Perzik', 'pa_smaak' );
+$slug    = $peach ? $peach->slug : '';
+$renamed = $peach ? wp_update_term( $peach->term_id, 'pa_smaak', [ 'name' => "\u{1F351} Perzik" ] ) : new WP_Error( 'none' );
+ok( 'renaming a value to lead with an emoji saves', ! is_wp_error( $renamed ) );
+ok( '  and keeps its slug, which the variations match on', $peach && get_term( $peach->term_id, 'pa_smaak' )->slug === $slug );
+wc_delete_product_transients( $variable->ID );
+
+$html = pdp( $variable->ID );
+ok( 'the button draws the emoji apart from the words', (bool) preg_match( '#data-pfh-pill="' . preg_quote( $slug, '#' ) . '"[^>]*><span class="pfh-pdp__pill-emoji" aria-hidden="true">\x{1F351}</span><span class="pfh-pdp__pill-text" data-pfh-pill-text>Perzik</span>#u', $html ) );
+ok( '  and is marked as having one', (bool) preg_match( '#class="pfh-pdp__pill[^"]*has-emoji[^"]*" data-pfh-pill="' . preg_quote( $slug, '#' ) . '"#', $html ) );
+ok( 'a value without one is drawn as before', false !== strpos( $html, '<span class="pfh-pdp__pill-text" data-pfh-pill-text>Kers</span></button>' ) && false === strpos( $html, 'has-emoji" data-pfh-pill="kers"' ) );
+ok( 'the dropdown behind the buttons keeps the whole name', false !== strpos( $html, ">\u{1F351} Perzik</option>" ) );
+
+$js = file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/js/pfh-product.js' );
+ok( 'the heading repeats the words only ("Smaak — Perzik")', false !== strpos( $js, "pill.querySelector( '[data-pfh-pill-text]' )" ) );
+
+if ( $peach ) {
+	wp_update_term( $peach->term_id, 'pa_smaak', [ 'name' => 'Perzik' ] );
+}
+
 /* ---- put the catalogue back as it was ---- */
 $product = wc_get_product( $fixture_id );
 
