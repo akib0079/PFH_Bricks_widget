@@ -460,6 +460,17 @@ $js = file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/js/pfh-prod
 ok( 'a flavour the chosen type does not come in is hidden, not just greyed', false !== strpos( $js, 'pill.hidden = ! exists;' ) );
 ok( 'one that is only sold out stays, greyed', false !== strpos( $js, 'pill.disabled = ! reachable;' ) );
 
+echo "\n── quantity discount (Woo Discount Rules) ──\n";
+ok( 'nothing when the shop has no tiers plugin', false === strpos( pdp( $variable->ID, [], true ), 'pfh-pdp__tiers' ) );
+add_action( 'advanced_woo_discount_rules_load_discount_table', function () { echo '<div class="awdr-bulk-customizable-table"> </div>'; } );
+ok( 'nothing for a product without tiers', false === strpos( pdp( $variable->ID, [], true ), 'pfh-pdp__tiers' ) );
+remove_all_actions( 'advanced_woo_discount_rules_load_discount_table' );
+add_action( 'advanced_woo_discount_rules_load_discount_table', function () { echo '<table class="wdr_bulk_table_msg"><tr><td>2 stuks</td><td>5%</td></tr></table>'; } );
+$tiers = pdp( $variable->ID, [], true );
+ok( 'the plugin\'s table under the price, headed "Staffelkorting"', false !== strpos( $tiers, '<p class="pfh-pdp__tiers-title">Staffelkorting</p><table class="wdr_bulk_table_msg">' ) );
+ok( '  above the choices', strpos( $tiers, 'pfh-pdp__tiers' ) < strpos( $tiers, 'data-pfh-form' ) );
+remove_all_actions( 'advanced_woo_discount_rules_load_discount_table' );
+
 /* ---- put the catalogue back as it was ---- */
 $product = wc_get_product( $fixture_id );
 

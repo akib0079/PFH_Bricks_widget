@@ -249,6 +249,15 @@ class PFH_Element_Product extends \Bricks\Element {
 	}
 
 	private function price_controls() {
+		$this->controls['showTiers'] = $this->switch_field(
+			'price',
+			esc_html__( 'Show the quantity discount', 'pfh-widgets' ),
+			true,
+			[ 'description' => esc_html__( 'The tiers set in Woo Discount Rules ("2 for 5% off"), under the price, on products that have them.', 'pfh-widgets' ) ]
+		);
+
+		$this->controls['tiersTitle'] = $this->text_field( 'price', esc_html__( 'Its heading', 'pfh-widgets' ), [ 'inline' => true, 'default' => 'Staffelkorting' ] );
+
 		$this->controls['showSaving'] = $this->switch_field(
 			'price',
 			esc_html__( 'Show what the discount saves', 'pfh-widgets' ),
@@ -747,6 +756,7 @@ class PFH_Element_Product extends \Bricks\Element {
 		}
 
 		$this->render_price( $product );
+		$this->render_tiers( $product );
 		$this->render_form( $product );
 		$this->render_usp();
 		$this->render_loyalty( $product );
@@ -1220,6 +1230,44 @@ class PFH_Element_Product extends \Bricks\Element {
 
 		echo '</div>';
 		echo '<p class="pfh-pdp__notice" data-pfh-notice hidden></p>';
+	}
+
+	/**
+	 * The quantity discount ("staffelkorting"): 1 at the normal price, 2 at
+	 * 5% off, and so on.
+	 *
+	 * The shop keeps these in Woo Discount Rules, whose table hangs on a
+	 * WooCommerce hook this page — drawn by this element, not by WooCommerce's
+	 * template — never fires, so the olive oil lost the table it has on the
+	 * current site (feedback, 2026-09-28). The plugin's own public hook draws
+	 * it here instead, and only when the product has tiers.
+	 *
+	 * @param WC_Product $product Product.
+	 */
+	private function render_tiers( $product ) {
+		if ( ! $this->switched_on( 'showTiers', true ) || ! has_action( 'advanced_woo_discount_rules_load_discount_table' ) ) {
+			return;
+		}
+
+		ob_start();
+		do_action( 'advanced_woo_discount_rules_load_discount_table', $product );
+		$html = trim( (string) ob_get_clean() );
+
+		// An empty placeholder div when the product has no tiers.
+		if ( '' === $html || false === strpos( $html, '<table' ) ) {
+			return;
+		}
+
+		$title = trim( (string) $this->setting( 'tiersTitle', 'Staffelkorting' ) );
+
+		echo '<div class="pfh-pdp__tiers">';
+
+		if ( '' !== $title ) {
+			echo '<p class="pfh-pdp__tiers-title">' . esc_html( $title ) . '</p>';
+		}
+
+		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Woo Discount Rules' own template, escaped there.
+		echo '</div>';
 	}
 
 	/**
