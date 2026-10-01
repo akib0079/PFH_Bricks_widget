@@ -142,6 +142,13 @@
 	max-width: 100%;
 }
 
+.pfh-footer .pfh-footer__news-text {
+	margin: -6px 0 16px;
+	color: var(--pfh-link-color);
+	font-size: 14px;
+	line-height: 1.5;
+}
+
 .pfh-footer__form {
 	display: grid;
 	justify-items: start;

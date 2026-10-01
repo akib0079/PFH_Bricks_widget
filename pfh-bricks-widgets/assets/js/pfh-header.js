@@ -409,6 +409,8 @@
 	/* --------------------------------------------------- Sticky ------ */
 
 	Header.prototype.bindSticky = function () {
+		this.bindStickyHost();
+
 		if ( ! this.root.classList.contains( 'has-scroll-shadow' ) ) {
 			return;
 		}
@@ -433,6 +435,43 @@
 		);
 
 		update();
+	};
+
+	/**
+	 * How far up the sticky page header may travel: past the announcement
+	 * bar, so only the bar with the menu stays, and below the admin bar when
+	 * one is shown. The stylesheet makes the wrapper sticky; this only sets
+	 * its offset, and keeps it right when the window changes size.
+	 */
+	Header.prototype.bindStickyHost = function () {
+		var root = this.root;
+		var host = root.closest( '#brx-header' );
+
+		if ( ! host || ! root.classList.contains( 'is-sticky' ) ) {
+			return;
+		}
+
+		function offset() {
+			var admin = document.getElementById( 'wpadminbar' );
+			var top   = 0;
+
+			if ( admin && 'fixed' === window.getComputedStyle( admin ).position ) {
+				top += admin.offsetHeight;
+			}
+
+			if ( ! root.classList.contains( 'is-sticky-all' ) ) {
+				var bar = root.querySelector( '.pfh-topbar' );
+
+				if ( bar ) {
+					top -= bar.offsetHeight;
+				}
+			}
+
+			host.style.setProperty( '--pfh-sticky-top', top + 'px' );
+		}
+
+		offset();
+		window.addEventListener( 'resize', offset, { passive: true } );
 	};
 
 	/* ------------------------------------------------- Triggers ------ */

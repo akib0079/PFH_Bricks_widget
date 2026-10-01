@@ -352,6 +352,16 @@ class PFH_Element_Footer extends \Bricks\Element {
 			'required' => [ 'newsletterEnable', '=', true ],
 		];
 
+		$this->controls['newsletterText'] = [
+			'tab'         => 'content',
+			'group'       => 'newsletter',
+			'label'       => esc_html__( 'Line under the heading', 'pfh-widgets' ),
+			'type'        => 'textarea',
+			'default'     => 'Schrijf je in en ontvang 10% korting op je eerste bestelling.',
+			'description' => esc_html__( 'Why to sign up — the shop gives 10% on the first order, as the current site says.', 'pfh-widgets' ),
+			'required'    => [ 'newsletterEnable', '=', true ],
+		];
+
 		$this->controls['newsletterMode'] = [
 			'tab'   => 'content',
 			'group'    => 'newsletter',
@@ -496,7 +506,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 			'group'    => 'newsletter',
 			'label'    => esc_html__( 'Button text colour', 'pfh-widgets' ),
 			'type'     => 'color',
-			'default'  => [ 'hex' => '#51604f' ],
+			'default'  => [ 'hex' => '#ffffff' ],
 			'required' => [ [ 'newsletterEnable', '=', true ], [ 'newsletterMode', '=', 'builtin' ] ],
 		];
 	}
@@ -876,6 +886,34 @@ class PFH_Element_Footer extends \Bricks\Element {
 		echo '</footer>';
 	}
 
+	/**
+	 * How the logo is laid over the footer.
+	 *
+	 * "Screen" exists for the logo the shop first supplied: white artwork on
+	 * black, as a JPG, where it makes the black disappear. A logo with real
+	 * transparency — the SVG it has now — needs no blending, and screening it
+	 * lightened the dark arch inside the house until it no longer matched the
+	 * Figma (feedback, 2026-09-27).
+	 *
+	 * @return string
+	 */
+	private function brand_blend() {
+		$chosen = (string) $this->get( 'brandLogoBlend', 'screen' );
+
+		if ( 'screen' !== $chosen ) {
+			return $chosen;
+		}
+
+		$logo = PFH_Widgets_Helpers::image_url( $this->get( 'brandLogo' ), 'medium_large' );
+		$type = strtolower( (string) pathinfo( (string) wp_parse_url( $logo, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+
+		if ( in_array( $type, [ 'svg', 'png', 'webp', 'gif' ], true ) ) {
+			return 'normal';
+		}
+
+		return 'screen';
+	}
+
 	private function build_vars() {
 		$font  = trim( (string) $this->get( 'fontFamily', 'Outfit' ) );
 		$image = PFH_Widgets_Helpers::image_url( $this->get( 'bgImage' ), 'full' );
@@ -908,13 +946,13 @@ class PFH_Element_Footer extends \Bricks\Element {
 				'--pfh-news-radius'  => PFH_Widgets_Helpers::unit( $this->get( 'newsletterRadius', 12 ) ),
 				'--pfh-news-border'  => PFH_Widgets_Helpers::color( $this->get( 'newsletterBorder' ), 'rgba(255,255,255,.85)' ),
 				'--pfh-news-btn-bg'  => PFH_Widgets_Helpers::color( $this->get( 'newsletterBtnBg' ), '#a9bfa5' ),
-				'--pfh-news-btn-c'   => PFH_Widgets_Helpers::color( $this->get( 'newsletterBtnColor' ), '#51604f' ),
+				'--pfh-news-btn-c'   => PFH_Widgets_Helpers::color( $this->button_ink(), '#ffffff' ),
 				'--pfh-news-btn-size' => PFH_Widgets_Helpers::unit( $this->get( 'newsletterBtnSize', 14 ) ),
 				'--pfh-news-btn-pad' => PFH_Widgets_Helpers::unit( $this->get( 'newsletterBtnPadding', 24 ) ),
 
 				'--pfh-brand-w'      => PFH_Widgets_Helpers::unit( $this->get( 'brandLogoWidth', 203 ) ),
 				'--pfh-brand-gap-set'    => PFH_Widgets_Helpers::unit( $this->get( 'brandGap', 50 ) ),
-				'--pfh-brand-blend'  => $this->get( 'brandLogoBlend', 'screen' ),
+				'--pfh-brand-blend'  => $this->brand_blend(),
 				'--pfh-brand-align'  => $this->get( 'brandAlign', 'flex-end' ),
 				'--pfh-social-size'  => PFH_Widgets_Helpers::unit( $this->get( 'socialSize', 20 ) ),
 				'--pfh-social-gap'   => PFH_Widgets_Helpers::unit( $this->get( 'socialGap', 16 ) ),
@@ -1013,14 +1051,37 @@ class PFH_Element_Footer extends \Bricks\Element {
 		echo '</div>';
 	}
 
+	/**
+	 * The sign-up button's text colour. White, as the client asked
+	 * (2026-09-27); a footer saved with the old green default takes it.
+	 *
+	 * @return mixed
+	 */
+	private function button_ink() {
+		$set = $this->get( 'newsletterBtnColor' );
+
+		if ( is_array( $set ) && isset( $set['hex'] ) && '#51604f' === strtolower( (string) $set['hex'] ) ) {
+			return [ 'hex' => '#ffffff' ];
+		}
+
+		return $set;
+	}
+
 	private function render_newsletter() {
 		$heading = $this->get( 'newsletterHeading', '' );
 		$mode    = (string) $this->get( 'newsletterMode', 'builtin' );
+		$text    = trim( (string) $this->get( 'newsletterText', 'Schrijf je in en ontvang 10% korting op je eerste bestelling.' ) );
 
 		echo '<div class="pfh-footer__news">';
 
 		if ( $heading ) {
 			echo '<h3 class="pfh-footer__heading">' . esc_html( PFH_Widgets_Helpers::dd( $heading ) ) . '</h3>';
+		}
+
+		// What signing up is worth. The shop gives 10% on the first order and
+		// the footer never said so (feedback, 2026-09-27).
+		if ( '' !== $text ) {
+			echo '<p class="pfh-footer__news-text">' . esc_html( PFH_Widgets_Helpers::dd( $text ) ) . '</p>';
 		}
 
 		if ( 'shortcode' === $mode ) {

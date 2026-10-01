@@ -63,6 +63,25 @@
 	top: calc(-1 * var(--pfh-topbar-h));
 }
 
+/*
+ * Sticky had nothing to stick in. Bricks wraps the header in a section that
+ * is exactly the header's height, and a sticky element only travels inside
+ * its parent — so the bar scrolled away on every page (feedback, 2026-09-28:
+ * "I miss the menu when you scroll down"). The page's own header wrapper is
+ * what has to stick; it sits directly in the body. The script sets how far
+ * up it may go, so the announcement bar still scrolls out of view.
+ */
+#brx-header:has(.pfh-header.is-sticky) {
+	position: sticky;
+	top: var(--pfh-sticky-top, var(--wp-admin--admin-bar--height, 0px));
+	z-index: 1000;
+}
+
+#brx-header:has(.pfh-header.is-sticky) .pfh-header.is-sticky {
+	position: relative;
+	top: auto;
+}
+
 .pfh-header.has-scroll-shadow.is-scrolled {
 	box-shadow: 0 6px 28px rgba(20, 24, 27, 0.08);
 }
@@ -331,6 +350,18 @@
 
 .pfh-card:hover .pfh-card__img {
 	transform: scale(1.05);
+}
+
+/* A photograph with its own background fills its tile, with no grey frame. */
+.pfh-card__media--photo { padding: 0; }
+
+.pfh-card__media--photo .pfh-card__img {
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	border-radius: 0;
+	object-fit: cover;
 }
 
 .pfh-card__title {
@@ -1408,4 +1439,104 @@ body.pfh-locked {
 /* Avoid layout shift when the page scrollbar is removed by the scroll lock. */
 body.pfh-locked {
 	padding-right: var(--pfh-sbw, 0px);
+}
+
+
+@media (max-width: 1200px) {
+	.pfh-bp-1200.pfh-mo-menu-left .pfh-bar__inner {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		align-items: center;
+	}
+
+	.pfh-bp-1200.pfh-mo-menu-left .pfh-burger {
+		grid-column: 1;
+		grid-row: 1;
+		justify-self: start;
+		order: 0;
+	}
+
+	.pfh-bp-1200.pfh-mo-menu-left .pfh-logo {
+		grid-column: 2;
+		grid-row: 1;
+		justify-self: center;
+		margin: 0;
+	}
+
+	.pfh-bp-1200.pfh-mo-menu-left .pfh-actions {
+		display: flex;
+		grid-column: 3;
+		grid-row: 1;
+		justify-self: end;
+		align-items: center;
+		gap: var(--pfh-icon-gap);
+	}
+
+	.pfh-bp-1200.pfh-mo-menu-left .pfh-actions__btn { order: 0; }
+}
+
+@media (max-width: 991px) {
+	.pfh-bp-991.pfh-mo-menu-left .pfh-bar__inner {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		align-items: center;
+	}
+
+	.pfh-bp-991.pfh-mo-menu-left .pfh-burger {
+		grid-column: 1;
+		grid-row: 1;
+		justify-self: start;
+		order: 0;
+	}
+
+	.pfh-bp-991.pfh-mo-menu-left .pfh-logo {
+		grid-column: 2;
+		grid-row: 1;
+		justify-self: center;
+		margin: 0;
+	}
+
+	.pfh-bp-991.pfh-mo-menu-left .pfh-actions {
+		display: flex;
+		grid-column: 3;
+		grid-row: 1;
+		justify-self: end;
+		align-items: center;
+		gap: var(--pfh-icon-gap);
+	}
+
+	.pfh-bp-991.pfh-mo-menu-left .pfh-actions__btn { order: 0; }
+}
+
+@media (max-width: 767px) {
+	.pfh-bp-767.pfh-mo-menu-left .pfh-bar__inner {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		align-items: center;
+	}
+
+	.pfh-bp-767.pfh-mo-menu-left .pfh-burger {
+		grid-column: 1;
+		grid-row: 1;
+		justify-self: start;
+		order: 0;
+	}
+
+	.pfh-bp-767.pfh-mo-menu-left .pfh-logo {
+		grid-column: 2;
+		grid-row: 1;
+		justify-self: center;
+		margin: 0;
+	}
+
+	.pfh-bp-767.pfh-mo-menu-left .pfh-actions {
+		display: flex;
+		grid-column: 3;
+		grid-row: 1;
+		justify-self: end;
+		align-items: center;
+		gap: var(--pfh-icon-gap);
+	}
+
+	.pfh-bp-767.pfh-mo-menu-left .pfh-actions__btn { order: 0; }
 }

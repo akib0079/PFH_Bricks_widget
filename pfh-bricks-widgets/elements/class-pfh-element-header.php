@@ -99,13 +99,14 @@ class PFH_Element_Header extends \Bricks\Element {
 			'type'        => 'select',
 			'inline'      => true,
 			'options'     => [
+				'menu-left'        => esc_html__( 'Menu left, logo centred, search and cart right', 'pfh-widgets' ),
 				'search-cart-menu' => esc_html__( 'Search, cart, menu — menu furthest right', 'pfh-widgets' ),
 				'search-menu-cart' => esc_html__( 'Search, menu, cart', 'pfh-widgets' ),
 				'menu-search-cart' => esc_html__( 'Menu, search, cart', 'pfh-widgets' ),
 				'cart-search-menu' => esc_html__( 'Cart, search, menu', 'pfh-widgets' ),
 			],
-			'default'     => 'search-cart-menu',
-			'description' => esc_html__( 'The logo always sits on the left below the menu breakpoint; this orders what follows it.', 'pfh-widgets' ),
+			'default'     => 'menu-left',
+			'description' => esc_html__( 'Below the menu breakpoint. "Menu left" puts the logo in the middle; the others keep it on the left and order what follows.', 'pfh-widgets' ),
 		];
 
 		$this->controls['accountMobile'] = [
@@ -452,6 +453,14 @@ class PFH_Element_Header extends \Bricks\Element {
 					'inline'   => true,
 					'default'  => 'Bekijk alles',
 					'required' => [ 'hasMega', '=', true ],
+				],
+				'megaAllText'  => [
+					'label'       => esc_html__( '"All of it" link on phones', 'pfh-widgets' ),
+					'type'        => 'text',
+					'inline'      => true,
+					'placeholder' => 'Alle honing',
+					'description' => esc_html__( 'First line of this item\'s submenu in the phone menu. Empty: "Alle" and the item\'s name.', 'pfh-widgets' ),
+					'required'    => [ 'hasMega', '=', true ],
 				],
 			],
 		];
@@ -1301,7 +1310,7 @@ class PFH_Element_Header extends \Bricks\Element {
 			'pfh-header',
 			'pfh-scope',
 			'pfh-bp-' . (string) $this->get( 'mobileBreakpoint', '991' ),
-			'pfh-mo-' . (string) $this->get( 'mobileOrder', 'search-cart-menu' ),
+			'pfh-mo-' . $this->mobile_order(),
 		];
 
 		if ( ! $this->is_on( 'accountMobile', false ) ) {
@@ -1665,7 +1674,7 @@ class PFH_Element_Header extends \Bricks\Element {
 
 		foreach ( $cards as $card ) {
 			echo '<a class="pfh-card" href="' . esc_url( $card['url'] ) . '">';
-			echo '<span class="pfh-card__media">';
+			echo '<span class="pfh-card__media' . ( ! empty( $card['fill'] ) ? ' pfh-card__media--photo' : '' ) . '">';
 
 			if ( ! empty( $card['image'] ) ) {
 				printf(
@@ -1912,6 +1921,20 @@ class PFH_Element_Header extends \Bricks\Element {
 
 								<?php if ( $has_sub ) : ?>
 									<ul class="pfh-mobile__sub" id="<?php echo esc_attr( $sub_id ); ?>" hidden>
+										<?php
+										/*
+										 * The category itself first — "Alle honing" — so the
+										 * whole range is one tap away from its subcategories
+										 * (feedback, 2026-09-28).
+										 */
+										if ( ! empty( $item['link']['href'] ) && '#' !== $item['link']['href'] ) :
+											?>
+											<li class="pfh-mobile__sub-all">
+												<a class="pfh-mobile__sub-link pfh-mobile__sub-link--all"<?php echo PFH_Widgets_Helpers::link_attrs( $item['link'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+													<span><?php echo esc_html( $this->all_label( $item ) ); ?></span>
+												</a>
+											</li>
+										<?php endif; ?>
 										<?php foreach ( $cards as $card ) : ?>
 											<li>
 												<a class="pfh-mobile__sub-link" href="<?php echo esc_url( $card['url'] ); ?>">
@@ -2142,13 +2165,23 @@ class PFH_Element_Header extends \Bricks\Element {
 		$cards = [];
 
 		foreach ( array_slice( $terms, 0, $limit ) as $term ) {
-			$thumb_id = get_term_meta( $term->term_id, 'thumbnail_id', true );
-			$image    = $thumb_id ? wp_get_attachment_image_url( (int) $thumb_id, 'medium_large' ) : '';
+			/*
+			 * The same picture the category's own page leads with: the one
+			 * chosen for it, or one of its products cut out. The category
+			 * thumbnails were small photos sitting in a grey tile, which is
+			 * the "grey area" the client wanted gone (2026-09-27). Only when
+			 * there is neither does the thumbnail come back, and then it
+			 * fills its tile.
+			 */
+			$pick     = class_exists( 'PFH_Widgets_Collection' ) ? PFH_Widgets_Collection::header_image( $term ) : null;
+			$image_id = $pick ? (int) $pick['id'] : (int) get_term_meta( $term->term_id, 'thumbnail_id', true );
+			$image    = $image_id ? wp_get_attachment_image_url( $image_id, 'medium_large' ) : '';
 
 			$cards[] = [
 				'title' => $term->name,
 				'url'   => get_term_link( $term ),
 				'image' => $image ? $image : $this->placeholder_image(),
+				'fill'  => $image_id && class_exists( 'PFH_Widgets_Photo' ) && PFH_Widgets_Photo::has_backdrop( $image_id ),
 			];
 		}
 
@@ -2158,6 +2191,41 @@ class PFH_Element_Header extends \Bricks\Element {
 				return ! is_wp_error( $card['url'] );
 			}
 		);
+	}
+
+	/**
+	 * The phone layout. A header saved before "menu left, logo centred"
+	 * existed carries the old default, which nobody chose; it takes the new
+	 * one, which the client asked for (feedback, 2026-09-28).
+	 *
+	 * @return string
+	 */
+	private function mobile_order() {
+		$order = (string) $this->get( 'mobileOrder', 'menu-left' );
+
+		return 'search-cart-menu' === $order || '' === $order ? 'menu-left' : sanitize_html_class( $order );
+	}
+
+	/**
+	 * "Alle honing": the menu item's own words, as the start of a sentence.
+	 *
+	 * @param array $item Nav item.
+	 * @return string
+	 */
+	private function all_label( array $item ) {
+		$typed = isset( $item['megaAllText'] ) ? trim( (string) $item['megaAllText'] ) : '';
+
+		if ( '' !== $typed ) {
+			return $typed;
+		}
+
+		$label = trim( (string) $item['label'] );
+		$first = function_exists( 'mb_substr' ) ? mb_substr( $label, 0, 1 ) : substr( $label, 0, 1 );
+		$rest  = function_exists( 'mb_substr' ) ? mb_substr( $label, 1 ) : substr( $label, 1 );
+		$lower = function_exists( 'mb_strtolower' ) ? mb_strtolower( $first ) : strtolower( $first );
+
+		/* translators: %s: menu item, e.g. "honing". */
+		return sprintf( __( 'Alle %s', 'pfh-widgets' ), $lower . $rest );
 	}
 
 	/**
