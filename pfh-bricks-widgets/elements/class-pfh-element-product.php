@@ -277,6 +277,12 @@ class PFH_Element_Product extends \Bricks\Element {
 			[ 'description' => esc_html__( 'The product\'s own default when it can be bought, otherwise the first one that can — so the add to cart button works straight away.', 'pfh-widgets' ) ]
 		);
 
+		$this->controls['showWishlist'] = $this->switch_field(
+			'variants',
+			esc_html__( 'Wishlist heart on the gallery', 'pfh-widgets' ),
+			true
+		);
+
 		$this->controls['stickyBuy'] = $this->switch_field(
 			'variants',
 			esc_html__( 'Bar that follows when scrolling down', 'pfh-widgets' ),
@@ -591,6 +597,10 @@ class PFH_Element_Product extends \Bricks\Element {
 
 		if ( '' !== $badge ) {
 			echo '<span class="pfh-pdp__badge">' . esc_html( $badge ) . '</span>';
+		}
+
+		if ( class_exists( 'PFH_Widgets_Wishlist' ) && $this->switched_on( 'showWishlist', true ) ) {
+			echo PFH_Widgets_Wishlist::button( (int) $product->get_id(), 'pfh-wish--stage' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button().
 		}
 
 		echo '<div class="pfh-pdp__frame">';

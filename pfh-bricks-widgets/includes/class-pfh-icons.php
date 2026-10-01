@@ -63,6 +63,7 @@ class PFH_Widgets_Icons {
 			'usp-delivery' => '0 0 30 30',
 			'usp-box' => '0 0 30 30',
 			'star-line' => '0 0 24 24',
+			'heart-line' => '0 0 24 24',
 			'box-check' => '0 0 26 26',
 			'filter'     => '0 0 12 12',
 			'faq-open'   => '0 0 14 8',
@@ -143,6 +144,7 @@ class PFH_Widgets_Icons {
 			'star'      => '<path fill="currentColor" d="M12 1.8l3.09 6.26 6.91 1-5 4.87 1.18 6.87L12 17.56l-6.18 3.25L7 13.94l-5-4.87 6.91-1L12 1.8Z"/>',
 			// A parcel, drawn like the other promise icons: 1.5 strokes, round joins.
 			'usp-box'   => '<path d="M15 3.75L25.625 8.75V21.25L15 26.25L4.375 21.25V8.75L15 3.75Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M4.375 8.75L15 13.75L25.625 8.75" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M15 13.75V26.25" stroke="currentColor" stroke-width="1.5"/><path d="M9.6875 6.25L20.3125 11.25V15.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+			'heart-line' => '<path d="M12 20.3s-7.3-4.4-9.2-9.1C1.5 7.9 3.6 4.5 7 4.3c2-.1 3.6 1 5 2.8 1.4-1.8 3-2.9 5-2.8 3.4.2 5.5 3.6 4.2 6.9-1.9 4.7-9.2 9.1-9.2 9.1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
 			'star-line' => '<path d="M12 2.75l2.83 5.74 6.33.92-4.58 4.47 1.08 6.3L12 17.2l-5.66 2.98 1.08-6.3-4.58-4.47 6.33-.92L12 2.75Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
 
 			// Social.

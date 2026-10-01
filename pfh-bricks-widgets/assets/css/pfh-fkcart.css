@@ -25,6 +25,17 @@
 	--pfh-fk-line: #e3e8e0;
 	--pfh-fk-tint: #edf1ea;
 	--pfh-fk-danger: #a63a2f;
+	/*
+	 * The buying colours the client asked for in the cart (feedback,
+	 * 2026-09-28): the old price red, the new one black, what is saved
+	 * green — "just like the old checkout" — and the buttons in the blue of
+	 * the TOEVOEGEN buttons on the shop.
+	 */
+	--pfh-fk-was: #c0392b;
+	--pfh-fk-now: #14181b;
+	--pfh-fk-saved: #2e7d32;
+	--pfh-fk-blue: #7caeb2;
+	--pfh-fk-blue-hover: color-mix(in srgb, #7caeb2 84%, #000);
 	--pfh-fk-ease: cubic-bezier(.22, .61, .36, 1);
 	--pfh-fk-bin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M10 11v6M14 11v6M5.5 7l1 12a2 2 0 0 0 2 1.8h7a2 2 0 0 0 2-1.8l1-12M9 7V4.8A.8.8 0 0 1 9.8 4h4.4a.8.8 0 0 1 .8.8V7'/%3E%3C/svg%3E");
 
@@ -33,8 +44,8 @@
 	--fkcart-primary-font-color: #ffffff;
 	--fkcart-primary-text-color: var(--pfh-fk-ink);
 	--fkcart-secondary-text-color: var(--pfh-fk-muted);
-	--fkcart-strike-through-price-text-color: var(--pfh-fk-muted);
-	--fkcart-saving-text-price-color: var(--pfh-fk-accent-ink);
+	--fkcart-strike-through-price-text-color: var(--pfh-fk-was);
+	--fkcart-saving-text-price-color: var(--pfh-fk-saved);
 	--fkcart-coupon-text-price-color: var(--pfh-fk-accent-ink);
 	--fkcart-accent-color: var(--pfh-fk-accent);
 	--fkcart-border-color: var(--pfh-fk-line);
@@ -250,7 +261,7 @@
 
 #fkcart-modal#fkcart-modal .fkcart-item-price,
 #fkcart-modal#fkcart-modal .fkcart-item-price .amount {
-	color: var(--pfh-fk-ink);
+	color: var(--pfh-fk-now);
 	font-size: 15px;
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
@@ -258,10 +269,17 @@
 
 #fkcart-modal#fkcart-modal .fkcart-item-price del,
 #fkcart-modal#fkcart-modal .fkcart-item-price del .amount {
-	color: var(--pfh-fk-muted);
+	color: var(--pfh-fk-was);
 	font-size: 12.5px;
 	font-weight: 400;
-	opacity: .85;
+}
+
+/* "Je bespaard € 1,10": what is saved, in green. */
+#fkcart-modal#fkcart-modal .fkcart-item-misc,
+#fkcart-modal#fkcart-modal .fkcart-item-misc *,
+#fkcart-modal#fkcart-modal [class*="fkcart-saving"],
+#fkcart-modal#fkcart-modal [class*="fkcart-saving"] * {
+	color: var(--pfh-fk-saved);
 }
 
 #fkcart-modal#fkcart-modal .fkcart-item-price ins { text-decoration: none; }
@@ -334,13 +352,15 @@
 	border-right: 1px solid var(--pfh-fk-line);
 }
 
+/* In the same letters as "Winkelwagen" (feedback, 2026-09-28). */
 #fkcart-modal#fkcart-modal .fkcart-drawer-heading {
 	padding: 24px 14px 10px;
 	color: var(--pfh-fk-ink);
-	font-family: "Playfair Display", Georgia, serif;
-	font-size: 17px;
-	font-style: italic;
-	font-weight: 400;
+	font-family: Outfit, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+	font-size: 18px;
+	font-style: normal;
+	font-weight: 600;
+	letter-spacing: -.01em;
 	line-height: 1.25;
 	text-align: center;
 }
@@ -395,10 +415,10 @@
 	min-height: 34px;
 	margin-top: 10px;
 	padding: 6px 16px;
-	border: 1px solid var(--pfh-fk-accent-ink);
+	border: 1px solid var(--pfh-fk-blue);
 	border-radius: 999px;
-	background: transparent;
-	color: var(--pfh-fk-accent-ink);
+	background: var(--pfh-fk-blue);
+	color: #ffffff;
 	font-size: 13px;
 	font-weight: 500;
 	line-height: 1;
@@ -407,7 +427,8 @@
 }
 
 #fkcart-modal#fkcart-modal .fkcart-add-product-button:hover {
-	background: var(--pfh-fk-accent);
+	border-color: var(--pfh-fk-blue-hover);
+	background: var(--pfh-fk-blue-hover);
 	color: #ffffff;
 	transform: translateY(-1px);
 }
@@ -577,12 +598,12 @@
 }
 
 #fkcart-modal#fkcart-modal .fkcart-coupon-title {
-	color: var(--pfh-fk-accent-ink);
+	color: var(--pfh-fk-now);
 	font-size: 14px;
 	font-weight: 500;
 }
 
-#fkcart-modal#fkcart-modal .fkcart-coupon-icon { color: var(--pfh-fk-accent-ink); }
+#fkcart-modal#fkcart-modal .fkcart-coupon-icon { color: var(--pfh-fk-now); }
 #fkcart-modal#fkcart-modal .fkcart-coupon-icon svg path { fill: currentColor; }
 
 #fkcart-modal#fkcart-modal .fkcart-coupon-body {
@@ -680,18 +701,18 @@
 	min-height: 54px;
 	border: 0;
 	border-radius: 12px;
-	background: var(--pfh-fk-accent);
+	background: var(--pfh-fk-blue);
 	color: #ffffff;
 	font-size: 16.5px;
 	font-weight: 600;
 	letter-spacing: .005em;
 	text-decoration: none;
-	box-shadow: 0 10px 22px -14px rgba(109, 132, 101, .7);
+	box-shadow: 0 10px 22px -14px rgba(60, 120, 125, .7);
 	transition: background-color .2s ease, transform .2s var(--pfh-fk-ease), box-shadow .2s ease;
 }
 
 #fkcart-modal#fkcart-modal .fkcart-checkout-info a:hover {
-	background: var(--pfh-fk-hover);
+	background: var(--pfh-fk-blue-hover);
 	transform: translateY(-1px);
 	box-shadow: 0 14px 26px -14px rgba(34, 48, 28, .6);
 }
@@ -707,7 +728,7 @@
 #fkcart-modal#fkcart-modal a.fkcart-shopping-link {
 	display: block;
 	margin-top: 12px;
-	color: var(--pfh-fk-body);
+	color: var(--pfh-fk-now);
 	font-size: 14px;
 	font-weight: 500;
 	text-align: center;

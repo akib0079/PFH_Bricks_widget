@@ -1,0 +1,116 @@
+/*!
+ * Products For Home — the wishlist heart, and the list in My Account.
+ */
+
+.pfh-wish {
+	--pfh-wish-on: #c8524a;
+
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, .92);
+	box-shadow: 0 2px 10px rgba(20, 24, 27, .08);
+	color: #3e4a3c;
+	cursor: pointer;
+	transition: transform .2s ease, color .2s ease, background-color .2s ease;
+}
+
+.pfh-wish svg {
+	width: 18px;
+	height: 18px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.7;
+	stroke-linejoin: round;
+	pointer-events: none;
+}
+
+.pfh-wish:hover { transform: scale(1.06); color: var(--pfh-wish-on); }
+
+.pfh-wish.is-on { color: var(--pfh-wish-on); }
+.pfh-wish.is-on svg { fill: currentColor; }
+
+.pfh-wish.is-popping { animation: pfh-wish-pop .35s ease; }
+
+@keyframes pfh-wish-pop {
+	40% { transform: scale(1.22); }
+	100% { transform: scale(1); }
+}
+
+.pfh-wish:focus-visible {
+	outline: 2px solid var(--pfh-wish-on);
+	outline-offset: 2px;
+}
+
+/* On a product card: the top right of the picture, above the zoom. */
+.pfh-wish--card {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	z-index: 3;
+}
+
+/* On the product page: the top right of the gallery. */
+.pfh-wish--stage {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	z-index: 3;
+}
+
+/* ---------- the list ---------- */
+
+.pfh-wishlist__empty { margin: 0; color: #6f7d6b; }
+.pfh-wishlist__empty[hidden] { display: none; }
+
+.pfh-wishlist .pfh-wishlist__list {
+	display: grid;
+	gap: 12px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-wishlist__item {
+	display: grid;
+	grid-template-columns: 72px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 16px;
+	padding: 10px;
+	border: 1px solid #e6ebe4;
+	border-radius: 12px;
+}
+
+.pfh-wishlist__media {
+	display: block;
+	width: 72px;
+	height: 72px;
+	overflow: hidden;
+	border-radius: 8px;
+	background: #f4f4f4;
+}
+
+.pfh-wishlist__img { width: 100%; height: 100%; object-fit: contain; }
+
+.pfh-wishlist__body { display: grid; gap: 4px; min-width: 0; }
+
+.pfh-wishlist__name {
+	color: #22301c;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.pfh-wishlist__name:hover { text-decoration: underline; }
+.pfh-wishlist__price { color: #212121; font-size: 14px; }
+
+.pfh-wish--inline { box-shadow: none; background: #f6f8f5; }
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-wish,
+	.pfh-wish.is-popping { transition: none; animation: none; }
+}

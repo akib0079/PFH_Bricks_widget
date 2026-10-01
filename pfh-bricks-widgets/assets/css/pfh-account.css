@@ -435,7 +435,8 @@
 
 .pfh-acc__stats {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+	/* Three figures, or four with the loyalty points. */
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 	gap: 16px;
 	margin: 0 0 20px;
 	padding: 0;

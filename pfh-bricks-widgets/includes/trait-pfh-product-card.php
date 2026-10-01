@@ -603,6 +603,11 @@ trait PFH_Product_Card_Trait {
 			echo '<span class="pfh-prod__badge">' . esc_html( PFH_Widgets_Helpers::dd( $this->get( 'badgeText' ) ) ) . '</span>';
 		}
 
+		// A heart on every product (feedback, 2026-09-28).
+		if ( ! empty( $card['id'] ) && $this->is_on( 'wishlist', true ) && class_exists( 'PFH_Widgets_Wishlist' ) ) {
+			echo PFH_Widgets_Wishlist::button( (int) $card['id'], 'pfh-wish--card' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button().
+		}
+
 		if ( $href ) {
 			echo '<a class="pfh-prod__media-link" href="' . esc_url( $href ) . '" tabindex="-1" aria-hidden="true">';
 		}
@@ -1456,6 +1461,15 @@ trait PFH_Product_Card_Trait {
 	 * Card photograph behaviour shared by every element that draws cards.
 	 */
 	private function photo_controls() {
+		$this->controls['wishlist'] = [
+			'tab'         => 'content',
+			'group'       => 'card',
+			'label'       => esc_html__( 'Wishlist heart', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'A heart on the picture that saves the product to the visitor\'s wishlist (My Account → Verlanglijst).', 'pfh-widgets' ),
+		];
+
 		$this->controls['imageSwap'] = [
 			'tab'         => 'content',
 			'group'       => 'card',

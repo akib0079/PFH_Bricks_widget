@@ -81,7 +81,10 @@ ok( 'every selector is scoped to the doubled cart id', ! $weak, implode( ' | ', 
 $imp = preg_match_all( '/!important/', $bare );
 ok( '!important only in the reduced-motion switch', 2 === $imp, (string) $imp );
 ok( 'FunnelKit\'s palette is pointed at the brand', false !== strpos( $bare, '--fkcart-primary-bg-color: var(--pfh-fk-accent)' ) );
-ok( 'the brand fonts are used', false !== strpos( $bare, 'Outfit' ) && false !== strpos( $bare, '"Playfair Display"' ) );
+// One typeface throughout: "Vaak samen gekocht" now matches "Winkelwagen"
+// rather than the serif italic (feedback, 2026-09-28).
+ok( 'the brand font is used', false !== strpos( $bare, 'Outfit' ) );
+ok( 'the old price red, the saving green, the buttons blue', false !== strpos( $bare, '--pfh-fk-was: #c0392b' ) && false !== strpos( $bare, '--pfh-fk-saved: #2e7d32' ) && false !== strpos( $bare, 'background: var(--pfh-fk-blue)' ) );
 ok( 'motion is switched off for those who ask', false !== strpos( $bare, 'prefers-reduced-motion: reduce' ) );
 ok( 'the coupon field keeps 16px on phones (no iOS zoom)', (bool) preg_match( '/max-width: 767px\)[^@]*#fkcart-coupon__input \{ font-size: 16px; \}/s', $bare ) );
 

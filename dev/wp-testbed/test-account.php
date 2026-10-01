@@ -91,7 +91,7 @@ $out = draw();
 echo "── a visitor gets the sign-in card ──\n";
 ok( 'it is drawn', false !== strpos( $out, 'pfh-acc__auth' ) );
 ok( 'with the title and the panel', false !== strpos( $out, 'Welkom' ) && false !== strpos( $out, 'pfh-acc__auth-aside' ) );
-ok( 'and the panel\'s points', 4 === substr_count( $out, 'class="pfh-acc__auth-point"' ), substr_count( $out, 'class="pfh-acc__auth-point"' ) . ' points' );
+ok( 'and the panel\'s points, the loyalty one included', 5 === substr_count( $out, 'class="pfh-acc__auth-point"' ) && false !== strpos( $out, 'Spaar punten voor korting' ), substr_count( $out, 'class="pfh-acc__auth-point"' ) . ' points' );
 ok( 'no account is shown', false === strpos( $out, 'pfh-acc__rail' ) );
 
 echo "\n── the sign-in form is WooCommerce's own ──\n";
@@ -138,11 +138,13 @@ $in = draw();
 
 echo "\n── a customer gets the account ──\n";
 ok( 'the rail is drawn', false !== strpos( $in, 'pfh-acc__rail' ) );
-ok( 'with a tab for each part', 4 === substr_count( $in, 'data-pfh-acc-tab=' ) );
+// Overview, orders, addresses, details, and the wishlist (feedback 2026-09-28).
+ok( 'with a tab for each part', 5 === substr_count( $in, 'data-pfh-acc-tab=' ), substr_count( $in, 'data-pfh-acc-tab=' ) . ' tabs' );
+ok( '  the wishlist among them', false !== strpos( $in, 'data-pfh-acc-tab="wishlist"' ) );
 ok( '  and a way out', false !== strpos( $in, 'pfh-acc__tab--out' ) );
 ok( 'the first tab opens', 1 === substr_count( $in, 'aria-selected="true"' ) );
-ok( 'one pane for each tab', 4 === substr_count( $in, 'class="pfh-acc__pane"' ), substr_count( $in, 'class="pfh-acc__pane"' ) . ' panes' );
-ok( '  and only the first is shown', 3 === substr_count( $in, 'role="tabpanel" tabindex="0" hidden' ) + substr_count( $in, 'tabindex="0" hidden' ) - 0, substr_count( $in, 'hidden' ) . ' hidden in total' );
+ok( 'one pane for each tab', 5 === substr_count( $in, 'class="pfh-acc__pane"' ), substr_count( $in, 'class="pfh-acc__pane"' ) . ' panes' );
+ok( '  and only the first is shown', 4 === substr_count( $in, 'tabindex="0" hidden' ), substr_count( $in, 'tabindex="0" hidden' ) . ' hidden panes' );
 ok( 'no sign-in card is shown', false === strpos( $in, 'pfh-acc__auth' ) );
 ok( 'the greeting names the customer', false !== strpos( $in, 'Test' ) );
 

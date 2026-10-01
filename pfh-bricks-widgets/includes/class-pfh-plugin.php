@@ -289,6 +289,7 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Product_Fields::init();
 		PFH_Widgets_Attribute_Emoji::init();
 		PFH_Widgets_Photo::init();
+		PFH_Widgets_Wishlist::init();
 		PFH_Widgets_Badge::init();
 		PFH_Widgets_License::init();
 		PFH_Widgets_Instagram::init();

@@ -118,6 +118,7 @@ class PFH_Element_Account extends \Bricks\Element {
 				[ 'text' => 'Bestel je favorieten in twee tikken opnieuw' ],
 				[ 'text' => 'Je adressen staan klaar bij het afrekenen' ],
 				[ 'text' => 'Facturen wanneer je ze nodig hebt' ],
+				[ 'text' => 'Spaar punten voor korting' ],
 			],
 			'fields'        => [
 				'text' => [ 'label' => esc_html__( 'Point', 'pfh-widgets' ), 'type' => 'text' ],
@@ -260,9 +261,35 @@ class PFH_Element_Account extends \Bricks\Element {
 		echo '</div></div>';
 	}
 
+	/**
+	 * @param array $points Saved points.
+	 * @return bool Whether they are exactly the four that first shipped.
+	 */
+	private function is_first_points( array $points ) {
+		$texts = array_map(
+			static function ( $point ) {
+				return isset( $point['text'] ) ? trim( (string) $point['text'] ) : '';
+			},
+			array_values( $points )
+		);
+
+		return [
+			'Volg elke bestelling tot aan de deur',
+			'Bestel je favorieten in twee tikken opnieuw',
+			'Je adressen staan klaar bij het afrekenen',
+			'Facturen wanneer je ze nodig hebt',
+		] === $texts;
+	}
+
 	private function render_auth_aside() {
 		$points = $this->setting( 'asidePoints', [] );
 		$title  = trim( (string) $this->setting( 'asideTitle', '' ) );
+
+		// The first four, as they shipped, were nobody's choice: they take
+		// the loyalty point the client asked for (feedback, 2026-09-28).
+		if ( is_array( $points ) && $this->is_first_points( $points ) ) {
+			$points[] = [ 'text' => 'Spaar punten voor korting' ];
+		}
 
 		if ( '' === $title && ! $points ) {
 			return;
@@ -409,6 +436,8 @@ class PFH_Element_Account extends \Bricks\Element {
 		$this->render_orders( $orders );
 		$this->render_addresses();
 		$this->render_details( $user );
+		$this->render_wishlist();
+		$this->render_plugin_panes();
 		echo '</div></div>';
 	}
 
@@ -438,6 +467,16 @@ class PFH_Element_Account extends \Bricks\Element {
 			'addresses' => [ 'usp-delivery', __( 'Adressen', 'pfh-widgets' ), null ],
 			'details'   => [ 'account', __( 'Gegevens', 'pfh-widgets' ), null ],
 		];
+
+		// The wishlist, and what other plugins add to My Account — the
+		// loyalty points among them. The client missed both (2026-09-28).
+		if ( class_exists( 'PFH_Widgets_Wishlist' ) && PFH_Widgets_Wishlist::enabled() ) {
+			$tabs['wishlist'] = [ 'heart-line', __( 'Verlanglijst', 'pfh-widgets' ), count( PFH_Widgets_Wishlist::ids() ) ];
+		}
+
+		foreach ( $this->plugin_endpoints() as $endpoint => $label ) {
+			$tabs[ 'ep-' . $endpoint ] = [ 'star-line', $label, null ];
+		}
 
 		printf(
 			'<nav class="pfh-acc__rail pfh-acc__card" role="tablist" aria-label="%s" data-pfh-acc-rail>',
@@ -469,6 +508,79 @@ class PFH_Element_Account extends \Bricks\Element {
 		);
 
 		echo '</nav>';
+	}
+
+	/**
+	 * My Account sections other plugins add, by endpoint => label. WooCommerce's
+	 * own are drawn by this element already, and logging out has its own link.
+	 *
+	 * @return array<string, string>
+	 */
+	private function plugin_endpoints() {
+		if ( ! function_exists( 'wc_get_account_menu_items' ) ) {
+			return [];
+		}
+
+		$core = [ 'dashboard', 'orders', 'downloads', 'edit-address', 'payment-methods', 'edit-account', 'customer-logout' ];
+		$out  = [];
+
+		foreach ( (array) wc_get_account_menu_items() as $endpoint => $label ) {
+			if ( ! in_array( $endpoint, $core, true ) && has_action( 'woocommerce_account_' . $endpoint . '_endpoint' ) ) {
+				$out[ (string) $endpoint ] = wp_strip_all_tags( (string) $label );
+			}
+		}
+
+		return $out;
+	}
+
+	private function render_wishlist() {
+		if ( ! class_exists( 'PFH_Widgets_Wishlist' ) || ! PFH_Widgets_Wishlist::enabled() ) {
+			return;
+		}
+
+		$this->open_pane( 'wishlist' );
+		echo '<div class="pfh-acc__card pfh-acc__block">';
+		printf( '<h2 class="pfh-acc__block-title">%s</h2>', esc_html__( 'Verlanglijst', 'pfh-widgets' ) );
+		printf( '<p class="pfh-acc__block-lede">%s</p>', esc_html__( 'De producten die je met een hartje hebt bewaard.', 'pfh-widgets' ) );
+		echo PFH_Widgets_Wishlist::render_list(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in render_list().
+		echo '</div></section>';
+	}
+
+	/**
+	 * Each plugin's own My Account page, drawn by the plugin, in a pane.
+	 */
+	private function render_plugin_panes() {
+		foreach ( $this->plugin_endpoints() as $endpoint => $label ) {
+			ob_start();
+			do_action( 'woocommerce_account_' . $endpoint . '_endpoint', '' );
+			$html = (string) ob_get_clean();
+
+			$this->open_pane( 'ep-' . $endpoint );
+			echo '<div class="pfh-acc__card pfh-acc__block">';
+			printf( '<h2 class="pfh-acc__block-title">%s</h2>', esc_html( $label ) );
+			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own My Account output.
+			echo '</div></section>';
+		}
+	}
+
+	/**
+	 * The customer's loyalty points, from WPLoyalty, or null.
+	 *
+	 * @param WP_User $user User.
+	 * @return int|null
+	 */
+	private function loyalty_points( $user ) {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'wlr_users';
+
+		if ( ! $user instanceof WP_User || $table !== $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			return null;
+		}
+
+		$points = $wpdb->get_var( $wpdb->prepare( "SELECT points FROM {$table} WHERE user_email = %s LIMIT 1", $user->user_email ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is the prefix plus a constant.
+
+		return null === $points ? 0 : (int) $points;
 	}
 
 	/**
@@ -507,11 +619,20 @@ class PFH_Element_Account extends \Bricks\Element {
 			printf( '<p class="pfh-acc__block-lede">%s</p>', esc_html__( 'Een samenvatting van je account.', 'pfh-widgets' ) );
 			echo '<ul class="pfh-acc__stats">';
 
-			foreach ( [
+			$stats = [
 				[ number_format_i18n( count( $orders ) ), __( 'Bestellingen', 'pfh-widgets' ) ],
 				[ number_format_i18n( $moving ), __( 'Onderweg', 'pfh-widgets' ) ],
 				[ wp_strip_all_tags( wc_price( $spent ) ), __( 'Totaal besteed', 'pfh-widgets' ) ],
-			] as $stat ) {
+			];
+
+			// The loyalty balance, where the shop keeps one.
+			$points = $this->loyalty_points( wp_get_current_user() );
+
+			if ( null !== $points ) {
+				$stats[] = [ number_format_i18n( $points ), __( 'Spaarpunten', 'pfh-widgets' ) ];
+			}
+
+			foreach ( $stats as $stat ) {
 				printf(
 					'<li class="pfh-acc__stat"><span class="pfh-acc__stat-value">%s</span><span class="pfh-acc__stat-label">%s</span></li>',
 					esc_html( $stat[0] ),
