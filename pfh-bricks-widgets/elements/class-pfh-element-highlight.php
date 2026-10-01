@@ -63,7 +63,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		// Price.
 		'price'       => '€ 41,97',
 		'priceWas'    => '€ 46,97',
-		'saving'      => 'Bespaar €5,00 — 11% korting',
+		'saving'      => 'Bespaar €5,00',
 
 		// Image.
 		'imageAlt'    => '',
@@ -548,7 +548,13 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			'pfh-hl--fit-' . $fit,
 		];
 
-		if ( 'contain' === $fit && $this->flag( 'imageMultiply' ) ) {
+		/*
+		 * Multiplying takes the white out of a packshot on white — and out of
+		 * everything white in the product with it: the olive oil's white
+		 * label came out banner-green (feedback, 2026-09-28). A cut-out has no
+		 * white box to remove, so it is drawn as it is.
+		 */
+		if ( 'contain' === $fit && $this->flag( 'imageMultiply' ) && ! $this->is_cutout( $this->picture ) ) {
 			$classes[] = 'pfh-hl--multiply';
 		}
 
@@ -692,7 +698,11 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	private function render_price() {
 		$now    = $this->text( 'price' );
 		$was    = $this->text( 'priceWas' );
-		$saving = $this->text( 'saving' );
+
+		// The saving in euros only. A line still worded the old way — "Bespaar
+		// €5,00 — 11% korting" — loses the percentage the client asked to
+		// drop (2026-09-28), wherever it was typed.
+		$saving = trim( (string) preg_replace( '/\s*[—–-]\s*\d+([.,]\d+)?\s*%\s*(korting)?\s*$/u', '', $this->text( 'saving' ) ) );
 
 		if ( '' === $now && '' === $was && '' === $saving ) {
 			return;
@@ -962,6 +972,20 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * @param array $picture From image().
 	 * @return string 'cover' or 'contain'.
 	 */
+	/**
+	 * Is this picture a cut-out on a transparent background?
+	 *
+	 * @param array $picture From image().
+	 * @return bool
+	 */
+	private function is_cutout( array $picture ) {
+		if ( empty( $picture['id'] ) || ! class_exists( 'PFH_Widgets_Photo' ) ) {
+			return false;
+		}
+
+		return ! PFH_Widgets_Photo::has_backdrop( (int) $picture['id'] );
+	}
+
 	private function fit( array $picture ) {
 		$chosen = $this->choice( 'imageFit', [ 'auto', 'cover', 'contain' ] );
 

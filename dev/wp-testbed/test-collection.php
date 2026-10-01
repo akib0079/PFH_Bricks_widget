@@ -183,7 +183,7 @@ $plain = [
 on_category( 'gia-giamas' );
 
 ok( 'the inspiration band', false !== strpos( draw( 'PFH_Element_Notice' ), 'Inspiratie nodig?' ) );
-ok( 'the questions', false !== strpos( draw( 'PFH_Element_Faq' ), 'Veelgestelde Vragen' ) );
+ok( 'the questions', false !== strpos( draw( 'PFH_Element_Faq' ), 'Veelgestelde vragen' ) );
 ok( 'the bundle, with the price typed in Bricks', false !== strpos( draw( 'PFH_Element_Highlight' ), '€ 41,97' ) && false !== strpos( draw( 'PFH_Element_Highlight' ), 'Proefpakket' ) );
 
 echo "\n── what a save keeps ──\n";

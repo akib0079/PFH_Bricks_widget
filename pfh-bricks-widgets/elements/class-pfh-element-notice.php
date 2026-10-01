@@ -65,6 +65,15 @@ class PFH_Element_Notice extends \Bricks\Element {
 			'description' => esc_html__( 'On a category page, the category can hide this band or replace any of its words (Products → Categories → edit → Collection page). What it leaves empty keeps the text below.', 'pfh-widgets' ),
 		];
 
+		$this->controls['onlyCats'] = [
+			'tab'         => 'content',
+			'group'       => 'content',
+			'label'       => esc_html__( 'Only on these categories', 'pfh-widgets' ),
+			'type'        => 'text',
+			'placeholder' => 'gia-giamas-lemonade',
+			'description' => esc_html__( 'Category slugs or ids, comma separated. The band then shows on those categories and the ones under them, and nowhere else. Empty: everywhere it is placed.', 'pfh-widgets' ),
+		];
+
 		$this->controls['title'] = [
 			'tab'     => 'content',
 			'group'   => 'content',
@@ -243,6 +252,39 @@ class PFH_Element_Notice extends \Bricks\Element {
 		];
 	}
 
+	/**
+	 * Is the page one the band is limited to — or is it not limited at all?
+	 *
+	 * @return bool
+	 */
+	private function in_allowed_category() {
+		$wanted = array_filter( array_map( 'trim', explode( ',', (string) $this->get( 'onlyCats', '' ) ) ) );
+
+		if ( ! $wanted || PFH_Widgets_Helpers::is_builder_context() ) {
+			return true;
+		}
+
+		$term = class_exists( 'PFH_Widgets_Collection' ) ? PFH_Widgets_Collection::term() : null;
+
+		if ( ! $term ) {
+			return false;
+		}
+
+		$ids = [];
+
+		foreach ( $wanted as $want ) {
+			$found = ctype_digit( $want ) ? get_term( (int) $want, 'product_cat' ) : get_term_by( 'slug', $want, 'product_cat' );
+
+			if ( $found && ! is_wp_error( $found ) ) {
+				$ids[] = (int) $found->term_id;
+			}
+		}
+
+		$line = array_merge( [ (int) $term->term_id ], array_map( 'intval', get_ancestors( $term->term_id, 'product_cat', 'taxonomy' ) ) );
+
+		return (bool) array_intersect( $ids, $line );
+	}
+
 	public function render() {
 		$this->apply_design_revision( $this->previous_defaults() );
 
@@ -256,6 +298,14 @@ class PFH_Element_Notice extends \Bricks\Element {
 			: null;
 
 		if ( $own && ! empty( $own['hide'] ) ) {
+			return;
+		}
+
+		/*
+		 * A recipes band is about Gia Giamas; on honey or candles it pointed
+		 * at drinks nobody there was shopping for (feedback, 2026-09-28).
+		 */
+		if ( ! $this->in_allowed_category() ) {
 			return;
 		}
 

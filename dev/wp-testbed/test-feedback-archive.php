@@ -150,5 +150,23 @@ if ( $parent && $child ) {
 	wp_delete_attachment( $att, true );
 }
 
+echo "\n── the bands under the products ──\n";
+foreach ( [ 'notice', 'highlight', 'faq' ] as $f ) {
+	require_once WP_PLUGIN_DIR . '/pfh-bricks-widgets/elements/class-pfh-element-' . $f . '.php';
+}
+if ( $parent && $child ) {
+	land( $child );
+	$only = draw( el( 'PFH_Element_Notice', 'n1', [ 'onlyCats' => $parent->slug ] ) );
+	ok( 'a band limited to a category shows under it', false !== strpos( $only, 'pfh-notice' ) );
+	$other = get_terms( [ 'taxonomy' => 'product_cat', 'parent' => 0, 'hide_empty' => false, 'exclude' => [ $parent->term_id ], 'number' => 1 ] );
+	$elsewhere = draw( el( 'PFH_Element_Notice', 'n2', [ 'onlyCats' => (string) $other[0]->term_id ] ) );
+	ok( 'and nowhere else', '' === trim( $elsewhere ) );
+	ok( 'unlimited, it shows anywhere', false !== strpos( draw( el( 'PFH_Element_Notice', 'n3' ) ), 'pfh-notice' ) );
+}
+$faq = draw( el( 'PFH_Element_Faq', 'f1', [ 'title' => 'Veelgestelde Vragen' ] ) );
+ok( 'a FAQ saved with "Vragen" reads "vragen"', false !== strpos( $faq, 'Veelgestelde vragen' ) && false === strpos( $faq, 'Veelgestelde Vragen' ) );
+$hl = draw( el( 'PFH_Element_Highlight', 'h1', [ 'saving' => 'Bespaar € 5,49 — 15% korting', 'fromCategory' => false ] ) );
+ok( 'a saving typed with a percentage loses it', false !== strpos( $hl, '>Bespaar € 5,49<' ), substr( strip_tags( $hl ), 0, 120 ) );
+
 wp_reset_query();
 echo "\n$pass passed, $fail failed\n";

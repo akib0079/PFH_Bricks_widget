@@ -32,6 +32,8 @@ class PFH_Element_Faq extends \Bricks\Element {
 		'rowGap' => 10,
 		'listWidth' => 620,
 		'maxWidth' => 1140,
+		// Dutch writes "vragen" in lower case (feedback, 2026-09-28).
+		'title' => 'Veelgestelde Vragen',
 		];
 	}
 
@@ -75,7 +77,7 @@ class PFH_Element_Faq extends \Bricks\Element {
 			'group'   => 'head',
 			'label'   => esc_html__( 'Heading', 'pfh-widgets' ),
 			'type'    => 'text',
-			'default' => 'Veelgestelde Vragen',
+			'default' => 'Veelgestelde vragen',
 		];
 
 		$this->controls['titleTag'] = [

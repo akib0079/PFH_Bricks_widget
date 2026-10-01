@@ -328,7 +328,7 @@ class PFH_Widgets_Collection {
 					$data['faq'],
 					static function () use ( $data, $name ) {
 						$d = $data['faq'];
-						self::text( $name . '[faq][title]', __( 'Heading', 'pfh-widgets' ), $d['title'], 'Veelgestelde Vragen' );
+						self::text( $name . '[faq][title]', __( 'Heading', 'pfh-widgets' ), $d['title'], 'Veelgestelde vragen' );
 						self::faq_rows( $name . '[faq][items]', $d['items'] );
 					}
 				);

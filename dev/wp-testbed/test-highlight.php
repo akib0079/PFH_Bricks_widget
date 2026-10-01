@@ -110,7 +110,7 @@ ok( 'with the tick icon on each', 2 === substr_count( $points, 'pfh-hl__tick' ) 
 
 echo "\n── the price is three typed lines ──\n";
 ok( 'price and old price print', false !== strpos( $html, '<span class="pfh-hl__price-now">€ 41,97</span>' ) && false !== strpos( $html, '<span class="pfh-hl__price-was">€ 46,97</span>' ) );
-ok( 'with the saving line under them', false !== strpos( $html, '<p class="pfh-hl__save">Bespaar €5,00 — 11% korting</p>' ) );
+ok( 'with the saving line under them, in euros only', false !== strpos( $html, '<p class="pfh-hl__save">Bespaar €5,00</p>' ) );
 ok( 'no old price means no strikethrough', false === strpos( highlight( [ 'priceWas' => '' ] ), 'pfh-hl__price-was' ) );
 ok( 'no price at all drops the block', false === strpos( highlight( [ 'price' => '', 'priceWas' => '', 'saving' => '' ] ), 'pfh-hl__price' ) );
 
