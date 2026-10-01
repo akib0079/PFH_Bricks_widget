@@ -674,10 +674,37 @@ a.pfh-prod__reviews:hover .pfh-prod__reviews-text {
 		--pfh-cart-size: 40px;
 	}
 
+	/*
+	 * Title and button on one line, both a size down, rather than the
+	 * button dropping under the title (feedback, 2026-09-28: "Title a bit
+	 * smaller and CTA a bit smaller so they can fit on one line").
+	 */
 	.pfh-prod__head {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 16px;
+		flex-direction: row;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.pfh-prod__title {
+		min-width: 0;
+		font-size: min(var(--pfh-head-size), 24px);
+	}
+
+	.pfh-prod__title em,
+	.pfh-prod__title i {
+		text-underline-offset: 4px;
+	}
+
+	.pfh-prod__more {
+		height: 34px;
+		padding: 0 14px;
+		gap: 6px;
+		font-size: 13px;
+	}
+
+	.pfh-prod__more-icon {
+		width: 12px;
+		height: 12px;
 	}
 
 	/*

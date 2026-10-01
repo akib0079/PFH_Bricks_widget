@@ -342,6 +342,12 @@
 	}
 }
 
+/* Phones: short, as the client asked (feedback, 2026-09-28). */
+@media (max-width: 767px) {
+	.pfh-hf.is-phone-no-head .pfh-hf__head { display: none; }
+	.pfh-hf.is-phone-first-only .pfh-hf__tile:not(:first-child) { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.pfh-hf.is-ready .pfh-hf__head > *,
 	.pfh-hf.is-ready .pfh-hf__tile {

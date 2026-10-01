@@ -89,6 +89,22 @@ class PFH_Element_Features extends \Bricks\Element {
 	 * ------------------------------------------------------------------ */
 
 	private function head_controls() {
+		$this->controls['phoneHideHead'] = [
+			'tab'     => 'content',
+			'group'   => 'head',
+			'label'   => esc_html__( 'Leave the heading and text off on phones', 'pfh-widgets' ),
+			'type'    => 'checkbox',
+			'default' => true,
+		];
+
+		$this->controls['phoneFirstOnly'] = [
+			'tab'     => 'content',
+			'group'   => 'head',
+			'label'   => esc_html__( 'Only the first tile on phones', 'pfh-widgets' ),
+			'type'    => 'checkbox',
+			'default' => true,
+		];
+
 		$this->controls['heading'] = [
 			'tab'         => 'content',
 			'group'       => 'head',
@@ -842,6 +858,19 @@ class PFH_Element_Features extends \Bricks\Element {
 			'pfh-scope',
 			'pfh-hover-' . (string) $this->get( 'hoverEffect', 'both' ),
 		];
+
+		/*
+		 * On a phone the client wanted this section short: no heading text,
+		 * and the first tile only — "love the photos, but it is way too much
+		 * on the phone" (feedback, 2026-09-28). Desktop keeps all of it.
+		 */
+		if ( $this->is_on( 'phoneHideHead', true ) ) {
+			$classes[] = 'is-phone-no-head';
+		}
+
+		if ( $this->is_on( 'phoneFirstOnly', true ) ) {
+			$classes[] = 'is-phone-first-only';
+		}
 
 		$this->set_attribute( '_root', 'class', $classes );
 		$this->set_attribute( '_root', 'style', $this->build_vars() );

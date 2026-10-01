@@ -483,6 +483,15 @@ class PFH_Element_Hero extends \Bricks\Element {
 			'default' => false,
 		];
 
+		$this->controls['phoneCompact'] = [
+			'tab'         => 'content',
+			'group'       => 'layout',
+			'label'       => esc_html__( 'Compact on phones', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'On a phone: the picture first, straight under the menu; no rating row, headline or second button; the first sentence of the text takes the headline\'s style. Desktop is unchanged.', 'pfh-widgets' ),
+		];
+
 		$this->controls['bgColor'] = [
 			'tab'     => 'content',
 			'group'   => 'layout',
@@ -1782,6 +1791,12 @@ class PFH_Element_Hero extends \Bricks\Element {
 			$classes[] = 'is-media-first';
 		}
 
+		// The client's own mark-up of the phone (feedback, 2026-09-28):
+		// "Gia Giamas image right below the menu" and the rest crossed out.
+		if ( $this->is_on( 'phoneCompact', true ) ) {
+			$classes[] = 'is-phone-compact';
+		}
+
 		if ( $this->is_on( 'floatAnimate' ) ) {
 			$classes[] = 'has-float-anim';
 		}
@@ -1964,6 +1979,24 @@ class PFH_Element_Hero extends \Bricks\Element {
 	}
 
 	/**
+	 * The slide text, its first sentence wrapped so a phone can show it in
+	 * the headline's style when the headline itself is left out: "Ontdek
+	 * Gia Giamas." becomes the line that leads (feedback, 2026-10-01).
+	 *
+	 * @param string $text Slide text.
+	 * @return string Safe HTML.
+	 */
+	private function text_with_lead( $text ) {
+		$text = (string) $text;
+
+		if ( preg_match( '/^(.+?[.!?])(\s+)(.+)$/su', $text, $m ) && mb_strlen( $m[1] ) <= 60 ) {
+			return '<span class="pfh-hero__lead">' . wp_kses_post( $m[1] ) . '</span>' . $m[2] . wp_kses_post( nl2br( $m[3] ) );
+		}
+
+		return wp_kses_post( nl2br( $text ) );
+	}
+
+	/**
 	 * @param array $slide Normalised slide.
 	 */
 	private function render_slide_text( $slide ) {
@@ -1999,7 +2032,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 			printf(
 				'<p class="pfh-hero__text" data-pfh-reveal style="--pfh-i:%d">%s</p>',
 				$order++,
-				wp_kses_post( nl2br( PFH_Widgets_Helpers::dd( $slide['text'] ) ) )
+				$this->text_with_lead( PFH_Widgets_Helpers::dd( $slide['text'] ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in text_with_lead().
 			);
 		}
 

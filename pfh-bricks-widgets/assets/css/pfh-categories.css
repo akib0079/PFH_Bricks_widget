@@ -473,6 +473,42 @@
 	}
 }
 
+/*
+ * Two by two on a phone: the slider stops sliding and every category is in
+ * view at once, as in the client's reference (feedback, 2026-09-28). A tile
+ * this small has room for its picture and its small title only.
+ */
+@media (max-width: 767px) {
+	.pfh-cats.is-phone-grid .pfh-cats__viewport {
+		overflow: visible;
+		margin: 0;
+		padding-block: 0;
+		padding-inline: var(--pfh-gutter);
+	}
+
+	.pfh-cats.is-phone-grid .pfh-cats__track {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 12px;
+		width: auto;
+	}
+
+	.pfh-cats.is-phone-grid .pfh-cats__item { width: auto; }
+
+	.pfh-cats.is-phone-grid .pfh-cats__card {
+		--pfh-card-pad: 14px;
+		aspect-ratio: 3 / 4;
+	}
+
+	.pfh-cats.is-phone-grid .pfh-cats__name,
+	.pfh-cats.is-phone-grid .pfh-cats__cta,
+	.pfh-cats.is-phone-grid .pfh-cats__bar {
+		display: none;
+	}
+
+	.pfh-cats.is-phone-grid .pfh-cats__eyebrow { font-size: 16px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.pfh-cats__card,
 	.pfh-cats__art,

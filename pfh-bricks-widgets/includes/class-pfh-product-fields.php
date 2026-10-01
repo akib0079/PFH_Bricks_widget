@@ -450,6 +450,27 @@ class PFH_Widgets_Product_Fields {
 
 		$featured = (int) get_post_thumbnail_id( $id );
 
+		/*
+		 * No picture chosen for it: the first cut-out among the product's
+		 * own photographs, so the card shows the product rather than a white
+		 * box on mint (feedback, 2026-09-28: "delete the background of the
+		 * image here"). The featured image only when there is no cut-out.
+		 */
+		if ( class_exists( 'PFH_Widgets_Photo' ) ) {
+			$product = function_exists( 'wc_get_product' ) ? wc_get_product( $id ) : null;
+			$gallery = $product ? array_map( 'intval', (array) $product->get_gallery_image_ids() ) : [];
+
+			foreach ( array_filter( array_merge( [ $featured ], $gallery ) ) as $candidate ) {
+				if ( ! PFH_Widgets_Photo::has_backdrop( $candidate ) ) {
+					$url = wp_get_attachment_image_url( $candidate, $size );
+
+					if ( $url ) {
+						return (string) $url;
+					}
+				}
+			}
+		}
+
 		return $featured ? (string) wp_get_attachment_image_url( $featured, $size ) : '';
 	}
 

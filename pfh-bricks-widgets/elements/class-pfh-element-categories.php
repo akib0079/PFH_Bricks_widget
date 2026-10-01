@@ -768,6 +768,15 @@ class PFH_Element_Categories extends \Bricks\Element {
 			'default' => true,
 		];
 
+		$this->controls['phoneGrid'] = [
+			'tab'         => 'content',
+			'group'       => 'drag',
+			'label'       => esc_html__( 'Two per row on phones', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'Below 768px the cards stop sliding and sit two by two, each showing its picture and its small title.', 'pfh-widgets' ),
+		];
+
 		$this->controls['snap'] = [
 			'tab'         => 'content',
 			'group'       => 'drag',
@@ -946,6 +955,12 @@ class PFH_Element_Categories extends \Bricks\Element {
 
 		if ( $this->is_on( 'snap', false ) ) {
 			$classes[] = 'is-snap';
+		}
+
+		// Two by two on a phone, as in the reference the client sent
+		// (feedback, 2026-09-28): every category in sight at once.
+		if ( $this->is_on( 'phoneGrid', true ) ) {
+			$classes[] = 'is-phone-grid';
 		}
 
 		if ( $this->is_on( 'hoverShadow' ) ) {

@@ -835,6 +835,35 @@
 	}
 }
 
+/*
+ * Compact on phones: the picture first, straight under the menu, and only the
+ * text and the main button under it. The first sentence of the text stands in
+ * for the headline, in its typeface (feedback, 2026-09-28 and 10-01).
+ */
+@media (max-width: 767px) {
+	.pfh-hero.is-phone-compact .pfh-hero__col--media { order: 0; }
+	.pfh-hero.is-phone-compact .pfh-hero__col--text { order: 1; }
+
+	.pfh-hero.is-phone-compact .pfh-hero__rating,
+	.pfh-hero.is-phone-compact .pfh-hero__title,
+	.pfh-hero.is-phone-compact .pfh-hero__btn--ghost {
+		display: none;
+	}
+
+	.pfh-hero.is-phone-compact .pfh-hero__lead {
+		display: block;
+		margin-bottom: 10px;
+		color: var(--pfh-title-color, #484c4d);
+		font-family: var(--pfh-title-font, "Playfair Display", Georgia, serif);
+		font-size: var(--pfh-title-size-m, 36px);
+		font-weight: var(--pfh-title-weight, 400);
+		line-height: 1.15;
+	}
+
+	.pfh-hero.is-phone-compact .pfh-hero__slide { gap: 18px; }
+	.pfh-hero.is-phone-compact { --pfh-hero-pad-y: 20px; }
+}
+
 /* Motion off: no autoplay, no transforms, no bobbing. */
 @media (prefers-reduced-motion: reduce) {
 	.pfh-hero .pfh-hero__slide [data-pfh-reveal],

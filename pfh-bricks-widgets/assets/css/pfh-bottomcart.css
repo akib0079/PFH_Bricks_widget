@@ -340,10 +340,15 @@
 		--pfh-bc-overlap: 48px;
 	}
 
+	/* Centred, like the button under it (feedback, 2026-09-28). */
 	.pfh-bcart__body {
 		flex: 1 1 auto;
 		max-width: none;
+		align-items: center;
+		text-align: center;
 	}
+
+	.pfh-bcart__prices { justify-content: center; }
 
 	/* On a phone the button is the section, so it takes the whole width. */
 	.pfh-bcart { --pfh-bc-form: 100%; }
