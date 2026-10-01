@@ -377,6 +377,30 @@
 			return null;
 		}
 
+		/**
+		 * The folded view's list of what is chosen, kept in step with it.
+		 *
+		 * @param {Object} picked Attribute key => value.
+		 */
+		function summarise( picked ) {
+			var list = form.querySelector( '[data-pfh-fold-summary]' );
+
+			if ( ! list ) {
+				return;
+			}
+
+			groups.forEach( function ( group ) {
+				var key = group.getAttribute( 'data-pfh-attr' );
+				var row = list.querySelector( '[data-pfh-fold-for="' + key + '"] [data-pfh-fold-value]' );
+				var pill = picked[ key ] ? group.querySelector( '[data-pfh-pill="' + ( window.CSS && CSS.escape ? CSS.escape( picked[ key ] ) : picked[ key ] ) + '"]' ) : null;
+				var text = pill ? ( pill.querySelector( '[data-pfh-pill-text]' ) || pill ) : null;
+
+				if ( row ) {
+					row.textContent = text ? text.textContent.trim() : '—';
+				}
+			} );
+		}
+
 		function setText( node, html, off ) {
 			if ( ! node ) {
 				return;
@@ -393,6 +417,7 @@
 
 		function paint() {
 			var picked = chosen();
+			var stale = [];
 
 			groups.forEach( function ( group ) {
 				var key = group.getAttribute( 'data-pfh-attr' );
@@ -406,9 +431,20 @@
 					pill.classList.toggle( 'is-chosen', on );
 					pill.setAttribute( 'aria-pressed', on ? 'true' : 'false' );
 
-					// Would anything still be buyable if this were chosen?
+					/*
+					 * A pill for a combination the shop does not make at all is
+					 * hidden — the Premium line has no Kers, so it is not
+					 * offered there. One that exists but is sold out stays,
+					 * greyed out, so the shopper can see it is coming back
+					 * (feedback, 2026-10-01).
+					 */
 					if ( variations.length ) {
-						var reachable = variations.some( function ( variation ) {
+						var exists = variations.some( function ( variation ) {
+							var want = variation.attributes[ key ];
+
+							return ( ! want || want === mine ) && accepts( variation, picked, key );
+						} );
+						var reachable = exists && variations.some( function ( variation ) {
 							var want = variation.attributes[ key ];
 
 							return variation.buyable
@@ -416,7 +452,12 @@
 								&& accepts( variation, picked, key );
 						} );
 
+						pill.hidden = ! exists;
 						pill.disabled = ! reachable;
+
+						if ( on && ! exists ) {
+							stale.push( group );
+						}
 					}
 
 					if ( on && label ) {
@@ -430,6 +471,24 @@
 					label.textContent = '';
 				}
 			} );
+
+			// A choice the other choices have just made impossible is let go,
+			// rather than left selected on a pill nobody can see.
+			if ( stale.length ) {
+				stale.forEach( function ( group ) {
+					var field = group.querySelector( '[data-pfh-attr-field]' );
+
+					if ( field ) {
+						field.value = '';
+					}
+				} );
+
+				paint();
+
+				return;
+			}
+
+			summarise( chosen() );
 
 
 			var found = match();
@@ -451,6 +510,8 @@
 			if ( buy ) {
 				buy.disabled = variations.length ? ! ( found && found.buyable ) : false;
 			}
+
+			form.dispatchEvent( new CustomEvent( 'pfh:price', { bubbles: true } ) );
 
 			if ( found && found.image && shots ) {
 				shots.showUrl( found.image );
@@ -583,6 +644,146 @@
 		} );
 	}
 
+	/* ------------------------------------------------------------------
+	 * Folded choices
+	 * --------------------------------------------------------------- */
+
+	function fold( form ) {
+		var box = form.querySelector( '[data-pfh-fold]' );
+		var toggle = box ? box.querySelector( '[data-pfh-fold-toggle]' ) : null;
+
+		if ( ! toggle ) {
+			return;
+		}
+
+		toggle.addEventListener( 'click', function () {
+			var open = ! box.classList.contains( 'is-open' );
+
+			box.classList.toggle( 'is-open', open );
+			toggle.setAttribute( 'aria-expanded', open ? 'true' : 'false' );
+		} );
+	}
+
+	/* ------------------------------------------------------------------
+	 * Loyalty points
+	 * --------------------------------------------------------------- */
+
+	/**
+	 * A point a euro, of what is actually being bought: the chosen
+	 * variation's price times the quantity.
+	 */
+	function loyalty( root, form ) {
+		var line = root.querySelector( '[data-pfh-loyalty]' );
+		var out = line ? line.querySelector( '[data-pfh-loyalty-points]' ) : null;
+		var now = root.querySelector( '[data-pfh-price-now]' );
+
+		if ( ! out || ! now ) {
+			return;
+		}
+
+		var rate = parseFloat( line.getAttribute( 'data-rate' ) ) || 1;
+
+		function amount() {
+			// The last number in the price: the sale price when there are two.
+			var text = now.textContent.replace( /\s/g, '' );
+			var all = text.match( /\d[\d.,]*/g );
+
+			if ( ! all ) {
+				return 0;
+			}
+
+			var raw = all[ all.length - 1 ];
+
+			// Dutch prices: "1.234,56". A lone comma is the decimal mark.
+			raw = raw.indexOf( ',' ) > -1 ? raw.replace( /\./g, '' ).replace( ',', '.' ) : raw;
+
+			return parseFloat( raw ) || 0;
+		}
+
+		function paint() {
+			var field = form.querySelector( '[data-pfh-qty-field]' );
+			var qty = field ? parseInt( field.value, 10 ) || 1 : 1;
+			var points = Math.floor( amount() * qty * rate );
+
+			out.textContent = points.toLocaleString( 'nl-NL' );
+
+			if ( points > 0 ) {
+				line.removeAttribute( 'hidden' );
+			} else {
+				line.setAttribute( 'hidden', '' );
+			}
+		}
+
+		form.addEventListener( 'pfh:price', paint );
+		form.addEventListener( 'change', paint );
+		form.addEventListener( 'click', function () {
+			window.setTimeout( paint, 0 );
+		} );
+		paint();
+	}
+
+	/* ------------------------------------------------------------------
+	 * The bar that follows the shopper down the page
+	 * --------------------------------------------------------------- */
+
+	function sticky( root, form ) {
+		var bar = root.querySelector( '[data-pfh-sticky]' );
+		var buy = form.querySelector( '[data-pfh-buy]' );
+
+		if ( ! bar || ! buy || ! ( 'IntersectionObserver' in window ) ) {
+			return;
+		}
+
+		var price = bar.querySelector( '[data-pfh-sticky-price]' );
+		var now = root.querySelector( '[data-pfh-price-now]' );
+		var go = bar.querySelector( '[data-pfh-sticky-buy]' );
+
+		function copyPrice() {
+			if ( price && now ) {
+				price.innerHTML = now.innerHTML;
+			}
+		}
+
+		// Shown only once the page's own button has gone up out of sight;
+		// never while it can be seen, and never above it.
+		new window.IntersectionObserver( function ( entries ) {
+			var gone = ! entries[ 0 ].isIntersecting && entries[ 0 ].boundingClientRect.top < 0;
+
+			bar.classList.toggle( 'is-shown', gone );
+			bar.setAttribute( 'aria-hidden', gone ? 'false' : 'true' );
+
+			if ( gone ) {
+				copyPrice();
+			}
+		} ).observe( buy );
+
+		bar.removeAttribute( 'hidden' );
+		form.addEventListener( 'pfh:price', copyPrice );
+
+		if ( go ) {
+			go.addEventListener( 'click', function () {
+				if ( ! buy.disabled ) {
+					buy.click();
+
+					return;
+				}
+
+				// Nothing buyable chosen yet: back up to the choices, opened.
+				var box = form.querySelector( '[data-pfh-fold]' );
+
+				if ( box && ! box.classList.contains( 'is-open' ) ) {
+					var toggle = box.querySelector( '[data-pfh-fold-toggle]' );
+
+					if ( toggle ) {
+						toggle.click();
+					}
+				}
+
+				form.scrollIntoView( { behavior: 'smooth', block: 'center' } );
+			} );
+		}
+	}
+
 	function start() {
 		/*
 		 * The bottom reminder prints the same form, down to the data
@@ -604,8 +805,11 @@
 			}
 
 			quantity( form );
+			fold( form );
 			variants( form, shots );
 			cart( form );
+			loyalty( root, form );
+			sticky( root, form );
 		} );
 	}
 

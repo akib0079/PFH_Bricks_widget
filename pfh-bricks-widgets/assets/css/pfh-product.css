@@ -112,6 +112,21 @@
 
 .pfh-pdp__shot.is-active { opacity: 1; }
 
+/*
+ * A photograph with its own background fills the stage edge to edge: no grey
+ * border around a white packshot, and every picture the same size. A cut-out
+ * keeps the grey stage and its padding (feedback, 2026-09-28).
+ */
+.pfh-pdp__shot.is-photo {
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	border-radius: 0;
+	object-fit: cover;
+}
+
 .pfh-pdp__badge {
 	position: absolute;
 	top: 16px;
@@ -202,6 +217,9 @@
 }
 
 .pfh-pdp__thumb img { max-width: 100%; max-height: 100%; border-radius: 6px; object-fit: contain; pointer-events: none; }
+
+.pfh-pdp__thumb.is-photo { padding: 0; overflow: hidden; }
+.pfh-pdp__thumb.is-photo img { width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 0; object-fit: cover; }
 
 /* Only drawn while the strip has somewhere to scroll to. */
 .pfh-pdp__thumbs-nav {
@@ -624,6 +642,146 @@
 	text-align: center;
 }
 
+/* ---------- a choice that does not exist ---------- */
+
+/* Pills carry their own display, which the hidden attribute alone loses to. */
+.pfh-pdp__pill[hidden] { display: none !important; }
+
+/* ---------- folded choices ---------- */
+
+.pfh-pdp__fold {
+	display: grid;
+	gap: 14px;
+	margin: 0 0 18px;
+	padding: 16px 18px;
+	border: 1px solid var(--pfh-pdp-line);
+	border-radius: var(--pfh-pdp-radius);
+}
+
+.pfh-pdp .pfh-pdp__fold-list {
+	display: grid;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-pdp__fold-item {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	font-size: var(--pfh-pdp-text);
+	line-height: 1.4;
+}
+
+.pfh-pdp__fold-name { color: var(--pfh-pdp-muted); }
+.pfh-pdp__fold-value { color: var(--pfh-pdp-ink); font-weight: 500; text-align: right; }
+
+.pfh-pdp__fold-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	width: 100%;
+	min-height: 44px;
+	padding: 10px 16px;
+	border: 1px solid var(--pfh-pdp-accent);
+	border-radius: var(--pfh-pdp-radius);
+	background: #fff;
+	color: var(--pfh-pdp-accent);
+	font: inherit;
+	font-size: var(--pfh-pdp-text);
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color .2s ease, color .2s ease;
+}
+
+.pfh-pdp__fold-btn:hover { background: var(--pfh-pdp-accent); color: var(--pfh-pdp-accent-ink); }
+.pfh-pdp__fold-chevron { width: 16px; height: 16px; transition: transform .2s ease; }
+.pfh-pdp__attrs--fold.is-open .pfh-pdp__fold-chevron { transform: rotate(180deg); }
+
+/* Folded: the groups wait behind the button. Their selects still post. */
+.pfh-pdp__attrs--fold:not(.is-open) .pfh-pdp__attrs-body { display: none; }
+
+/* ---------- loyalty ---------- */
+
+.pfh-pdp .pfh-pdp__loyalty {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 22px 0 0;
+	color: var(--pfh-pdp-muted);
+	font-size: var(--pfh-pdp-text);
+	line-height: 1.4;
+}
+
+.pfh-pdp__loyalty[hidden] { display: none; }
+.pfh-pdp__loyalty-icon { flex: none; width: 20px; height: 20px; color: var(--pfh-pdp-icon); }
+.pfh-pdp__loyalty strong { color: var(--pfh-pdp-usp-ink); font-weight: 700; }
+
+/* ---------- the bar that follows ---------- */
+
+.pfh-pdp__sticky {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 990;
+	padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+	border-top: 1px solid var(--pfh-pdp-line);
+	background: rgba(255, 255, 255, .97);
+	box-shadow: 0 -8px 24px rgba(20, 24, 27, .08);
+	transform: translateY(110%);
+	transition: transform .3s var(--pfh-ease, ease);
+}
+
+.pfh-pdp__sticky[hidden] { display: none; }
+.pfh-pdp__sticky.is-shown { transform: none; }
+
+.pfh-pdp__sticky-inner {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	max-width: var(--pfh-pdp-max, 1140px);
+	margin: 0 auto;
+}
+
+.pfh-pdp__sticky-img { flex: none; width: 44px; height: 44px; border-radius: 8px; object-fit: contain; background: var(--pfh-pdp-stage); }
+
+.pfh-pdp__sticky-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--pfh-pdp-ink);
+	font-weight: 500;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pfh-pdp__sticky-price { flex: none; color: var(--pfh-pdp-price-ink, var(--pfh-pdp-ink)); font-weight: 600; }
+
+.pfh-pdp__sticky-btn {
+	flex: none;
+	min-height: 44px;
+	padding: 10px 22px;
+	border: 0;
+	border-radius: var(--pfh-pdp-radius);
+	background: var(--pfh-pdp-accent);
+	color: var(--pfh-pdp-accent-ink);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+@media (max-width: 560px) {
+	.pfh-pdp__sticky-name { display: none; }
+	.pfh-pdp__sticky-price { flex: 1 1 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-pdp__sticky { transition: none; }
+}
+
 /* ---------- responsive ---------- */
 
 @media (max-width: 991px) {
@@ -656,8 +814,14 @@
 	.pfh-pdp__line-note { margin-left: 22px; padding-left: 0; text-align: left; }
 	.pfh-pdp__buy { flex-wrap: wrap; }
 	.pfh-pdp__cart { width: 100%; flex-basis: 100%; }
-	.pfh-pdp__usp { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-	.pfh-pdp__usp-item + .pfh-pdp__usp-item { border-left: 0; border-top: 1px solid var(--pfh-pdp-line); padding-top: 18px; }
+	/*
+	 * The three promises stay side by side on a phone, smaller, rather than
+	 * stacking into a column a screen tall (feedback, 2026-09-28).
+	 */
+	.pfh-pdp__usp-item { padding-inline: 6px; gap: 4px; }
+	.pfh-pdp__usp-icon { width: 24px; height: 24px; }
+	.pfh-pdp__usp-title { font-size: 12px; line-height: 1.3; }
+	.pfh-pdp__usp-note { font-size: 11px; line-height: 1.35; }
 }
 
 @media (prefers-reduced-motion: reduce) {

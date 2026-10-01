@@ -277,6 +277,30 @@ class PFH_Element_Product extends \Bricks\Element {
 			[ 'description' => esc_html__( 'The product\'s own default when it can be bought, otherwise the first one that can — so the add to cart button works straight away.', 'pfh-widgets' ) ]
 		);
 
+		$this->controls['stickyBuy'] = $this->switch_field(
+			'variants',
+			esc_html__( 'Bar that follows when scrolling down', 'pfh-widgets' ),
+			true,
+			[ 'description' => esc_html__( 'Price and add to cart, at the foot of the screen once the button above has scrolled away.', 'pfh-widgets' ) ]
+		);
+
+		$this->controls['foldChoices'] = [
+			'tab'         => 'content',
+			'group'       => 'variants',
+			'label'       => esc_html__( 'Fold the choices behind a button', 'pfh-widgets' ),
+			'type'        => 'select',
+			'inline'      => true,
+			'options'     => [
+				'auto'   => esc_html__( 'With three or more groups', 'pfh-widgets' ),
+				'always' => esc_html__( 'Always', 'pfh-widgets' ),
+				'off'    => esc_html__( 'Never', 'pfh-widgets' ),
+			],
+			'default'     => 'auto',
+			'description' => esc_html__( 'A bundle with three or four flavours shows what is chosen and a button that opens all the choices.', 'pfh-widgets' ),
+		];
+
+		$this->controls['foldLabel'] = $this->text_field( 'variants', esc_html__( 'Button wording', 'pfh-widgets' ), [ 'inline' => true, 'default' => 'Smaken kiezen' ] );
+
 		$this->controls['tintedAttrs'] = $this->text_field(
 			'variants',
 			esc_html__( 'Groups using the second colour', 'pfh-widgets' ),
@@ -342,6 +366,24 @@ class PFH_Element_Product extends \Bricks\Element {
 	private function usp_controls() {
 		$this->controls['showUsp'] = $this->switch_field( 'usp', esc_html__( 'Show the promises', 'pfh-widgets' ) );
 
+		$this->controls['showLoyalty'] = $this->switch_field(
+			'usp',
+			esc_html__( 'Show the loyalty points line', 'pfh-widgets' ),
+			true,
+			[ 'description' => esc_html__( '"Je spaart 32 loyaliteitspunten met deze aankoop", under the promises. The figure follows the price and the quantity.', 'pfh-widgets' ) ]
+		);
+
+		$this->controls['loyaltyText'] = $this->text_field(
+			'usp',
+			esc_html__( 'Loyalty wording', 'pfh-widgets' ),
+			[
+				'default'     => 'Je spaart %points% loyaliteitspunten met deze aankoop',
+				'description' => esc_html__( '%points% becomes the number of points, in bold.', 'pfh-widgets' ),
+			]
+		);
+
+		$this->controls['loyaltyRate'] = $this->number_field( 'usp', esc_html__( 'Points per euro', 'pfh-widgets' ), 1, 0, 100 );
+
 		$this->controls['uspItems'] = [
 			'tab'           => 'content',
 			'group'         => 'usp',
@@ -349,9 +391,10 @@ class PFH_Element_Product extends \Bricks\Element {
 			'type'          => 'repeater',
 			'titleProperty' => 'title',
 			'default'       => [
-				[ 'icon' => 'usp-secure', 'title' => 'Veilig betalen', 'note' => 'iDEAL · Klarna · PayPal' ],
-				[ 'icon' => 'usp-natural', 'title' => 'Snel bezorgd', 'note' => 'Voor 15:00 = zelfde dag' ],
-				[ 'icon' => 'usp-delivery', 'title' => 'Veilig betalen', 'note' => 'iDEAL · Klarna · PayPal' ],
+				// As the client worded them (feedback, 2026-10-01).
+				[ 'icon' => 'usp-secure', 'title' => 'Veilig betalen', 'note' => 'iDEAL · Klarna · PayPal · Bancontact' ],
+				[ 'icon' => 'usp-delivery', 'title' => 'Snel bezorgd', 'note' => 'Voor 15:00 = zelfde dag verzonden' ],
+				[ 'icon' => 'usp-box', 'title' => 'Gratis verzending', 'note' => 'Vanaf €60 NL & €70 BE' ],
 			],
 			'fields'        => [
 				'icon'  => [
@@ -361,6 +404,7 @@ class PFH_Element_Product extends \Bricks\Element {
 						'usp-secure'   => esc_html__( 'Secure payment', 'pfh-widgets' ),
 						'usp-natural'  => esc_html__( 'Leaf', 'pfh-widgets' ),
 						'usp-delivery' => esc_html__( 'Delivery van', 'pfh-widgets' ),
+						'usp-box'      => esc_html__( 'Parcel', 'pfh-widgets' ),
 						'check-list'   => esc_html__( 'Tick', 'pfh-widgets' ),
 					],
 					'default' => 'usp-secure',
@@ -435,7 +479,43 @@ class PFH_Element_Product extends \Bricks\Element {
 		echo '</div>';
 
 		echo '</div>';
+		$this->render_sticky( $product );
 		echo '</section>';
+	}
+
+	/**
+	 * A slim bar with the price and the button, for once the page's own
+	 * button has scrolled out of sight (feedback, 2026-09-28: "a floatable
+	 * add to cart button when you scroll down"). The script shows it; it
+	 * presses the page's own button, so there is one way to add to the cart.
+	 *
+	 * @param WC_Product $product Product.
+	 */
+	private function render_sticky( $product ) {
+		if ( ! $this->switched_on( 'stickyBuy', true ) ) {
+			return;
+		}
+
+		$thumb = (int) $product->get_image_id();
+		$src   = $thumb ? wp_get_attachment_image_url( $thumb, 'woocommerce_gallery_thumbnail' ) : '';
+		$price = $this->price_of( $product );
+
+		echo '<div class="pfh-pdp__sticky" data-pfh-sticky hidden aria-hidden="true">';
+		echo '<div class="pfh-pdp__sticky-inner">';
+
+		if ( $src ) {
+			printf( '<img class="pfh-pdp__sticky-img" src="%s" alt="" loading="lazy" decoding="async" />', esc_url( $src ) );
+		}
+
+		printf( '<span class="pfh-pdp__sticky-name">%s</span>', esc_html( $product->get_name() ) );
+		printf( '<span class="pfh-pdp__sticky-price" data-pfh-sticky-price>%s</span>', wp_kses_post( $price['now'] ) );
+		printf(
+			'<button type="button" class="pfh-pdp__sticky-btn" data-pfh-sticky-buy>%s</button>',
+			esc_html( (string) $this->setting( 'cartLabel', 'Voeg toe aan winkelmand' ) )
+		);
+
+		echo '</div>';
+		echo '</div>';
 	}
 
 	/* ---------------------------------------------------------------------
@@ -518,7 +598,7 @@ class PFH_Element_Product extends \Bricks\Element {
 		foreach ( $images as $i => $image ) {
 			printf(
 				'<img class="pfh-pdp__shot%s" src="%s" alt="%s" data-pfh-shot="%d"%s />',
-				0 === $i ? ' is-active' : '',
+				( 0 === $i ? ' is-active' : '' ) . ( ! empty( $image['backdrop'] ) ? ' is-photo' : '' ),
 				esc_url( $image['url'] ),
 				esc_attr( $image['alt'] ),
 				(int) $i,
@@ -563,7 +643,7 @@ class PFH_Element_Product extends \Bricks\Element {
 			foreach ( $images as $i => $image ) {
 				printf(
 					'<li class="pfh-pdp__thumbs-item"><button type="button" class="pfh-pdp__thumb%s" data-pfh-shot-go="%d" aria-label="%s"><img src="%s" alt="%s" loading="lazy" /></button></li>',
-					0 === $i ? ' is-active' : '',
+					( 0 === $i ? ' is-active' : '' ) . ( ! empty( $image['backdrop'] ) ? ' is-photo' : '' ),
 					(int) $i,
 					esc_attr( sprintf( /* translators: image number */ __( 'Toon afbeelding %d', 'pfh-widgets' ), (int) $i + 1 ) ),
 					esc_url( $image['thumb'] ),
@@ -603,9 +683,12 @@ class PFH_Element_Product extends \Bricks\Element {
 			}
 
 			$out[] = [
-				'url'   => $full,
-				'thumb' => (string) ( wp_get_attachment_image_url( $id, 'woocommerce_thumbnail' ) ?: $full ),
-				'alt'   => trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) ) ?: $product->get_name(),
+				'url'      => $full,
+				'thumb'    => (string) ( wp_get_attachment_image_url( $id, 'woocommerce_thumbnail' ) ?: $full ),
+				'alt'      => trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) ) ?: $product->get_name(),
+				// A photo with its own background fills the stage; a cut-out
+				// sits on the grey with room around it (feedback, 2026-09-28).
+				'backdrop' => class_exists( 'PFH_Widgets_Photo' ) && PFH_Widgets_Photo::has_backdrop( $id ),
 			];
 		}
 
@@ -641,6 +724,10 @@ class PFH_Element_Product extends \Bricks\Element {
 		$tag = in_array( (string) $this->setting( 'titleTag', 'h1' ), [ 'h1', 'h2' ], true ) ? (string) $this->setting( 'titleTag', 'h1' ) : 'h1';
 		printf( '<%1$s class="pfh-pdp__title">%2$s</%1$s>', $tag, esc_html( $product->get_name() ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- tag whitelisted.
 
+		// Right under the title, where a shopper looks for it (feedback,
+		// 2026-09-28) — it used to sit below the description.
+		$this->render_rating();
+
 		if ( $this->switched_on( 'showExcerpt' ) ) {
 			$excerpt = trim( (string) $product->get_short_description() );
 
@@ -649,10 +736,10 @@ class PFH_Element_Product extends \Bricks\Element {
 			}
 		}
 
-		$this->render_rating();
 		$this->render_price( $product );
 		$this->render_form( $product );
 		$this->render_usp();
+		$this->render_loyalty( $product );
 
 		echo '</div>';
 	}
@@ -823,7 +910,43 @@ class PFH_Element_Product extends \Bricks\Element {
 			? $this->opening_choice( $product )
 			: $product->get_default_attributes();
 
-		echo '<div class="pfh-pdp__attrs">';
+		/*
+		 * A bundle asks for three or four flavours, and seven pills each made
+		 * a wall of buttons before the add to cart button. Folded, the page
+		 * shows what is chosen and one "Smaken kiezen" button that opens them
+		 * all (feedback, 2026-09-28).
+		 */
+		$fold    = $this->folds( count( $attributes ) );
+		$body_id = 'pfh-pdp-choices-' . $this->id;
+
+		echo '<div class="pfh-pdp__attrs' . ( $fold ? ' pfh-pdp__attrs--fold' : '' ) . '"' . ( $fold ? ' data-pfh-fold' : '' ) . '>';
+
+		if ( $fold ) {
+			echo '<div class="pfh-pdp__fold">';
+			echo '<ul class="pfh-pdp__fold-list" data-pfh-fold-summary>';
+
+			foreach ( $attributes as $name => $options ) {
+				$picked = isset( $defaults[ sanitize_title( $name ) ] ) ? (string) $defaults[ sanitize_title( $name ) ] : '';
+
+				printf(
+					'<li class="pfh-pdp__fold-item" data-pfh-fold-for="%s"><span class="pfh-pdp__fold-name">%s</span><span class="pfh-pdp__fold-value" data-pfh-fold-value>%s</span></li>',
+					esc_attr( 'attribute_' . sanitize_title( $name ) ),
+					esc_html( $this->attribute_label( $name, $product ) ),
+					esc_html( '' !== $picked ? $this->option_words( $name, $picked ) : '—' )
+				);
+			}
+
+			echo '</ul>';
+			printf(
+				'<button type="button" class="pfh-pdp__fold-btn" data-pfh-fold-toggle aria-expanded="false" aria-controls="%s"><span>%s</span>%s</button>',
+				esc_attr( $body_id ),
+				esc_html( (string) $this->setting( 'foldLabel', 'Smaken kiezen' ) ),
+				PFH_Widgets_Icons::get( 'chevron', 'pfh-pdp__fold-chevron' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+			);
+			echo '</div>';
+		}
+
+		echo '<div class="pfh-pdp__attrs-body" id="' . esc_attr( $body_id ) . '">';
 
 		$index = 0;
 
@@ -907,6 +1030,41 @@ class PFH_Element_Product extends \Bricks\Element {
 		}
 
 		echo '</div>';
+		echo '</div>';
+	}
+
+	/**
+	 * A value's words, without the emoji it may lead with.
+	 *
+	 * @param string $name   Attribute name.
+	 * @param string $option Value.
+	 * @return string
+	 */
+	private function option_words( $name, $option ) {
+		$label = $this->option_label( $name, $option );
+
+		return class_exists( 'PFH_Widgets_Attribute_Emoji' ) ? PFH_Widgets_Attribute_Emoji::split( $label )[1] : $label;
+	}
+
+	/**
+	 * Fold the choices behind one button?
+	 *
+	 * @param int $groups How many attribute groups the product has.
+	 * @return bool
+	 */
+	private function folds( $groups ) {
+		switch ( (string) $this->setting( 'foldChoices', 'auto' ) ) {
+			case 'always':
+				return $groups > 0;
+
+			case 'off':
+				return false;
+
+			default:
+				// Three or more: the bundles. A product with a type and a
+				// flavour is two quick choices and stays open.
+				return $groups >= 3;
+		}
 	}
 
 	/**
@@ -1054,6 +1212,72 @@ class PFH_Element_Product extends \Bricks\Element {
 		echo '<p class="pfh-pdp__notice" data-pfh-notice hidden></p>';
 	}
 
+	/**
+	 * Is this the promise row exactly as it first shipped?
+	 *
+	 * @param array $items Saved rows.
+	 * @return bool
+	 */
+	private function is_first_usp_set( array $items ) {
+		$first = [
+			[ 'usp-secure', 'Veilig betalen', 'iDEAL · Klarna · PayPal' ],
+			[ 'usp-natural', 'Snel bezorgd', 'Voor 15:00 = zelfde dag' ],
+			[ 'usp-delivery', 'Veilig betalen', 'iDEAL · Klarna · PayPal' ],
+		];
+		$seen  = [];
+
+		foreach ( $items as $item ) {
+			$seen[] = [
+				isset( $item['icon'] ) ? (string) $item['icon'] : '',
+				isset( $item['title'] ) ? trim( (string) $item['title'] ) : '',
+				isset( $item['note'] ) ? trim( (string) $item['note'] ) : '',
+			];
+		}
+
+		return $seen === $first;
+	}
+
+	/**
+	 * "Je spaart 32 loyaliteitspunten met deze aankoop."
+	 *
+	 * The shop gives a point for every euro (the loyalty programme's own
+	 * rule), so the figure is worked out from the price and follows the
+	 * chosen variation and the quantity in the browser. The client asked for
+	 * it under the promises (feedback, 2026-09-28).
+	 *
+	 * @param WC_Product $product Product.
+	 */
+	private function render_loyalty( $product ) {
+		if ( ! $this->switched_on( 'showLoyalty', true ) ) {
+			return;
+		}
+
+		$text = trim( (string) $this->setting( 'loyaltyText', 'Je spaart %points% loyaliteitspunten met deze aankoop' ) );
+		$rate = (float) $this->setting( 'loyaltyRate', 1 );
+
+		if ( '' === $text || $rate <= 0 || false === strpos( $text, '%points%' ) ) {
+			return;
+		}
+
+		$parts  = $this->price_parts( $product );
+		$points = '' === $parts['now'] ? 0 : (int) floor( (float) $parts['now'] * $rate );
+
+		// The figure and the word after it are the bold part: "32
+		// loyaliteitspunten", as in the reference.
+		preg_match( '/^(.*?)%points%(\s+\S+)?(.*)$/su', $text, $m );
+
+		printf(
+			'<p class="pfh-pdp__loyalty" data-pfh-loyalty data-rate="%s"%s>%s<span class="pfh-pdp__loyalty-text">%s<strong><span data-pfh-loyalty-points>%s</span>%s</strong>%s</span></p>',
+			esc_attr( (string) $rate ),
+			$points > 0 ? '' : ' hidden',
+			PFH_Widgets_Icons::get( 'star-line', 'pfh-pdp__loyalty-icon' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+			esc_html( $m[1] ?? '' ),
+			esc_html( number_format_i18n( $points ) ),
+			esc_html( $m[2] ?? '' ),
+			esc_html( $m[3] ?? '' )
+		);
+	}
+
 	private function render_usp() {
 		if ( ! $this->switched_on( 'showUsp' ) ) {
 			return;
@@ -1062,6 +1286,11 @@ class PFH_Element_Product extends \Bricks\Element {
 		$items = $this->setting( 'uspItems', [] );
 		$items = is_array( $items ) ? $items : [];
 		$rows  = [];
+
+		// The first set — "Veilig betalen" twice — was never anyone's choice.
+		if ( $this->is_first_usp_set( $items ) ) {
+			$items = $this->controls['uspItems']['default'] ?? $items;
+		}
 
 		foreach ( $items as $item ) {
 			$title = isset( $item['title'] ) ? trim( (string) $item['title'] ) : '';

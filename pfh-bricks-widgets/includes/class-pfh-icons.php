@@ -61,6 +61,8 @@ class PFH_Widgets_Icons {
 			'usp-secure' => '0 0 30 30',
 			'usp-natural' => '0 0 30 30',
 			'usp-delivery' => '0 0 30 30',
+			'usp-box' => '0 0 30 30',
+			'star-line' => '0 0 24 24',
 			'box-check' => '0 0 26 26',
 			'filter'     => '0 0 12 12',
 			'faq-open'   => '0 0 14 8',
@@ -139,6 +141,9 @@ class PFH_Widgets_Icons {
 			'usp-delivery' => '<path d="M21.25 25C22.6307 25 23.75 23.8807 23.75 22.5C23.75 21.1193 22.6307 20 21.25 20C19.8693 20 18.75 21.1193 18.75 22.5C18.75 23.8807 19.8693 25 21.25 25Z" stroke="currentColor" stroke-width="1.5"/><path d="M8.75 25C10.1307 25 11.25 23.8807 11.25 22.5C11.25 21.1193 10.1307 20 8.75 20C7.36929 20 6.25 21.1193 6.25 22.5C6.25 23.8807 7.36929 25 8.75 25Z" stroke="currentColor" stroke-width="1.5"/><path d="M6.25 22.4655C4.8791 22.3973 4.02387 22.1932 3.41529 21.5847C2.8067 20.9761 2.60277 20.1209 2.53444 18.75M11.25 22.5H18.75M23.75 22.4655C25.1209 22.3973 25.9761 22.1932 26.5847 21.5847C27.5 20.6694 27.5 19.1963 27.5 16.25V13.75H21.625C20.6944 13.75 20.229 13.75 19.8525 13.6276C19.0914 13.3804 18.4946 12.7836 18.2474 12.0225C18.125 11.646 18.125 11.1806 18.125 10.25C18.125 8.85404 18.125 8.15606 17.9415 7.59119C17.5705 6.44955 16.6755 5.55448 15.5339 5.18354C14.969 5 14.271 5 12.875 5H2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 10H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 13.75H7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.125 7.5H20.4015C22.2207 7.5 23.1302 7.5 23.8705 7.94214C24.6107 8.38428 25.042 9.18514 25.9045 10.7869L27.5 13.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
 
 			'star'      => '<path fill="currentColor" d="M12 1.8l3.09 6.26 6.91 1-5 4.87 1.18 6.87L12 17.56l-6.18 3.25L7 13.94l-5-4.87 6.91-1L12 1.8Z"/>',
+			// A parcel, drawn like the other promise icons: 1.5 strokes, round joins.
+			'usp-box'   => '<path d="M15 3.75L25.625 8.75V21.25L15 26.25L4.375 21.25V8.75L15 3.75Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M4.375 8.75L15 13.75L25.625 8.75" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M15 13.75V26.25" stroke="currentColor" stroke-width="1.5"/><path d="M9.6875 6.25L20.3125 11.25V15.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+			'star-line' => '<path d="M12 2.75l2.83 5.74 6.33.92-4.58 4.47 1.08 6.3L12 17.2l-5.66 2.98 1.08-6.3-4.58-4.47 6.33-.92L12 2.75Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
 
 			// Social.
 			'facebook'  => '<path fill="currentColor" d="M13.5 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.25-1.5 1.55-1.5h1.65V3.63A22 22 0 0 0 14.29 3.5c-2.38 0-4.01 1.45-4.01 4.12V9.9H7.6V13h2.68v8h3.22Z"/>',

@@ -207,13 +207,14 @@ class PFH_Widgets_Archive {
 	 * @return array<string, string>
 	 */
 	public static function order_options() {
+		// In the order and words of the reference the client sent
+		// (feedback, 2026-09-30).
 		return [
-			'menu_order' => esc_html__( 'Standaard', 'pfh-widgets' ),
-			'popularity' => esc_html__( 'Best verkocht', 'pfh-widgets' ),
+			'menu_order' => esc_html__( 'Relevantie', 'pfh-widgets' ),
 			'rating'     => esc_html__( 'Best beoordeeld', 'pfh-widgets' ),
-			'date'       => esc_html__( 'Nieuwste', 'pfh-widgets' ),
-			'price'      => esc_html__( 'Prijs: laag naar hoog', 'pfh-widgets' ),
-			'price-desc' => esc_html__( 'Prijs: hoog naar laag', 'pfh-widgets' ),
+			'price'      => esc_html__( 'Prijs laag - hoog', 'pfh-widgets' ),
+			'price-desc' => esc_html__( 'Prijs hoog - laag', 'pfh-widgets' ),
+			'popularity' => esc_html__( 'Meest populair', 'pfh-widgets' ),
 		];
 	}
 

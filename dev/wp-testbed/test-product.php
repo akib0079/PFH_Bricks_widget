@@ -423,6 +423,43 @@ if ( $peach ) {
 	wp_update_term( $peach->term_id, 'pa_smaak', [ 'name' => 'Perzik' ] );
 }
 
+echo "\n── after the client's feedback (2026-09-28 .. 10-01) ──\n";
+$html = pdp( $variable->ID, [], true );
+$title_at   = strpos( $html, 'pfh-pdp__title' );
+$rating_at  = strpos( $html, 'pfh-pdp__rating' );
+$excerpt_at = strpos( $html, 'pfh-pdp__excerpt' );
+ok( 'the rating sits right under the title, before the description', false !== $rating_at && $title_at < $rating_at && ( false === $excerpt_at || $rating_at < $excerpt_at ), "$title_at / $rating_at / $excerpt_at" );
+ok( 'the promises are the client\'s three', false !== strpos( $html, 'Gratis verzending' ) && false !== strpos( $html, 'Bancontact' ) && 1 === substr_count( $html, '>Veilig betalen<' ) );
+$old = pdp( $variable->ID, [ 'showUsp' => true, 'uspItems' => [
+	[ 'icon' => 'usp-secure', 'title' => 'Veilig betalen', 'note' => 'iDEAL · Klarna · PayPal', 'id' => 'a' ],
+	[ 'icon' => 'usp-natural', 'title' => 'Snel bezorgd', 'note' => 'Voor 15:00 = zelfde dag', 'id' => 'b' ],
+	[ 'icon' => 'usp-delivery', 'title' => 'Veilig betalen', 'note' => 'iDEAL · Klarna · PayPal', 'id' => 'c' ],
+] ], true );
+ok( 'a page saved with the first set ("Veilig betalen" twice) gets them too', false !== strpos( $old, 'Gratis verzending' ) && 1 === substr_count( $old, '>Veilig betalen<' ) );
+$mine = pdp( $variable->ID, [ 'uspItems' => [ [ 'icon' => 'usp-box', 'title' => 'Eigen tekst', 'note' => '' ] ] ], true );
+ok( 'a set someone wrote themselves is kept', false !== strpos( $mine, 'Eigen tekst' ) && false === strpos( $mine, 'Gratis verzending' ) );
+
+$v     = wc_get_product( $variable->ID );
+$parts = ( new ReflectionMethod( 'PFH_Element_Product', 'price_parts' ) );
+$parts->setAccessible( true );
+$el    = new PFH_Element_Product( [ 'id' => 'lp' ] );
+$el->name = 'pfh-product';
+$price = $parts->invoke( $el, $v );
+$want  = (int) floor( (float) $price['now'] );
+ok( 'the loyalty line says how many points: a point a euro', (bool) preg_match( '#data-pfh-loyalty-points>' . preg_quote( number_format_i18n( $want ), '#' ) . '<#', $html ), (string) $want );
+ok( '  with the figure and the word in bold', (bool) preg_match( '#<strong><span data-pfh-loyalty-points>[^<]+</span> loyaliteitspunten</strong>#', $html ) );
+ok( 'the bar that follows the page down is there', false !== strpos( $html, 'data-pfh-sticky' ) && false !== strpos( $html, 'data-pfh-sticky-buy' ) );
+ok( '  and can be switched off', false === strpos( pdp( $variable->ID, [ 'stickyBuy' => false ], true ), 'data-pfh-sticky' ) );
+ok( 'two choice groups stay open', false === strpos( $html, 'data-pfh-fold' ) );
+$folded = pdp( $variable->ID, [ 'foldChoices' => 'always' ], true );
+ok( 'folded, the choices wait behind "Smaken kiezen"', false !== strpos( $folded, 'data-pfh-fold-toggle' ) && false !== strpos( $folded, 'Smaken kiezen' ) );
+ok( '  with what is chosen listed above it', 2 === substr_count( $folded, 'data-pfh-fold-for=' ) );
+ok( '  and the fields still in the form', false !== strpos( $folded, 'data-pfh-attr-field' ) );
+
+$js = file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/js/pfh-product.js' );
+ok( 'a flavour the chosen type does not come in is hidden, not just greyed', false !== strpos( $js, 'pill.hidden = ! exists;' ) );
+ok( 'one that is only sold out stays, greyed', false !== strpos( $js, 'pill.disabled = ! reachable;' ) );
+
 /* ---- put the catalogue back as it was ---- */
 $product = wc_get_product( $fixture_id );
 

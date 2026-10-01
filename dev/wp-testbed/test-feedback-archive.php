@@ -77,7 +77,7 @@ if ( $parent && $child ) {
 
 	echo "\n── toolbar and filter ──\n";
 	ok( 'no product count', false === strpos( $html, 'data-pfh-arch-count' ) );
-	ok( 'sorting instead, with best selling and highest price', false !== strpos( $html, 'data-pfh-arch-sort' ) && false !== strpos( $html, 'Best verkocht' ) && false !== strpos( $html, 'Prijs: hoog naar laag' ) );
+	ok( 'sorting instead, with best selling and highest price', false !== strpos( $html, 'data-pfh-arch-sort' ) && false !== strpos( $html, 'Meest populair' ) && false !== strpos( $html, 'Prijs hoog - laag' ) );
 	$saved = draw( el( 'PFH_Element_Archive', 'a3', [ 'toolbar' => [ [ 'part' => 'cats', 'id' => 'x1' ], [ 'part' => 'spacer', 'id' => 'x2' ], [ 'part' => 'count', 'id' => 'x3' ], [ 'part' => 'filter', 'id' => 'x4' ] ] ] ) );
 	ok( 'a template saved with the old toolbar gets sorting too', false === strpos( $saved, 'data-pfh-arch-count' ) && false !== strpos( $saved, 'data-pfh-arch-sort' ) );
 	$chosen = draw( el( 'PFH_Element_Archive', 'a4', [ 'toolbar' => [ [ 'part' => 'count' ], [ 'part' => 'filter' ] ] ] ) );
