@@ -432,14 +432,17 @@ class PFH_Element_Product extends \Bricks\Element {
 
 	private function style_controls() {
 		$this->controls['lineColor']  = $this->colour_field( 'style', esc_html__( 'Borders', 'pfh-widgets' ), '#EAEAEA' );
-		$this->controls['accent']     = $this->colour_field( 'style', esc_html__( 'Button and first chosen variant', 'pfh-widgets' ), '#2b5f63' );
+		$this->controls['accent']     = $this->colour_field( 'style', esc_html__( 'Button and first chosen variant', 'pfh-widgets' ), '#557f82' );
 		$this->controls['accentInk']  = $this->colour_field( 'style', esc_html__( 'Text on those', 'pfh-widgets' ), '#ffffff' );
 		$this->controls['softBg']     = $this->colour_field( 'style', esc_html__( 'Chosen variant, groups after the first', 'pfh-widgets' ), '#7caeb2' );
+		// Figma: an unchosen pill is outlined in a light teal with teal text.
+		$this->controls['pillLine']   = $this->colour_field( 'style', esc_html__( 'Variant outline', 'pfh-widgets' ), '#cfe1e2' );
+		$this->controls['pillInk']    = $this->colour_field( 'style', esc_html__( 'Variant text', 'pfh-widgets' ), '#39696d' );
 		$this->controls['softInk']    = $this->colour_field( 'style', esc_html__( 'Text on those', 'pfh-widgets' ), '#ffffff' );
 		$this->controls['stageBg']    = $this->colour_field( 'style', esc_html__( 'Gallery background', 'pfh-widgets' ), '#f2f2f2' );
 		$this->controls['badgeBg']    = $this->colour_field( 'style', esc_html__( 'Tag background', 'pfh-widgets' ), '#7f9471' );
 		$this->controls['badgeInk']   = $this->colour_field( 'style', esc_html__( 'Tag text', 'pfh-widgets' ), '#ffffff' );
-		$this->controls['ink']        = $this->colour_field( 'style', esc_html__( 'Headings', 'pfh-widgets' ), '#14181b' );
+		$this->controls['ink']        = $this->colour_field( 'style', esc_html__( 'Headings', 'pfh-widgets' ), '#3e4a3c' );
 		$this->controls['bodyInk']    = $this->colour_field( 'style', esc_html__( 'Body text', 'pfh-widgets' ), '#3e4a3c' );
 		$this->controls['mutedInk']   = $this->colour_field( 'style', esc_html__( 'Quiet text', 'pfh-widgets' ), '#a6a6a6' );
 		$this->controls['starColor']  = $this->colour_field( 'style', esc_html__( 'Stars', 'pfh-widgets' ), '#f5a623' );
@@ -1536,14 +1539,16 @@ class PFH_Element_Product extends \Bricks\Element {
 				'--pfh-pdp-price-set' => PFH_Widgets_Helpers::unit( $this->setting( 'priceSize', 28 ) ),
 				'--pfh-pdp-text'      => PFH_Widgets_Helpers::unit( $this->setting( 'textSize', 14 ) ),
 				'--pfh-pdp-line'      => PFH_Widgets_Helpers::color( $this->setting( 'lineColor' ), '#EAEAEA' ),
-				'--pfh-pdp-accent'    => PFH_Widgets_Helpers::color( $this->setting( 'accent' ), '#4f6d6c' ),
+				'--pfh-pdp-pill-line' => PFH_Widgets_Helpers::color( $this->setting( 'pillLine' ), '#cfe1e2' ),
+				'--pfh-pdp-pill-ink'  => PFH_Widgets_Helpers::color( $this->setting( 'pillInk' ), '#39696d' ),
+				'--pfh-pdp-accent'    => PFH_Widgets_Helpers::color( $this->setting( 'accent' ), '#557f82' ),
 				'--pfh-pdp-accent-ink' => PFH_Widgets_Helpers::color( $this->setting( 'accentInk' ), '#ffffff' ),
 				'--pfh-pdp-soft'      => PFH_Widgets_Helpers::color( $this->setting( 'softBg' ), '#c9dac2' ),
 				'--pfh-pdp-soft-ink'  => PFH_Widgets_Helpers::color( $this->setting( 'softInk' ), '#2f3e2b' ),
 				'--pfh-pdp-stage'     => PFH_Widgets_Helpers::color( $this->setting( 'stageBg' ), '#f2f2f2' ),
 				'--pfh-pdp-badge'     => PFH_Widgets_Helpers::color( $this->setting( 'badgeBg' ), '#7f9471' ),
 				'--pfh-pdp-badge-ink' => PFH_Widgets_Helpers::color( $this->setting( 'badgeInk' ), '#ffffff' ),
-				'--pfh-pdp-ink'       => PFH_Widgets_Helpers::color( $this->setting( 'ink' ), '#14181b' ),
+				'--pfh-pdp-ink'       => PFH_Widgets_Helpers::color( $this->setting( 'ink' ), '#3e4a3c' ),
 				'--pfh-pdp-body'      => PFH_Widgets_Helpers::color( $this->setting( 'bodyInk' ), '#3e4a3c' ),
 				'--pfh-pdp-muted'     => PFH_Widgets_Helpers::color( $this->setting( 'mutedInk' ), '#8a8a8a' ),
 				'--pfh-pdp-star'      => PFH_Widgets_Helpers::color( $this->setting( 'starColor' ), '#f5a623' ),

@@ -394,10 +394,10 @@
 
 .pfh-pdp__pill {
 	padding: 10px 14px;
-	border: 1px solid var(--pfh-pdp-line);
+	border: 1px solid var(--pfh-pdp-pill-line, var(--pfh-pdp-line));
 	border-radius: var(--pfh-pdp-radius);
 	background: #fff;
-	color: var(--pfh-pdp-ink);
+	color: var(--pfh-pdp-pill-ink, var(--pfh-pdp-ink));
 	font-family: inherit;
 	font-size: var(--pfh-pdp-text);
 	line-height: 1.2;

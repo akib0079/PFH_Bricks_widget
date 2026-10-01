@@ -272,7 +272,7 @@ ok( 'and the flavour group is marked for it out of the box', false !== strpos( $
 
 echo "\n── the corrections against Figma ──\n";
 ok( 'the price and its saving read one olive', false !== strpos( $html, '--pfh-pdp-price-ink:#697c66' ) );
-ok( 'the first chosen variant is the dark teal', false !== strpos( $html, '--pfh-pdp-accent:#2b5f63' ) );
+ok( 'the first chosen variant is the Figma teal', false !== strpos( $html, '--pfh-pdp-accent:#557f82' ) );
 ok( 'the ones under it the lighter one', false !== strpos( $html, '--pfh-pdp-soft:#7caeb2' ) );
 ok( 'with white on them', false !== strpos( $html, '--pfh-pdp-soft-ink:#ffffff' ) );
 ok( 'quiet labels are the drawn grey', false !== strpos( $html, '--pfh-pdp-muted:#a6a6a6' ) );
