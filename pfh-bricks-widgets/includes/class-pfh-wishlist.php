@@ -53,7 +53,10 @@ class PFH_Widgets_Wishlist {
 			return;
 		}
 
-		wp_enqueue_style( 'pfh-wishlist', PFH_WIDGETS_URL . 'assets/css/pfh-wishlist.css', [], PFH_WIDGETS_VERSION );
+		// The base layer is on every page already (the header needs it); the
+		// dependency only says so.
+		PFH_Widgets_Assets::register();
+		wp_enqueue_style( 'pfh-wishlist', PFH_WIDGETS_URL . 'assets/css/pfh-wishlist.css', [ 'pfh-base' ], PFH_WIDGETS_VERSION );
 		wp_enqueue_script( 'pfh-wishlist', PFH_WIDGETS_URL . 'assets/js/pfh-wishlist.js', [], PFH_WIDGETS_VERSION, true );
 
 		$config = [
