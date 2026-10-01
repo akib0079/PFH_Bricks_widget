@@ -66,6 +66,7 @@ class PFH_Element_Products extends \Bricks\Element {
 		$this->badge_controls();
 		$this->cart_controls();
 		$this->review_controls();
+		$this->photo_controls();
 		$this->card_controls();
 		$this->type_controls();
 		$this->layout_controls();
@@ -213,8 +214,8 @@ class PFH_Element_Products extends \Bricks\Element {
 			'max'         => 7,
 			'step'        => 0.1,
 			'inline'      => true,
-			'default'     => 3.5,
-			'description' => esc_html__( 'Decimals show part of the next card, as in the design.', 'pfh-widgets' ),
+			'default'     => 4,
+			'description' => esc_html__( 'Four, the size of the olive oil grid, which the client preferred for every row. Decimals show part of the next card.', 'pfh-widgets' ),
 		];
 
 		$this->controls['perViewTablet'] = [
@@ -249,7 +250,7 @@ class PFH_Element_Products extends \Bricks\Element {
 			'min'     => 0,
 			'max'     => 80,
 			'inline'  => true,
-			'default' => 20,
+			'default' => 18,
 		];
 
 		$this->controls['mediaBg'] = [
@@ -594,6 +595,16 @@ class PFH_Element_Products extends \Bricks\Element {
 			return;
 		}
 
+		// Before anything reads a setting: saved values that are only the
+		// old defaults give way to the current ones. Four across, the size
+		// of the olive oil grid, which the client asked for on every row.
+		$this->retire_card_settings(
+			[
+				'perView' => 3.5,
+				'cardGap' => 20,
+			]
+		);
+
 		$cards = $this->cards();
 
 		if ( empty( $cards ) ) {
@@ -750,10 +761,10 @@ class PFH_Element_Products extends \Bricks\Element {
 				'--pfh-more-color'     => PFH_Widgets_Helpers::color( $this->get( 'btnColor' ), '#5f6d46' ),
 				'--pfh-more-h'         => PFH_Widgets_Helpers::unit( $this->get( 'btnHeight', 44 ) ),
 
-				'--pfh-per-set'        => $this->get( 'perView', 3.5 ),
+				'--pfh-per-set'        => $this->get( 'perView', 4 ),
 				'--pfh-per-t'          => $this->get( 'perViewTablet', 2.4 ),
 				'--pfh-per-m'          => $this->get( 'perViewMobile', 1.35 ),
-				'--pfh-card-gap'       => PFH_Widgets_Helpers::unit( $this->get( 'cardGap', 20 ) ),
+				'--pfh-card-gap'       => PFH_Widgets_Helpers::unit( $this->get( 'cardGap', 18 ) ),
 
 				'--pfh-media-bg'       => PFH_Widgets_Helpers::color( $this->get( 'mediaBg' ), '#f4f4f4' ),
 				'--pfh-media-radius'   => PFH_Widgets_Helpers::unit( $this->get( 'mediaRadius', 18 ) ),

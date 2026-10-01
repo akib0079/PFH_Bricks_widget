@@ -62,11 +62,11 @@ class PFH_Element_Archive extends \Bricks\Element {
 	const CARD_KEYS = [
 		'cartBg', 'cartColor', 'cartHoverBg', 'cartRadius', 'cartHeight',
 		'cartLabel', 'cartAddedLabel', 'cartIcon', 'cartIconSize', 'cartSize',
-		'reviewMode', 'reviewShowStars', 'reviewSize', 'reviewColor',
+		'reviewShowStars', 'reviewSize', 'reviewColor',
 		'starColor', 'starSize', 'starEmptyColor',
 		'titleSize', 'titleWeight', 'titleLineHeight', 'titleColor', 'titleLines',
 		'priceSize', 'priceWeight', 'priceColor', 'oldPriceColor', 'priceGap',
-		'priceSuffix', 'priceSuffixOld', 'oldPriceSize',
+		'priceSuffix', 'oldPriceSize',
 		'badgeSize', 'badgeOffset',
 		'cardRadius', 'cardRatio', 'cardImageBg', 'cardImagePad', 'cardGap',
 	];
@@ -130,6 +130,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$this->badge_controls();
 		$this->cart_controls();
 		$this->review_controls();
+		$this->photo_controls();
 		$this->type_controls();
 
 		// Remember what the shared controls said before this element retunes
@@ -199,7 +200,26 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$this->settings['cartReveal']   = 'none';
 	}
 
+	/**
+	 * This card's own earlier tuning, retired. A template saved with these
+	 * never chose them; it carries them because they were the defaults.
+	 */
+	const RETIRED_TUNE = [
+		'titleColor'    => [ 'hex' => '#51604f' ],
+		'priceSize'     => 12,
+		'priceColor'    => [ 'hex' => '#51604f' ],
+		'oldPriceColor' => [ 'hex' => '#9aa396' ],
+		'oldPriceSize'  => 10,
+		'cartHoverBg'   => [ 'hex' => '#3f4c3e' ],
+	];
+
 	private function migrate_card() {
+		foreach ( self::RETIRED_TUNE as $key => $old ) {
+			if ( array_key_exists( $key, $this->settings ) && $this->settings[ $key ] === $old ) {
+				unset( $this->settings[ $key ] );
+			}
+		}
+
 		foreach ( self::CARD_KEYS as $key ) {
 			if ( ! array_key_exists( $key, $this->shared_defaults ) ) {
 				continue;
@@ -221,17 +241,21 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$tune = [
 			'titleSize'      => 17,
 			'titleLineHeight' => 1.3,
-			'titleColor'     => [ 'hex' => '#51604f' ],
-			'priceSize'      => 12,
-			'priceColor'     => [ 'hex' => '#51604f' ],
-			'oldPriceColor'  => [ 'hex' => '#9aa396' ],
+			/*
+			 * The same near-black and grey the home page's cards were given,
+			 * which the client asked to see here too (feedback 2026-09-28),
+			 * and a price a size up so a sale is noticed.
+			 */
+			'titleColor'     => [ 'hex' => '#22301c' ],
+			'priceSize'      => 15,
+			'priceColor'     => [ 'hex' => '#212121' ],
+			'oldPriceColor'  => [ 'hex' => '#b3b5b0' ],
 			'priceGap'       => 8,
 			// The struck price is a size smaller than the current one.
-			'oldPriceSize'   => 10,
+			'oldPriceSize'   => 13,
 			'reviewSize'     => 11,
 			'reviewColor'    => [ 'hex' => '#6f7d6b' ],
 			'starSize'       => 12,
-			'reviewMode'     => 'woocommerce',
 			'badgeSize'      => 11,
 			'badgeOffset'    => 10,
 
@@ -247,11 +271,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 			'cartHeight'     => 36,
 			'cartLabel'      => 'TOEVOEGEN',
 			'reviewShowStars' => true,
-			// The grid puts the old price beside the new one, so the suffix
-			// rides on the current price only — the slider repeats it on
-			// both, which is the width the slider has room for.
 			'priceSuffix'    => 'incl. BTW',
-			'priceSuffixOld' => false,
 		];
 
 		foreach ( $tune as $key => $value ) {

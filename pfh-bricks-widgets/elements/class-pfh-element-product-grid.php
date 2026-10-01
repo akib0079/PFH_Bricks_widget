@@ -64,6 +64,7 @@ class PFH_Element_Product_Grid extends \Bricks\Element {
 		$this->badge_controls();
 		$this->cart_controls();
 		$this->review_controls();
+		$this->photo_controls();
 		$this->card_controls();
 		$this->type_controls();
 		$this->layout_controls();

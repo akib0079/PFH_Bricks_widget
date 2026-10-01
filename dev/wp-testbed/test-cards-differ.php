@@ -70,8 +70,8 @@ ok( 'slider button is round', 999 === (int) $slider['settings']['cartRadius'] );
 ok( 'slider button is the olive one', '#51604f' === strtolower( $slider['settings']['cartBg']['hex'] ) );
 ok( 'slider markup carries the corner class', false !== strpos( $slider['html'], 'pfh-cart-br' ) );
 ok( 'slider has no full-width bar', false === strpos( $slider['html'], 'pfh-cart-block' ) );
-ok( 'slider shows stars', false !== strpos( $slider['html'], 'pfh-prod__stars' ) );
-ok( 'slider repeats the suffix on the old price', true === (bool) $slider['settings']['priceSuffixOld'] );
+ok( 'slider shows no shop-wide stars on products without reviews', false === strpos( $slider['html'], 'pfh-prod__stars' ) );
+ok( 'slider says incl. btw once per card, never on the struck price', ! preg_match( '#<del class="pfh-prod__old">[^<]*(<[^>]*>[^<]*)*?pfh-prod__suffix#', $slider['html'] ) );
 
 echo "\n── the grid keeps its own card ──\n";
 ok( 'grid button sits in the image corner', 'br' === $grid['settings']['cartPosition'], $grid['settings']['cartPosition'] );
@@ -80,13 +80,13 @@ ok( 'grid has no full-width bar', false === strpos( $grid['html'], 'pfh-cart-blo
 echo "\n── the shop grid is the other card ──\n";
 ok( 'archive button is the full-width bar', false !== strpos( $arch['html'], 'pfh-cart-block' ) );
 ok( 'archive does not offer the button position as a setting', ! isset( $archControls['cartPosition'] ), 'it is fixed by the design' );
-ok( 'archive shows stars beside the count', false !== strpos( $arch['html'], 'pfh-prod__stars' ) );
+ok( 'archive shows no shop-wide stars on products without reviews', false === strpos( $arch['html'], 'pfh-prod__stars' ) );
 ok( 'archive button is teal', '#7caeb2' === strtolower( $arch['settings']['cartBg']['hex'] ) );
 ok( 'archive button has the 5px radius', 5 === (int) $arch['settings']['cartRadius'] );
 ok( 'archive markup carries the block class', false !== strpos( $arch['html'], 'pfh-cart-block' ) );
 ok( 'archive button is always visible', false !== strpos( $arch['html'], 'pfh-reveal-none' ) );
 ok( 'archive button reads TOEVOEGEN', false !== strpos( $arch['html'], 'TOEVOEGEN' ) );
-ok( 'archive suffix is on the current price only', false === (bool) $arch['settings']['priceSuffixOld'] );
+ok( 'archive suffix is on the current price only', substr_count( $arch['html'], 'pfh-prod__suffix' ) === substr_count( $arch['html'], 'class="pfh-prod__price"' ) );
 ok( 'archive suffix is Dutch', 'incl. BTW' === $arch['settings']['priceSuffix'] );
 
 echo "\n── the two never become the same card ──\n";

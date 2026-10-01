@@ -77,7 +77,7 @@ echo "\n── and the design still reaches an untouched card ──\n";
 $html = build();
 ok( 'the button is teal', false !== strpos( $html, '--pfh-cart-bg:#7caeb2' ) );
 ok( 'the title is 17px', false !== strpos( $html, '--pfh-t-size-set:17px' ) );
-ok( 'stars are back', false !== strpos( $html, 'pfh-prod__stars' ) );
+ok( 'no shop-wide stars on a product without reviews of its own', false === strpos( $html, 'pfh-prod__stars' ) );
 ok( 'the label is TOEVOEGEN', false !== strpos( $html, 'TOEVOEGEN' ) );
 
 echo "\n── page two keeps the label ──\n";

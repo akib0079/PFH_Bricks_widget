@@ -4,9 +4,8 @@
  *
  *   php dev/test-card-reviews.php
  *
- * The card can show typed text, the shop's live WebwinkelKeur rating, or each
- * product's own WooCommerce rating. The fallback path matters most: a product
- * with no reviews yet must not render nought stars.
+ * A card shows a product's own WooCommerce rating, and nothing when it has
+ * none: never nought stars, and never the shop-wide score.
  */
 
 require __DIR__ . '/stubs.php';
@@ -38,24 +37,14 @@ echo "\n\033[1mProduct card review row\033[0m\n";
 $reviewed  = ['rating'=>4.5,'reviews'=>38];
 $unrated   = ['rating'=>0.0,'reviews'=>0];
 
-$r = row('static', $reviewed);
-ok('static mode is unchanged', 5.0 === (float)$r['stars'] && '124 reviews' === $r['text'], json_encode($r));
-
-$r = row('shop', $unrated);
-ok('shop mode uses the live WebwinkelKeur score', 5.0 === (float)$r['stars'], json_encode($r));
-ok('shop mode renumbers the label to the live count', '396 reviews' === $r['text'], json_encode($r));
-
-$r = row('woocommerce', $reviewed);
-ok('per-product uses the product’s own rating', 4.5 === (float)$r['stars'] && '38 reviews' === $r['text'], json_encode($r));
-
-$r = row('woocommerce', $unrated, 'shop');
-ok('a product with no reviews falls back to the shop figure', '396 reviews' === $r['text'], json_encode($r));
-
-$r = row('woocommerce', $unrated, 'hide');
-ok('or the row is hidden entirely', null === $r, json_encode($r));
-
-$r = row('woocommerce', $unrated, 'static');
-ok('or the typed text is used', '124 reviews' === $r['text'], json_encode($r));
+// Only a product's own reviews: the shop's WebwinkelKeur score rates the
+// shop, and on every card it read as if each product had 396 reviews.
+foreach (['static','shop','woocommerce'] as $mode) {
+  $r = row($mode, $reviewed);
+  ok("$mode (legacy setting): a reviewed product shows its own rating", 4.5 === (float)$r['stars'] && '38 reviews' === $r['text'], json_encode($r));
+  $r = row($mode, $unrated, 'shop');
+  ok("$mode (legacy setting): an unreviewed product shows no row", null === $r, json_encode($r));
+}
 
 $r = row('woocommerce', ['rating'=>4.5,'reviews'=>1]);
 ok('singular is handled', '1 review' === $r['text'], json_encode($r));

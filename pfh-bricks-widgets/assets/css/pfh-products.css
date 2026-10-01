@@ -285,7 +285,7 @@
 	   the photograph's corners rather than on empty space around it. */
 	border-radius: var(--pfh-shot-radius);
 	object-fit: contain;
-	transition: transform var(--pfh-speed) var(--pfh-ease);
+	transition: transform var(--pfh-speed) var(--pfh-ease), opacity var(--pfh-speed) var(--pfh-ease);
 }
 
 /* The product sits inside the box padding, so the zoom has room and the
@@ -293,6 +293,75 @@
 @media (hover: hover) {
 	.pfh-prod__card:hover .pfh-prod__img {
 		transform: scale(var(--pfh-img-zoom));
+	}
+}
+
+/*
+ * A photograph with its own background fills the tile edge to edge, with no
+ * grey frame around it. A cut-out keeps the grey tile and the padding. The
+ * client saw the old way as "a white box with a grey border, zoomed out".
+ */
+.pfh-prod__media--photo {
+	padding: 0;
+	background: transparent;
+}
+
+/* Under a full-bleed photo the tile is never seen — until the photo makes
+   way on hover for a cut-out, which needs the grey to sit on. */
+.pfh-prod__media--photo.has-swap { background: var(--pfh-media-bg); }
+
+.pfh-prod__media--photo .pfh-prod__media-link {
+	position: absolute;
+	inset: 0;
+}
+
+.pfh-prod__media--photo .pfh-prod__img:not(.pfh-prod__img--next) {
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	border-radius: 0;
+	object-fit: cover;
+}
+
+/*
+ * The next photograph, shown while the card is hovered. It lies over the
+ * first: a photo with a background covers the tile, a cut-out sits inside the
+ * same padding the first one does.
+ */
+.pfh-prod__img--next {
+	position: absolute;
+	inset: var(--pfh-media-pad);
+	z-index: 1;
+	width: calc(100% - var(--pfh-media-pad) * 2);
+	height: calc(100% - var(--pfh-media-pad) * 2);
+	max-width: none;
+	max-height: none;
+	margin: auto;
+	object-fit: contain;
+	border-radius: var(--pfh-shot-radius);
+	opacity: 0;
+	transition: opacity var(--pfh-speed) var(--pfh-ease);
+	pointer-events: none;
+}
+
+.pfh-prod__img--next.is-photo {
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: 0;
+	object-fit: cover;
+}
+
+@media (hover: hover) {
+	.pfh-prod__card:hover .has-swap .pfh-prod__img--next {
+		opacity: 1;
+	}
+
+	/* The first photo makes way rather than zooming behind the second. */
+	.pfh-prod__card:hover .has-swap .pfh-prod__img:not(.pfh-prod__img--next) {
+		opacity: 0;
+		transform: none;
 	}
 }
 

@@ -38,6 +38,7 @@ require_once PFH_WIDGETS_DIR . 'includes/class-pfh-diagnose.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-save-guard.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-product-fields.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-attribute-emoji.php';
+require_once PFH_WIDGETS_DIR . 'includes/class-pfh-photo.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-badge.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-license.php';
 require_once PFH_WIDGETS_DIR . 'includes/class-pfh-instagram.php';

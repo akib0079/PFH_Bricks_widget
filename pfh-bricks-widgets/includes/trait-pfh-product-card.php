@@ -129,12 +129,22 @@ trait PFH_Product_Card_Trait {
 			return null;
 		}
 
-		$image = get_the_post_thumbnail_url( $product->get_id(), 'woocommerce_thumbnail' );
+		$photo = $this->card_photo( (int) $product->get_image_id() );
+		$image = $photo ? $photo['src'] : get_the_post_thumbnail_url( $product->get_id(), 'woocommerce_thumbnail' );
+
+		/*
+		 * The next photograph, shown while the card is hovered. The first one
+		 * in the gallery, which is the order the product page shows them in.
+		 */
+		$gallery = method_exists( $product, 'get_gallery_image_ids' ) ? array_values( array_filter( array_map( 'intval', (array) $product->get_gallery_image_ids() ) ) ) : [];
+		$next    = ( $gallery && $this->is_on( 'imageSwap', true ) ) ? $this->card_photo( $gallery[0] ) : null;
 
 		return [
 			'id'       => $product->get_id(),
 			'title'    => $product->get_name(),
 			'image'    => $image ? $image : ( function_exists( 'wc_placeholder_img_src' ) ? wc_placeholder_img_src( 'woocommerce_thumbnail' ) : '' ),
+			'photo'    => $photo,
+			'photo2'   => $next,
 			'link'     => [
 				'href'   => $product->get_permalink(),
 				'target' => '',
@@ -148,6 +158,21 @@ trait PFH_Product_Card_Trait {
 			'reviews'  => (int) $product->get_review_count(),
 			'cart'     => $product,
 		];
+	}
+
+	/**
+	 * One photograph, sharp and classified, or null.
+	 *
+	 * @param int $attachment_id Attachment.
+	 * @return array|null
+	 */
+	private function card_photo( $attachment_id ) {
+		if ( $attachment_id <= 0 || ! class_exists( 'PFH_Widgets_Photo' ) ) {
+			return null;
+		}
+
+		// A card is drawn at most about 360px wide, half the screen on a phone.
+		return PFH_Widgets_Photo::card_image( $attachment_id, '(max-width: 767px) 60vw, 360px' );
 	}
 
 	private function product_cards() {
@@ -380,6 +405,8 @@ trait PFH_Product_Card_Trait {
 	 * @return array
 	 */
 	private function card_vars() {
+		$this->retire_card_settings();
+
 		$lines = (int) $this->get( 'titleLines', 2 );
 
 		return [
@@ -395,7 +422,7 @@ trait PFH_Product_Card_Trait {
 			'--pfh-cart-icon'        => PFH_Widgets_Helpers::unit( $this->get( 'cartIconSize', 20 ) ),
 			'--pfh-cart-bg'          => PFH_Widgets_Helpers::color( $this->get( 'cartBg' ), '#7caeb2' ),
 			'--pfh-cart-color'       => PFH_Widgets_Helpers::color( $this->get( 'cartColor' ), '#ffffff' ),
-			'--pfh-cart-hover'       => PFH_Widgets_Helpers::color( $this->get( 'cartHoverBg' ), '#3f4c3e' ),
+			'--pfh-cart-hover'       => $this->cart_hover(),
 			'--pfh-cart-radius'      => PFH_Widgets_Helpers::unit( $this->get( 'cartRadius', 5 ) ),
 			'--pfh-cart-h'           => PFH_Widgets_Helpers::unit( $this->get( 'cartHeight', 36 ) ),
 			'--pfh-cart-label'       => (string) $this->get( 'cartLabel', 'TOEVOEGEN' ),
@@ -412,7 +439,7 @@ trait PFH_Product_Card_Trait {
 			'--pfh-t-color'          => PFH_Widgets_Helpers::color( $this->get( 'titleColor' ), '#22301c' ),
 			'--pfh-t-lines'          => $lines > 0 ? $lines : 99,
 
-			'--pfh-pr-size'          => PFH_Widgets_Helpers::unit( $this->get( 'priceSize', 14 ) ),
+			'--pfh-pr-size'          => PFH_Widgets_Helpers::unit( $this->get( 'priceSize', 16 ) ),
 			'--pfh-pr-weight'        => $this->get( 'priceWeight', '500' ),
 			'--pfh-pr-color'         => PFH_Widgets_Helpers::color( $this->get( 'priceColor' ), '#5f6d46' ),
 			'--pfh-pr-old'           => PFH_Widgets_Helpers::color( $this->get( 'oldPriceColor' ), 'rgba(95,109,70,.5)' ),
@@ -423,14 +450,65 @@ trait PFH_Product_Card_Trait {
 		];
 	}
 
+	/**
+	 * Card settings whose old default was replaced, and that value.
+	 *
+	 * A saved setting still holding the old default was never chosen by
+	 * anyone, so it is dropped and the current default applies. Anything
+	 * else the editor set is left alone.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function retired_card_defaults() {
+		return [
+			// The client asked for a bigger price (feedback, 2026-09-27).
+			'priceSize'   => 14,
+			// A dark olive hover on a teal button read as a different
+			// button; it is now the button's own colour, one tint darker.
+			'cartHoverBg' => [ 'hex' => '#3f4c3e' ],
+		];
+	}
+
+	/**
+	 * @param array<string, mixed> $more This element's own retired defaults.
+	 */
+	private function retire_card_settings( array $more = [] ) {
+		foreach ( array_merge( $this->retired_card_defaults(), $more ) as $key => $old ) {
+			if ( array_key_exists( $key, (array) $this->settings ) && $this->settings[ $key ] === $old ) {
+				unset( $this->settings[ $key ] );
+			}
+		}
+	}
+
+	/**
+	 * The add to cart button's hover: the colour set for it, or else the
+	 * button's own colour one tint darker.
+	 *
+	 * @return string
+	 */
+	private function cart_hover() {
+		$set = PFH_Widgets_Helpers::color( $this->get( 'cartHoverBg' ), '' );
+
+		if ( '' !== $set ) {
+			return $set;
+		}
+
+		return 'color-mix(in srgb, var(--pfh-cart-bg) 84%, #000)';
+	}
+
 	private function price_html( $product, $which ) {
 		if ( 'woo' === $this->get( 'priceMode', 'split' ) ) {
 			return 'current' === $which ? $product->get_price_html() : '';
 		}
 
-		// The slider repeats the suffix on both prices; the archive's card
-		// carries it on the current price only, which is how each is drawn.
-		$suffix_here = 'regular' !== $which || $this->is_on( 'priceSuffixOld' );
+		/*
+		 * "incl. btw" once per card, on the price that is paid. It used to
+		 * be repeated on the struck-through price as well, and two of them
+		 * side by side read as clutter (client feedback, 2026-09-30). It
+		 * stays on the current price rather than going altogether: the B2B
+		 * prices planned for later need to say which kind they are.
+		 */
+		$suffix_here = 'regular' !== $which;
 
 		if ( ! function_exists( 'wc_get_price_to_display' ) || ! function_exists( 'wc_price' ) ) {
 			return '';
@@ -452,6 +530,20 @@ trait PFH_Product_Card_Trait {
 		}
 
 		return $html;
+	}
+
+	/**
+	 * srcset and sizes for a card photograph, or nothing.
+	 *
+	 * @param array|null $photo From PFH_Widgets_Photo::card_image().
+	 * @return string Leading space included.
+	 */
+	private function srcset_attrs( $photo ) {
+		if ( ! $photo || empty( $photo['srcset'] ) ) {
+			return '';
+		}
+
+		return sprintf( ' srcset="%s" sizes="%s"', esc_attr( $photo['srcset'] ), esc_attr( $photo['sizes'] ) );
 	}
 
 	/**
@@ -487,7 +579,25 @@ trait PFH_Product_Card_Trait {
 		echo '<article class="pfh-prod__card">';
 
 		// -- Media -------------------------------------------------------
-		echo '<div class="pfh-prod__media">';
+		$photo  = isset( $card['photo'] ) && is_array( $card['photo'] ) ? $card['photo'] : null;
+		$second = isset( $card['photo2'] ) && is_array( $card['photo2'] ) ? $card['photo2'] : null;
+		$media  = [ 'pfh-prod__media' ];
+
+		/*
+		 * A photograph with its own background fills the tile edge to edge;
+		 * a cut-out keeps the grey tile and the room around it. As drawn, the
+		 * two kinds sat the same way, which made a packshot on white a white
+		 * box inside a grey frame.
+		 */
+		if ( $photo && ! empty( $photo['backdrop'] ) ) {
+			$media[] = 'pfh-prod__media--photo';
+		}
+
+		if ( $second ) {
+			$media[] = 'has-swap';
+		}
+
+		echo '<div class="' . esc_attr( implode( ' ', $media ) ) . '">';
 
 		if ( $this->shows_badge( $card ) && $this->get( 'badgeText' ) ) {
 			echo '<span class="pfh-prod__badge">' . esc_html( PFH_Widgets_Helpers::dd( $this->get( 'badgeText' ) ) ) . '</span>';
@@ -499,9 +609,19 @@ trait PFH_Product_Card_Trait {
 
 		if ( ! empty( $card['image'] ) ) {
 			printf(
-				'<img class="pfh-prod__img" src="%s" alt="%s" loading="lazy" decoding="async" />',
+				'<img class="pfh-prod__img" src="%s"%s alt="%s" loading="lazy" decoding="async" />',
 				esc_url( $card['image'] ),
+				$this->srcset_attrs( $photo ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in srcset_attrs().
 				esc_attr( $card['title'] )
+			);
+		}
+
+		if ( $second ) {
+			printf(
+				'<img class="pfh-prod__img pfh-prod__img--next%s" src="%s"%s alt="" aria-hidden="true" loading="lazy" decoding="async" />',
+				! empty( $second['backdrop'] ) ? ' is-photo' : '',
+				esc_url( $second['src'] ),
+				$this->srcset_attrs( $second ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in srcset_attrs().
 			);
 		}
 
@@ -567,64 +687,26 @@ trait PFH_Product_Card_Trait {
 	 * @return array{stars:float, text:string}|null Null hides the row.
 	 */
 	private function review_row( $card ) {
-		$mode = (string) $this->get( 'reviewMode', 'static' );
+		/*
+		 * Only a product's own reviews. The shop's WebwinkelKeur score rates
+		 * the shop, not the product, and on every card it read as if each
+		 * product had 396 five-star reviews — the client asked for it to go
+		 * (feedback, 2026-09-28). A product with no reviews of its own shows
+		 * no row rather than nought stars.
+		 */
+		$count = isset( $card['reviews'] ) ? (int) $card['reviews'] : 0;
 
-		if ( 'shop' === $mode ) {
-			return $this->shop_review_row();
-		}
-
-		if ( 'woocommerce' === $mode ) {
-			$count = isset( $card['reviews'] ) ? (int) $card['reviews'] : 0;
-
-			if ( $count > 0 && null !== $card['rating'] ) {
-				return [
-					'stars' => (float) $card['rating'],
-					'text'  => sprintf(
-						/* translators: %s: number of reviews. */
-						_n( '%s review', '%s reviews', $count, 'pfh-widgets' ),
-						number_format_i18n( $count )
-					),
-				];
-			}
-
-			$fallback = (string) $this->get( 'reviewFallback', 'shop' );
-
-			if ( 'hide' === $fallback ) {
-				return null;
-			}
-
-			if ( 'shop' === $fallback ) {
-				return $this->shop_review_row();
-			}
+		if ( $count <= 0 || empty( $card['rating'] ) ) {
+			return null;
 		}
 
 		return [
-			'stars' => (float) $this->get( 'reviewStars', 5 ),
-			'text'  => (string) $this->get( 'reviewText', '' ),
-		];
-	}
-
-	/**
-	 * The shop's live WebwinkelKeur figures, shaped for a card.
-	 *
-	 * The typed stars and text are the fallback, so an unreachable feed leaves
-	 * the card exactly as it was designed rather than showing nought.
-	 *
-	 * @return array{stars:float, text:string}
-	 */
-	private function shop_review_row() {
-		$figures = PFH_Widgets_Reviews::figures(
-			[
-				'live'  => true,
-				'scale' => 5,
-				'score' => (string) $this->get( 'reviewStars', 5 ),
-				'count' => 0,
-			]
-		);
-
-		return [
-			'stars' => (float) $figures['stars'],
-			'text'  => PFH_Widgets_Reviews::tokens( (string) $this->get( 'reviewText', '' ), $figures ),
+			'stars' => (float) $card['rating'],
+			'text'  => sprintf(
+				/* translators: %s: number of reviews. */
+				_n( '%s review', '%s reviews', $count, 'pfh-widgets' ),
+				number_format_i18n( $count )
+			),
 		];
 	}
 
@@ -1266,10 +1348,10 @@ trait PFH_Product_Card_Trait {
 		$this->controls['cartHoverBg'] = [
 			'tab'      => 'content',
 			'group'    => 'cart',
-			'label'    => esc_html__( 'Background (hover)', 'pfh-widgets' ),
-			'type'     => 'color',
-			'default'  => [ 'hex' => '#3f4c3e' ],
-			'required' => [ 'cartEnable', '=', true ],
+			'label'       => esc_html__( 'Background (hover)', 'pfh-widgets' ),
+			'type'        => 'color',
+			'required'    => [ 'cartEnable', '=', true ],
+			'description' => esc_html__( 'Empty: the button colour, one tint darker.', 'pfh-widgets' ),
 		];
 
 		$this->controls['cartRadius'] = [
@@ -1289,41 +1371,10 @@ trait PFH_Product_Card_Trait {
 		$this->controls['reviewEnable'] = [
 			'tab'     => 'content',
 			'group'   => 'reviews',
-			'label'   => esc_html__( 'Show the review row', 'pfh-widgets' ),
-			'type'    => 'checkbox',
-			'default' => true,
-		];
-
-		$this->controls['reviewMode'] = [
-			'tab'         => 'content',
-			'group'       => 'reviews',
-			'label'       => esc_html__( 'Source', 'pfh-widgets' ),
-			'type'        => 'select',
-			'inline'      => true,
-			'options'     => [
-				'static'      => esc_html__( 'Same text on every card', 'pfh-widgets' ),
-				'shop'        => esc_html__( 'The shop’s live WebwinkelKeur rating', 'pfh-widgets' ),
-				'woocommerce' => esc_html__( 'Each product’s own rating', 'pfh-widgets' ),
-			],
-			'default'     => 'static',
-			'required'    => [ 'reviewEnable', '=', true ],
-			'description' => esc_html__( 'This store collects reviews in WebwinkelKeur, which rates the shop rather than individual products — so the shop rating is the real figure available for every card. Per-product needs WooCommerce reviews on the products themselves.', 'pfh-widgets' ),
-		];
-
-		$this->controls['reviewFallback'] = [
-			'tab'         => 'content',
-			'group'       => 'reviews',
-			'label'       => esc_html__( 'When a product has no reviews', 'pfh-widgets' ),
-			'type'        => 'select',
-			'inline'      => true,
-			'options'     => [
-				'shop'   => esc_html__( 'Show the shop rating instead', 'pfh-widgets' ),
-				'hide'   => esc_html__( 'Hide the row on that card', 'pfh-widgets' ),
-				'static' => esc_html__( 'Show the text below', 'pfh-widgets' ),
-			],
-			'default'     => 'shop',
-			'required'    => [ [ 'reviewEnable', '=', true ], [ 'reviewMode', '=', 'woocommerce' ] ],
-			'description' => esc_html__( 'A brand new product showing nought stars reads worse than no row at all.', 'pfh-widgets' ),
+			'label'       => esc_html__( 'Show the review row', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'Only on products with reviews of their own. The shop\'s WebwinkelKeur score is about the shop, not the product, so it is not repeated on every card.', 'pfh-widgets' ),
 		];
 
 		$this->controls['reviewShowStars'] = [
@@ -1332,29 +1383,6 @@ trait PFH_Product_Card_Trait {
 			'label'    => esc_html__( 'Show the star row', 'pfh-widgets' ),
 			'type'     => 'checkbox',
 			'default'  => true,
-			'required' => [ 'reviewEnable', '=', true ],
-		];
-
-		$this->controls['reviewStars'] = [
-			'tab'      => 'content',
-			'group'    => 'reviews',
-			'label'    => esc_html__( 'Stars', 'pfh-widgets' ),
-			'type'     => 'number',
-			'min'      => 0,
-			'max'      => 5,
-			'step'     => 0.5,
-			'inline'   => true,
-			'default'  => 5,
-			'required' => [ 'reviewEnable', '=', true ],
-		];
-
-		$this->controls['reviewText'] = [
-			'tab'      => 'content',
-			'group'    => 'reviews',
-			'label'    => esc_html__( 'Review text', 'pfh-widgets' ),
-			'type'     => 'text',
-			'inline'   => true,
-			'default'  => '124 reviews',
 			'required' => [ 'reviewEnable', '=', true ],
 		];
 
@@ -1424,6 +1452,20 @@ trait PFH_Product_Card_Trait {
 		];
 	}
 
+	/**
+	 * Card photograph behaviour shared by every element that draws cards.
+	 */
+	private function photo_controls() {
+		$this->controls['imageSwap'] = [
+			'tab'         => 'content',
+			'group'       => 'card',
+			'label'       => esc_html__( 'Next photo on hover', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'Hovering a card shows the first gallery photo, so a shopper sees the product in use without opening it.', 'pfh-widgets' ),
+		];
+	}
+
 	private function type_controls() {
 		$this->controls['titleSize'] = [
 			'tab'     => 'content',
@@ -1487,7 +1529,7 @@ trait PFH_Product_Card_Trait {
 			'min'     => 9,
 			'max'     => 30,
 			'inline'  => true,
-			'default' => 14,
+			'default' => 16,
 		];
 
 		$this->controls['priceWeight'] = [
@@ -1528,15 +1570,6 @@ trait PFH_Product_Card_Trait {
 			'default' => [ 'rgb' => 'rgba(95, 109, 70, 0.5)' ],
 		];
 
-		$this->controls['priceSuffixOld'] = [
-			'tab'         => 'content',
-			'group'       => 'type',
-			'label'       => esc_html__( 'Suffix on the old price too', 'pfh-widgets' ),
-			'type'        => 'checkbox',
-			'default'     => true,
-			'description' => esc_html__( 'Off puts it on the current price only, which is how the shop grid is drawn.', 'pfh-widgets' ),
-		];
-
 		$this->controls['priceGap'] = [
 			'tab'     => 'content',
 			'group'   => 'type',
@@ -1570,7 +1603,7 @@ trait PFH_Product_Card_Trait {
 			'inline'      => true,
 			'default'     => 'incl. btw',
 			'required'    => [ [ 'source', '!=', 'manual' ], [ 'priceMode', '=', 'split' ] ],
-			'description' => esc_html__( 'Appended to both prices.', 'pfh-widgets' ),
+			'description' => esc_html__( 'Shown once, after the price that is paid.', 'pfh-widgets' ),
 		];
 	}
 

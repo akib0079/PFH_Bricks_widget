@@ -15,7 +15,8 @@
  *   which would keep it off the front end no matter what the element does;
  *   and what it renders right now, outside the builder.
  *
- * Admin-only, changes nothing, writes nothing.
+ * Admin-only. Reading it changes nothing; the one exception is the product
+ * photo repair box, which acts only when its button is pressed.
  *
  * @package PFH_Widgets
  */
@@ -188,6 +189,12 @@ class PFH_Widgets_Diagnose {
 		// settings screen. One page, not two.
 		if ( class_exists( 'PFH_Widgets_Diagnostics' ) && method_exists( 'PFH_Widgets_Diagnostics', 'report' ) ) {
 			$report .= "\n\n" . PFH_Widgets_Diagnostics::report();
+		}
+
+		// The one thing on this screen that changes anything, and only on a
+		// button press: photographs an upload optimiser flattened onto black.
+		if ( class_exists( 'PFH_Widgets_Photo' ) ) {
+			PFH_Widgets_Photo::render_repair_box();
 		}
 
 		echo '<textarea readonly style="width:100%;height:32em;font-family:Menlo,Consolas,monospace;font-size:12px;white-space:pre;overflow:auto">';

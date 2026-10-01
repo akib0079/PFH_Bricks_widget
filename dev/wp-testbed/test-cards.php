@@ -85,7 +85,9 @@ foreach ( [ 'pfh-prod__media' => 'image', 'pfh-prod__reviews' => 'rating', 'pfh-
 	}
 }
 ksort( $order );
-check( 'image | rating | title | price | button', implode( ' | ', $order ), 'image | rating | title | price | button' );
+// No rating row: the demo product has no reviews of its own, and the
+// shop-wide score is no longer printed on cards.
+check( 'image | title | price | button', implode( ' | ', $order ), 'image | title | price | button' );
 check( 'button label', false !== strpos( $card, 'TOEVOEGEN' ) ? 'TOEVOEGEN' : 'missing', 'TOEVOEGEN' );
 check( 'basket icon on the button', preg_match( '/pfh-prod__cart[^>]*>.*?<svg/s', $card ), 1 );
 
