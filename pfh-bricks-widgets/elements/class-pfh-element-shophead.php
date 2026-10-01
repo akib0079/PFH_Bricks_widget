@@ -221,6 +221,16 @@ class PFH_Element_Shophead extends \Bricks\Element {
 			'required'    => [ 'bannerEnable', '=', true ],
 		];
 
+		$this->controls['bannerFromCategory'] = [
+			'tab'         => 'content',
+			'group'       => 'banner',
+			'label'       => esc_html__( 'A picture of the category being viewed', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'The image chosen on the category (Products → Categories → edit → Header image), or else one of its products on a transparent background. The image above is used where neither exists, and on the shop page.', 'pfh-widgets' ),
+			'required'    => [ 'bannerEnable', '=', true ],
+		];
+
 		$this->controls['bannerHeight'] = [
 			'tab'      => 'content',
 			'group'    => 'banner',
@@ -574,7 +584,21 @@ class PFH_Element_Shophead extends \Bricks\Element {
 			return;
 		}
 
-		$url = PFH_Widgets_Helpers::image_url( $this->get( 'banner' ), 'large' );
+		$url = '';
+
+		/*
+		 * On a category, a picture of that category: the one chosen on its
+		 * edit screen, or one of its own products cut out. Every category
+		 * showed the Gia Giamas jar, honey included (feedback, 2026-09-28).
+		 */
+		if ( $this->is_on( 'bannerFromCategory', true ) && class_exists( 'PFH_Widgets_Collection' ) ) {
+			$own = PFH_Widgets_Collection::header_image();
+			$url = $own ? $own['url'] : '';
+		}
+
+		if ( ! $url ) {
+			$url = PFH_Widgets_Helpers::image_url( $this->get( 'banner' ), 'large' );
+		}
 
 		if ( ! $url ) {
 			// The supplied banner was a JPEG on black, so a de-matted copy

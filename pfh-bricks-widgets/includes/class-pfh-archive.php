@@ -209,7 +209,7 @@ class PFH_Widgets_Archive {
 	public static function order_options() {
 		return [
 			'menu_order' => esc_html__( 'Standaard', 'pfh-widgets' ),
-			'popularity' => esc_html__( 'Populairste', 'pfh-widgets' ),
+			'popularity' => esc_html__( 'Best verkocht', 'pfh-widgets' ),
 			'rating'     => esc_html__( 'Best beoordeeld', 'pfh-widgets' ),
 			'date'       => esc_html__( 'Nieuwste', 'pfh-widgets' ),
 			'price'      => esc_html__( 'Prijs: laag naar hoog', 'pfh-widgets' ),
@@ -650,6 +650,19 @@ class PFH_Widgets_Archive {
 	 * @return string
 	 */
 	public static function taxonomy_label( $taxonomy ) {
+		/*
+		 * WooCommerce registers its brands in English whatever the site's
+		 * language, so the filter said "Brand" on a Dutch shop.
+		 */
+		$dutch = [
+			'product_brand' => __( 'Merk', 'pfh-widgets' ),
+			'pwb-brand'     => __( 'Merk', 'pfh-widgets' ),
+		];
+
+		if ( isset( $dutch[ $taxonomy ] ) ) {
+			return $dutch[ $taxonomy ];
+		}
+
 		$object = get_taxonomy( $taxonomy );
 
 		if ( $object && ! empty( $object->labels->singular_name ) ) {

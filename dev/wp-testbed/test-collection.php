@@ -291,7 +291,8 @@ $pct    = (int) round( ( $item->get_regular_price() - $item->get_sale_price() ) 
 
 ok( 'the price is the product\'s', false !== strpos( $bundle, '>' . esc_html( $now ) . '<' ), $now );
 ok( '  with its old price beside it', false !== strpos( $bundle, 'pfh-hl__price-was">' . esc_html( $was ) . '<' ), $was );
-ok( '  and the saving worked out from them', false !== strpos( $bundle, esc_html( 'Bespaar ' . $diff . ' — ' . $pct . '% korting' ) ), $diff . ' / ' . $pct );
+ok( '  and the saving worked out from them, in euros only', false !== strpos( $bundle, esc_html( 'Bespaar ' . $diff ) . '<' ), $diff );
+ok( '  without the percentage beside it', false === strpos( $bundle, $pct . '% korting' ) );
 ok( 'the typed price is gone', false === strpos( $bundle, '€ 41,97' ) && false === strpos( $bundle, '46,97' ) );
 ok( 'the title looks like the link it is: underlined, with an arrow', false !== strpos( $bundle, '<span class="pfh-hl__title-line">' ) && false !== strpos( $bundle, 'pfh-hl__title-arrow' ) );
 ok( '  on the bold line, the one that carries the offer', (bool) preg_match( '/pfh-hl__title-bottom"><span class="pfh-hl__title-line">/', $bundle ) );

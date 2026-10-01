@@ -91,6 +91,15 @@ class PFH_Element_Archive extends \Bricks\Element {
 	 */
 	private $context_cat = null;
 
+	/**
+	 * The category whose subcategories the pills are showing, if they are
+	 * a category's rather than the top level. The first pill then means
+	 * "all of this category" instead of "the whole shop".
+	 *
+	 * @var WP_Term|null
+	 */
+	private $pill_parent = null;
+
 	public function get_label() {
 		return esc_html__( 'PFH Shop Archive', 'pfh-widgets' );
 	}
@@ -404,10 +413,15 @@ class PFH_Element_Archive extends \Bricks\Element {
 			'label'         => esc_html__( 'Toolbar parts', 'pfh-widgets' ),
 			'type'          => 'repeater',
 			'titleProperty' => 'part',
+			/*
+			 * No product count: the client did not want it shown. In its
+			 * place, sorting — highest price, best selling — kept beside the
+			 * filter rather than inside its panel (feedback, 2026-09-29).
+			 */
 			'default'       => [
 				[ 'part' => 'cats' ],
 				[ 'part' => 'spacer' ],
-				[ 'part' => 'count' ],
+				[ 'part' => 'sort' ],
 				[ 'part' => 'filter' ],
 			],
 			'fields'        => [
@@ -424,6 +438,15 @@ class PFH_Element_Archive extends \Bricks\Element {
 					'default' => 'cats',
 				],
 			],
+		];
+
+		$this->controls['facetCounts'] = [
+			'tab'         => 'content',
+			'group'       => 'toolbar',
+			'label'       => esc_html__( 'Show counts in the filter', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => false,
+			'description' => esc_html__( 'The "(01)" after each option. Off by request: the shop does not show how many products there are.', 'pfh-widgets' ),
 		];
 
 		$this->controls['countText'] = [
@@ -914,6 +937,8 @@ class PFH_Element_Archive extends \Bricks\Element {
 			);
 
 			if ( ! is_wp_error( $terms ) && $terms ) {
+				$this->pill_parent = $parent > 0 ? get_term( $parent, 'product_cat' ) : null;
+
 				return $terms;
 			}
 		}
@@ -1011,8 +1036,10 @@ class PFH_Element_Archive extends \Bricks\Element {
 			}
 		}
 
-		if ( ! $parts ) {
-			$parts = [ 'cats', 'spacer', 'count', 'filter' ];
+		// The toolbar as it was first drawn was never chosen by anyone, so it
+		// takes the current one: sorting where the count was.
+		if ( ! $parts || [ 'cats', 'spacer', 'count', 'filter' ] === $parts ) {
+			$parts = [ 'cats', 'spacer', 'sort', 'filter' ];
 		}
 
 		echo '<div class="pfh-arch__toolbar">';
@@ -1082,12 +1109,29 @@ class PFH_Element_Archive extends \Bricks\Element {
 		echo '<div class="pfh-arch__pills" role="group" data-pfh-cats-track aria-label="' . esc_attr__( 'Categorieën', 'pfh-widgets' ) . '">';
 
 		if ( $this->is_on( 'catsAll' ) ) {
+			/*
+			 * Inside a category the first pill is that category as a whole —
+			 * "Alles" on Gia Giamas means all of Gia Giamas, and on a honey
+			 * subcategory it leads back to all honey. It used to lead to the
+			 * whole shop, which is not where anyone browsing honey meant to
+			 * go (feedback, 2026-09-28).
+			 */
+			$parent    = $this->pill_parent instanceof WP_Term ? $this->pill_parent : null;
+			$all_link  = $parent ? get_term_link( $parent ) : '';
+			$all_slug  = $parent ? $parent->slug : '';
+			$all_href  = ( $all_link && ! is_wp_error( $all_link ) ) ? $all_link : $this->shop_url();
+			$all_label = (string) $this->get( 'catsAllLabel', 'Alles' );
+
+			if ( $parent && '' === trim( $all_label ) ) {
+				$all_label = $parent->name;
+			}
+
 			printf(
 				'<a class="pfh-arch__pill%1$s" href="%2$s"%3$s>%4$s</a>',
-				'' === $here ? ' is-active' : '',
-				esc_url( $this->shop_url() ),
-				'' === $here ? ' aria-current="page"' : '',
-				esc_html( (string) $this->get( 'catsAllLabel', 'Alles' ) )
+				$here === $all_slug ? ' is-active' : '',
+				esc_url( $all_href ),
+				$here === $all_slug ? ' aria-current="page"' : '',
+				esc_html( $all_label )
 			);
 		}
 
@@ -1391,13 +1435,15 @@ class PFH_Element_Archive extends \Bricks\Element {
 			$hide = $limit > 0 && $i >= $limit && ! $option['checked'];
 
 			printf(
-				'<li class="pfh-arch__opt"%1$s><label><input type="checkbox" data-pfh-arch-tax="%2$s" value="%3$s"%4$s><span class="pfh-arch__box" aria-hidden="true"></span><span class="pfh-arch__opt-label">%5$s</span><span class="pfh-arch__opt-count">(%6$s)</span></label></li>',
+				'<li class="pfh-arch__opt"%1$s><label><input type="checkbox" data-pfh-arch-tax="%2$s" value="%3$s"%4$s><span class="pfh-arch__box" aria-hidden="true"></span><span class="pfh-arch__opt-label">%5$s</span>%6$s</label></li>',
 				$hide ? ' data-pfh-arch-extra hidden' : '',
 				esc_attr( $facet['source'] ),
 				esc_attr( $option['slug'] ),
 				$option['checked'] ? ' checked' : '',
 				esc_html( $option['label'] ),
-				esc_html( str_pad( (string) $option['count'], 2, '0', STR_PAD_LEFT ) )
+				$this->is_on( 'facetCounts', false )
+					? '<span class="pfh-arch__opt-count">(' . esc_html( str_pad( (string) $option['count'], 2, '0', STR_PAD_LEFT ) ) . ')</span>'
+					: ''
 			);
 
 			$i++;

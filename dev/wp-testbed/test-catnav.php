@@ -112,7 +112,9 @@ foreach ( $terms as $term ) {
 	ok( '    breadcrumb ends on the category', false !== strpos( $html, $term->name ) );
 	ok( '    heading shows the category', (bool) preg_match( '/pfh-shophead__title[^>]*>\s*' . preg_quote( $term->name, '/' ) . '/', $html ) );
 	ok( '    products belong to it', $names && count( $names ) <= 12, count( $names ) . ' products' );
-	ok( '    count line matches the category', (bool) preg_match( '/data-pfh-arch-count>(\d+) producten/', $html, $c ) && (int) $c[1] === (int) $term->count, ( $c[1] ?? '?' ) . ' vs term count ' . $term->count );
+	// The count is no longer shown (feedback 2026-09-28); sorting took its place.
+	ok( '    no product count is shown', false === strpos( $html, 'data-pfh-arch-count' ) );
+	ok( '    sorting sits in the toolbar instead', false !== strpos( $html, 'data-pfh-arch-sort' ) );
 }
 
 echo "\n── two categories never show the same products ──\n";

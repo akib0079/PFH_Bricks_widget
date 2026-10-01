@@ -108,6 +108,15 @@ class PFH_Element_Counter extends \Bricks\Element {
 			],
 		];
 
+		$this->controls['fromCategory'] = [
+			'tab'         => 'content',
+			'group'       => 'items',
+			'label'       => esc_html__( 'Let each category set its own figures', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'Products → Categories → edit → Collection page → Figures. A category that fills in none keeps these.', 'pfh-widgets' ),
+		];
+
 		$this->controls['fallbackScore'] = [
 			'tab'         => 'content',
 			'group'       => 'items',
@@ -260,6 +269,34 @@ class PFH_Element_Counter extends \Bricks\Element {
 		$this->apply_design_revision( $this->previous_defaults() );
 
 		$items = (array) $this->get( 'items', [] );
+
+		/*
+		 * On a category page the category can have its own figures, or hide
+		 * the row (Products → Categories → edit → Collection page). Honey has
+		 * no "original recipe from 1957"; that is Gia Giamas's.
+		 */
+		$own = ( $this->is_on( 'fromCategory', true ) && class_exists( 'PFH_Widgets_Collection' ) )
+			? PFH_Widgets_Collection::section( 'figures' )
+			: null;
+
+		if ( $own && ! empty( $own['hide'] ) ) {
+			return;
+		}
+
+		if ( $own && ! empty( $own['items'] ) ) {
+			$items = [];
+
+			foreach ( (array) $own['items'] as $row ) {
+				$value = isset( $row['value'] ) ? (string) $row['value'] : '';
+
+				$items[] = [
+					'value' => $value,
+					'label' => isset( $row['label'] ) ? (string) $row['label'] : '',
+					'sub'   => isset( $row['sub'] ) ? (string) $row['sub'] : '',
+					'live'  => false !== strpos( $value, '%' ),
+				];
+			}
+		}
 
 		if ( ! $items ) {
 			return;

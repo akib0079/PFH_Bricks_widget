@@ -3,10 +3,10 @@
  * Per-category settings for the sections under a collection's products.
  *
  * One Bricks template draws every category, so on its own every category
- * shows the same "Inspiratie nodig?" band, the same questions and the same
- * bundle. This gives each category a say over those three sections, on the
- * screen the client already uses for that category: Products → Categories →
- * edit.
+ * shows the same "Inspiratie nodig?" band, the same figures, the same
+ * questions and the same bundle. This gives each category a say over those
+ * four sections, on the screen the client already uses for that category:
+ * Products → Categories → edit.
  *
  * The rules are the same for all three, and they are the whole design:
  *
@@ -35,8 +35,14 @@ class PFH_Widgets_Collection {
 	const META  = '_pfh_collection';
 	const NONCE = 'pfh_collection_save';
 
-	/** The saving line, when the category does not word its own. */
-	const SAVING = 'Bespaar %amount% — %percent% korting';
+	/**
+	 * The saving line, when the category does not word its own. In euros
+	 * only: the client did not want the percentage beside it (2026-09-28).
+	 */
+	const SAVING = 'Bespaar %amount%';
+
+	/** How many figures the strip holds. */
+	const FIGURES = 4;
 
 	public static function init() {
 		add_action( 'product_cat_edit_form_fields', [ __CLASS__, 'fields' ], 30 );
@@ -55,6 +61,9 @@ class PFH_Widgets_Collection {
 	 */
 	private static function blank() {
 		return [
+			'header'  => [
+				'image' => 0,
+			],
 			'inspire' => [
 				'hide'  => false,
 				'title' => '',
@@ -65,6 +74,10 @@ class PFH_Widgets_Collection {
 			'faq'     => [
 				'hide'  => false,
 				'title' => '',
+				'items' => [],
+			],
+			'figures' => [
+				'hide'  => false,
 				'items' => [],
 			],
 			'bundle'  => [
@@ -134,7 +147,7 @@ class PFH_Widgets_Collection {
 	/**
 	 * One section's settings for the category being viewed.
 	 *
-	 * @param string $section 'inspire', 'faq' or 'bundle'.
+	 * @param string $section 'inspire', 'figures', 'faq' or 'bundle'.
 	 * @return array|null Null when this is not a category page.
 	 */
 	public static function section( $section ) {
@@ -282,6 +295,8 @@ class PFH_Widgets_Collection {
 				<p class="description pfh-col__intro"><?php esc_html_e( 'The sections under this category\'s products. Anything you leave empty keeps the text set on the section in Bricks, so a category you never touch looks exactly as it does now.', 'pfh-widgets' ); ?></p>
 
 				<?php
+				self::header_card( $name, $data['header'] );
+
 				self::card(
 					'inspire',
 					__( 'Inspiration band', 'pfh-widgets' ),
@@ -293,6 +308,16 @@ class PFH_Widgets_Collection {
 						self::area( $name . '[inspire][text]', __( 'Text', 'pfh-widgets' ), $d['text'], 'Ontdek recepten met Gia Giamas — van klassieke limonade tot zomerse cocktails.' );
 						self::text( $name . '[inspire][label]', __( 'Button label', 'pfh-widgets' ), $d['label'], 'Bekijk alle recepten' );
 						self::text( $name . '[inspire][url]', __( 'Button link', 'pfh-widgets' ), $d['url'], 'https://', 'url' );
+					}
+				);
+
+				self::card(
+					'figures',
+					__( 'Figures', 'pfh-widgets' ),
+					__( 'The row of four figures — "9.7/10 Klantbeoordeling", "1957 Origineel recept". Fill in all four to give this category its own; leave them empty to keep the row as it is in Bricks. %score% and %count% show the live WebwinkelKeur figures.', 'pfh-widgets' ),
+					$data['figures'],
+					static function () use ( $data, $name ) {
+						self::figure_rows( $name . '[figures][items]', (array) $data['figures']['items'] );
 					}
 				);
 
@@ -487,6 +512,138 @@ class PFH_Widgets_Collection {
 		<?php
 	}
 
+	/**
+	 * The picture at the top of the category page. It cannot be hidden on
+	 * its own, so it has no hide switch: only an image.
+	 *
+	 * @param string $name Field name.
+	 * @param array  $data Stored header settings.
+	 */
+	private static function header_card( $name, array $data ) {
+		?>
+		<details class="pfh-col__card"<?php echo ! empty( $data['image'] ) ? ' open' : ''; ?>>
+			<summary>
+				<span class="pfh-col__card-title"><?php esc_html_e( 'Header image', 'pfh-widgets' ); ?></span>
+				<span class="pfh-col__state pfh-col__state--<?php echo ! empty( $data['image'] ) ? 'custom' : 'default'; ?>"><?php echo esc_html( ! empty( $data['image'] ) ? __( 'Customised', 'pfh-widgets' ) : __( 'Automatic', 'pfh-widgets' ) ); ?></span>
+			</summary>
+			<div class="pfh-col__card-body">
+				<p class="description"><?php esc_html_e( 'The picture beside the title at the top of this category. Empty: a product from this category on a transparent background is used, so the picture always matches the category.', 'pfh-widgets' ); ?></p>
+				<div class="pfh-col__fields">
+					<?php self::media( $name . '[header][image]', (int) $data['image'] ); ?>
+				</div>
+			</div>
+		</details>
+		<?php
+	}
+
+	/**
+	 * The picture for the top of a category page: the one chosen for the
+	 * category, or a cut-out of one of its best-selling products.
+	 *
+	 * @param WP_Term|null $term Category; the one being viewed when null.
+	 * @return array{id: int, url: string}|null Null to keep the section's own.
+	 */
+	public static function header_image( $term = null ) {
+		$term = $term instanceof WP_Term ? $term : self::term();
+
+		if ( ! $term ) {
+			return null;
+		}
+
+		// Chosen for this category, or for one it sits under: Premium Gia
+		// Giamas shows Gia Giamas's picture unless it has its own.
+		foreach ( array_merge( [ (int) $term->term_id ], array_map( 'intval', get_ancestors( $term->term_id, 'product_cat', 'taxonomy' ) ) ) as $level ) {
+			$own = self::get( $level );
+			$id  = (int) $own['header']['image'];
+
+			if ( $id && wp_attachment_is_image( $id ) ) {
+				return [ 'id' => $id, 'url' => (string) wp_get_attachment_image_url( $id, 'large' ) ];
+			}
+		}
+
+		$key    = 'pfh_cat_header_' . $term->term_id;
+		$cached = get_transient( $key );
+
+		if ( is_array( $cached ) ) {
+			return $cached ? $cached : null;
+		}
+
+		$found = [];
+
+		if ( class_exists( 'PFH_Widgets_Photo' ) ) {
+			$products = get_posts(
+				[
+					'post_type'      => 'product',
+					'post_status'    => 'publish',
+					'posts_per_page' => 12,
+					'fields'         => 'ids',
+					'meta_key'       => 'total_sales', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- cached for a day.
+					'orderby'        => 'meta_value_num',
+					'order'          => 'DESC',
+					'tax_query'      => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- cached for a day.
+						[
+							'taxonomy'         => 'product_cat',
+							'field'            => 'term_id',
+							'terms'            => [ (int) $term->term_id ],
+							'include_children' => true,
+						],
+					],
+				]
+			);
+
+			foreach ( $products as $product_id ) {
+				$image = (int) get_post_thumbnail_id( $product_id );
+
+				// A cut-out, so it sits on the page like the designed banner
+				// rather than as a photo in a box.
+				if ( $image && ! PFH_Widgets_Photo::has_backdrop( $image ) ) {
+					$found = [ 'id' => $image, 'url' => (string) wp_get_attachment_image_url( $image, 'large' ) ];
+					break;
+				}
+			}
+		}
+
+		set_transient( $key, $found, DAY_IN_SECONDS );
+
+		return $found ? $found : null;
+	}
+
+	/**
+	 * Four fixed rows: figure, label, small line.
+	 *
+	 * @param string $name  Field name.
+	 * @param array  $items Stored figures.
+	 */
+	private static function figure_rows( $name, array $items ) {
+		$hints = [
+			[ '%score%/10', 'Klantbeoordeling', 'Gebaseerd op %count% reviews' ],
+			[ '9 jaar', 'Ervaring', 'Sinds 2017' ],
+			[ '100%', 'Natuurlijke ingrediënten', 'Zonder toevoegingen' ],
+			[ '1957', 'Origineel recept', 'Van oma Marika' ],
+		];
+
+		echo '<div class="pfh-col__field"><table class="widefat striped pfh-col__figures"><thead><tr><th>' . esc_html__( 'Figure', 'pfh-widgets' ) . '</th><th>' . esc_html__( 'Label', 'pfh-widgets' ) . '</th><th>' . esc_html__( 'Small line', 'pfh-widgets' ) . '</th></tr></thead><tbody>';
+
+		for ( $i = 0; $i < self::FIGURES; $i++ ) {
+			$item = isset( $items[ $i ] ) && is_array( $items[ $i ] ) ? $items[ $i ] : [];
+
+			echo '<tr>';
+
+			foreach ( [ 'value', 'label', 'sub' ] as $col => $key ) {
+				printf(
+					'<td><input type="text" class="widefat" name="%s" value="%s" placeholder="%s" /></td>',
+					esc_attr( $name . '[' . $i . '][' . $key . ']' ),
+					esc_attr( isset( $item[ $key ] ) ? (string) $item[ $key ] : '' ),
+					esc_attr( $hints[ $i ][ $col ] )
+				);
+			}
+
+			echo '</tr>';
+		}
+
+		echo '</tbody></table></div>';
+	}
+
 	private static function style() {
 		?>
 		<style>
@@ -630,6 +787,9 @@ class PFH_Widgets_Collection {
 			return;
 		}
 
+		// The automatic header picture is worked out again on the next view.
+		delete_transient( 'pfh_cat_header_' . (int) $term_id );
+
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every field is sanitised in clean().
 		$raw   = isset( $_POST['pfh_collection'] ) && is_array( $_POST['pfh_collection'] ) ? wp_unslash( $_POST['pfh_collection'] ) : [];
 		$clean = self::clean( $raw );
@@ -658,7 +818,7 @@ class PFH_Widgets_Collection {
 			return isset( $raw[ $section ][ $key ] ) ? $raw[ $section ][ $key ] : '';
 		};
 
-		foreach ( [ 'inspire', 'faq', 'bundle' ] as $section ) {
+		foreach ( [ 'inspire', 'figures', 'faq', 'bundle' ] as $section ) {
 			$out[ $section ]['hide'] = ! empty( $raw[ $section ]['hide'] );
 		}
 
@@ -666,6 +826,25 @@ class PFH_Widgets_Collection {
 		$out['inspire']['text']  = self::para( $get( 'inspire', 'text' ) );
 		$out['inspire']['label'] = self::line( $get( 'inspire', 'label' ) );
 		$out['inspire']['url']   = esc_url_raw( self::line( $get( 'inspire', 'url' ) ) );
+
+		$header = absint( isset( $raw['header']['image'] ) ? $raw['header']['image'] : 0 );
+
+		$out['header']['image'] = $header && wp_attachment_is_image( $header ) ? $header : 0;
+
+		// Figures count only as a set: a row with no figure is no row.
+		foreach ( array_slice( is_array( $get( 'figures', 'items' ) ) ? array_values( $get( 'figures', 'items' ) ) : [], 0, self::FIGURES ) as $item ) {
+			$value = self::line( isset( $item['value'] ) ? $item['value'] : '' );
+
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$out['figures']['items'][] = [
+				'value' => $value,
+				'label' => self::line( isset( $item['label'] ) ? $item['label'] : '' ),
+				'sub'   => self::line( isset( $item['sub'] ) ? $item['sub'] : '' ),
+			];
+		}
 
 		$out['faq']['title'] = self::line( $get( 'faq', 'title' ) );
 
