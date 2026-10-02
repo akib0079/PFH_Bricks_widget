@@ -102,7 +102,9 @@ class PFH_Element_Features extends \Bricks\Element {
 			'group'   => 'head',
 			'label'   => esc_html__( 'Only the first tile on phones', 'pfh-widgets' ),
 			'type'    => 'checkbox',
-			'default' => true,
+			// Off: every tile shows on a phone too (2026-10-02, reversing the
+			// earlier first-tile-only request, #1004694).
+			'default' => false,
 		];
 
 		$this->controls['heading'] = [
@@ -868,7 +870,7 @@ class PFH_Element_Features extends \Bricks\Element {
 			$classes[] = 'is-phone-no-head';
 		}
 
-		if ( $this->is_on( 'phoneFirstOnly', true ) ) {
+		if ( $this->is_on( 'phoneFirstOnly', false ) ) {
 			$classes[] = 'is-phone-first-only';
 		}
 

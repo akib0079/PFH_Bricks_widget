@@ -98,7 +98,10 @@ $carousel = false === $phone ? '' : substr( $bare, $phone, strpos( $bare, "\n}\n
 ok( '  the card is drawn inside the 15px slide gutter', false !== strpos( $carousel, 'inset: 0 0 0 15px' ) && false !== strpos( $carousel, 'padding: 12px 12px 12px 27px' ) );
 ok( '  the track is not padded (that made the next card peek in)', false !== strpos( $carousel, '.fkcart-item-wrap { padding: 0; }' ) );
 ok( '  no slide width or flex-basis is overridden', ! preg_match( '/\.fkcart--item(:hover)?\s*(,[^{]*)?\{[^}]*(?<![-\w])(flex|width|flex-basis):/', $carousel ) );
-ok( '  the price keeps its width on a phone', (bool) preg_match( '/fkcart-item-misc \{[^}]*flex: none/', $carousel ) );
+ok( '  the price sits under the name, not beside it', (bool) preg_match( '/fkcart-item-misc \{ display: none; \}/', $carousel ) && false !== strpos( $carousel, '.fkcart-item-meta .fkcart-item-price {' ) );
+ok( 'only the saving line is green, not every "€" in the price column', false === strpos( $bare, '.fkcart-item-misc *' ) && false !== strpos( $bare, '.fkcart-discounted-price *' ) );
+ok( 'the Add button loses FunnelKit\'s olive ring', (bool) preg_match( '/\.fkcart-add-product-button \{[^}]*box-shadow: none/', $bare ) );
+ok( 'the shipping bar stays in view while the products scroll', (bool) preg_match( '/\.pfh-shipbar \{[^}]*position: sticky/', $bare ) );
 ok( 'no carousel rule leaks outside that breakpoint', 1 === substr_count( $bare, '.fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-container' ) && false !== strpos( $carousel, '.fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-container' ) );
 
 // The empty cart's "Nu winkelen" button also carries .fkcart-modal-close.

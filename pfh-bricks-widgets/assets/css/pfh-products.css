@@ -471,6 +471,18 @@
 	flex: 1;
 }
 
+/*
+ * A row where some products have reviews and some do not: the ones without
+ * keep the review line's place empty, so every name starts at the same
+ * height. A row with no reviews at all reserves nothing.
+ */
+.pfh-prod:has(.pfh-prod__reviews) .pfh-prod__body:not(:has(> .pfh-prod__reviews))::before {
+	content: "";
+	display: block;
+	height: max(var(--pfh-star-size), var(--pfh-rev-size));
+	margin-bottom: var(--pfh-gap-2);
+}
+
 .pfh-prod__reviews {
 	display: inline-flex;
 	align-items: center;
@@ -525,12 +537,11 @@ a.pfh-prod__reviews:hover .pfh-prod__reviews-text {
 	line-height: var(--pfh-t-lh);
 	color: var(--pfh-t-color);
 	/*
-	 * Reserved as well as capped. Capping alone keeps a long name from pushing
-	 * a card taller, but a short one still leaves its card shorter — so a
-	 * shelf of mixed product names comes out ragged. Reserving the same number
-	 * of lines makes every card identical, whatever the catalogue is called.
+	 * Capped, not reserved. Reserving two lines, with the price pushed to the
+	 * bottom of the card, left a one-line name with a gap under it as tall
+	 * as the longest card in the row (feedback, 2026-10-02). The price now
+	 * follows the name; only the full-width button is kept level, below.
 	 */
-	min-height: calc(var(--pfh-t-lines) * var(--pfh-t-lh) * var(--pfh-t-size));
 	display: -webkit-box;
 	-webkit-line-clamp: var(--pfh-t-lines);
 	line-clamp: var(--pfh-t-lines);
@@ -547,7 +558,7 @@ a.pfh-prod__reviews:hover .pfh-prod__reviews-text {
 }
 
 .pfh-prod__prices {
-	margin-top: auto;
+	margin-top: 0;
 	display: flex;
 	align-items: baseline;
 	flex-wrap: wrap;
@@ -742,6 +753,8 @@ a.pfh-prod__reviews:hover .pfh-prod__reviews-text {
  * ------------------------------------------------------------------ */
 
 .pfh-prod.pfh-cart-block .pfh-prod__cart {
+	/* The buttons along a row stay level whatever is above them. */
+	margin-top: auto;
 	position: static;
 	inset: auto;
 	display: flex;

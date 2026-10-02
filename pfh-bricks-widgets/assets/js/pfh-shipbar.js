@@ -52,6 +52,13 @@
 		}
 	}
 
+	// The shop's own line icons: the delivery van of the product page's
+	// promises, and a tick once the amount is reached.
+	var ICONS = {
+		left: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6.5h10.5v9H3zM13.5 9.5h4l3 3.2v2.8h-7"/><circle cx="7" cy="17" r="1.8"/><circle cx="17" cy="17" r="1.8"/></svg>',
+		done: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.2 4.2L19 7"/></svg>'
+	};
+
 	function build() {
 		var bar = document.createElement( 'div' );
 
@@ -59,9 +66,12 @@
 		bar.setAttribute( 'data-pfh-shipbar', '' );
 		bar.setAttribute( 'role', 'status' );
 		bar.innerHTML =
+			'<span class="pfh-shipbar__icon"></span>' +
+			'<div class="pfh-shipbar__main">' +
 			'<p class="pfh-shipbar__text"></p>' +
 			'<div class="pfh-shipbar__track" aria-hidden="true"><div class="pfh-shipbar__fill"></div></div>' +
-			( cfg.note ? '<p class="pfh-shipbar__note"></p>' : '' );
+			( cfg.note ? '<p class="pfh-shipbar__note"></p>' : '' ) +
+			'</div>';
 
 		if ( cfg.note ) {
 			bar.querySelector( '.pfh-shipbar__note' ).textContent = cfg.note;
@@ -87,7 +97,12 @@
 
 		if ( ! bar ) {
 			bar = build();
-			body.insertBefore( bar, body.firstChild );
+
+			// At the top of the part of the drawer that scrolls, so it can
+			// stay in view while the products pass under it.
+			var host = modal.querySelector( '.fkcart-reward-product-wrap' ) || body;
+
+			host.insertBefore( bar, host.firstChild );
 		}
 
 		var left = Math.max( 0, threshold - subtotal );
@@ -107,6 +122,7 @@
 
 		bar.setAttribute( 'data-pfh-shipbar-key', key );
 		bar.classList.toggle( 'is-done', done );
+		bar.querySelector( '.pfh-shipbar__icon' ).innerHTML = done ? ICONS.done : ICONS.left;
 
 		line.textContent = '';
 

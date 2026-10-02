@@ -363,6 +363,13 @@
 
 .pfh-pdp__attrs { display: grid; gap: 18px; margin: 0 0 20px; }
 
+/*
+ * The choice groups sit in a body of their own (it is what folds behind
+ * "Smaken kiezen"), so the gap above does not reach them: "SMAAK" sat
+ * straight against the type pills (feedback, 2026-10-02).
+ */
+.pfh-pdp__attrs-body { display: grid; gap: 26px; }
+
 .pfh-pdp .pfh-pdp__attr-label {
 	margin: 0 0 14px;
 	font-size: 12px;
@@ -777,7 +784,12 @@
 	right: 0;
 	bottom: 0;
 	left: 0;
-	z-index: 990;
+	/*
+	 * Under the header and every panel it opens (the phone menu, search,
+	 * the cart): at 990 the bar sat on top of the open menu (feedback,
+	 * 2026-10-02). The header is at --pfh-z, its panels above it.
+	 */
+	z-index: calc(var(--pfh-z, 100) - 2);
 	padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
 	border-top: 1px solid var(--pfh-pdp-line);
 	background: rgba(255, 255, 255, .97);
@@ -788,6 +800,10 @@
 
 .pfh-pdp__sticky[hidden] { display: none; }
 .pfh-pdp__sticky.is-shown { transform: none; }
+
+/* A panel is open (menu, search, cart drawer): the bar steps aside. */
+.pfh-locked .pfh-pdp__sticky.is-shown,
+body:has(#fkcart-modal.fkcart-show) .pfh-pdp__sticky.is-shown { transform: translateY(110%); }
 
 .pfh-pdp__sticky-inner {
 	display: flex;

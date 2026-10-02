@@ -844,7 +844,12 @@
 	.pfh-hero.is-phone-compact .pfh-hero__col--media { order: 0; }
 	.pfh-hero.is-phone-compact .pfh-hero__col--text { order: 1; }
 
-	.pfh-hero.is-phone-compact .pfh-hero__rating,
+	/*
+	 * What the client crossed out (feedback #1004652): the reviewers' faces,
+	 * the headline and the second button. The stars and "(396+ reviews)"
+	 * were not crossed and stay (2026-10-02).
+	 */
+	.pfh-hero.is-phone-compact .pfh-hero__avatars,
 	.pfh-hero.is-phone-compact .pfh-hero__title,
 	.pfh-hero.is-phone-compact .pfh-hero__btn--ghost {
 		display: none;

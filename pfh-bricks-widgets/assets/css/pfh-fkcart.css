@@ -274,13 +274,20 @@
 	font-weight: 400;
 }
 
-/* "Je bespaard € 1,10": what is saved, in green. */
-#fkcart-modal#fkcart-modal .fkcart-item-misc,
-#fkcart-modal#fkcart-modal .fkcart-item-misc *,
+/*
+ * "Je bespaard € 1,10": what is saved, in green — that line only. The rule
+ * used to take everything in the price column, and so painted the "€" of
+ * every price green, the old and the new ones too (feedback, 2026-10-02).
+ */
+#fkcart-modal#fkcart-modal .fkcart-discounted-price,
+#fkcart-modal#fkcart-modal .fkcart-discounted-price *,
 #fkcart-modal#fkcart-modal [class*="fkcart-saving"],
 #fkcart-modal#fkcart-modal [class*="fkcart-saving"] * {
 	color: var(--pfh-fk-saved);
 }
+
+/* A currency sign takes the colour of its price. */
+#fkcart-modal#fkcart-modal .fkcart-item-price .woocommerce-Price-currencySymbol { color: inherit; }
 
 #fkcart-modal#fkcart-modal .fkcart-item-price ins { text-decoration: none; }
 
@@ -418,6 +425,8 @@
 	border: 1px solid var(--pfh-fk-blue);
 	border-radius: 999px;
 	background: var(--pfh-fk-blue);
+	/* FunnelKit rings its buttons in its primary colour, the olive. */
+	box-shadow: none;
 	color: #ffffff;
 	font-size: 13px;
 	font-weight: 500;
@@ -426,9 +435,11 @@
 	transition: background-color .2s ease, color .2s ease, transform .2s var(--pfh-fk-ease);
 }
 
-#fkcart-modal#fkcart-modal .fkcart-add-product-button:hover {
+#fkcart-modal#fkcart-modal .fkcart-add-product-button:hover,
+#fkcart-modal#fkcart-modal .fkcart-add-product-button:focus-visible {
 	border-color: var(--pfh-fk-blue-hover);
 	background: var(--pfh-fk-blue-hover);
+	box-shadow: none;
 	color: #ffffff;
 	transform: translateY(-1px);
 }
@@ -505,12 +516,20 @@
 
 	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-item-info { flex: 1 1 0; }
 
-	/* The price keeps its width; the name wraps instead. */
-	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-item-misc {
-		flex: none;
-		align-self: flex-start;
-		padding-top: 1px;
-		white-space: nowrap;
+	/*
+	 * The price under the name, not beside it: beside it, it left the name
+	 * 84px and the two ran into each other (feedback, 2026-10-02). FunnelKit
+	 * prints the price twice; the copy in the name's column is the one shown.
+	 */
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-item-misc { display: none; }
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-item-meta .fkcart-item-price {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 2px 8px;
+		margin-top: 4px;
+		text-align: left;
 	}
 
 	#fkcart-modal#fkcart-modal .fkcart-slider-body .fkcart-drawer-upsells .fkcart-drawer-items .fkcart-item-title { font-size: 14px; }
@@ -868,34 +887,78 @@
 }
 
 /* ---------------------------------------------------------------------
- * The free-shipping bar (see PFH_Widgets_Shipbar): a message at the top
- * of the drawer, in the blue of the buying buttons.
+ * The free-shipping bar (see PFH_Widgets_Shipbar)
+ *
+ * A strip under the heading, in the shop's own terms: the delivery van of
+ * the product page's promises in a soft teal disc, the ink of the cart's
+ * text, and a thin bar in the blue of the buying buttons. It stays put
+ * while the products scroll under it.
  * ------------------------------------------------------------------ */
 
 #fkcart-modal#fkcart-modal .pfh-shipbar {
-	display: grid;
-	gap: 8px;
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
 	margin: 0;
-	padding: 14px 24px 16px;
+	padding: 14px 20px 15px;
 	border-bottom: 1px solid var(--pfh-fk-line);
-	background: var(--pfh-fk-band);
+	background: #ffffff;
 	color: var(--pfh-fk-ink);
 	font-family: Outfit, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-#fkcart-modal#fkcart-modal .pfh-shipbar__text {
-	margin: 0;
-	font-size: 14px;
-	line-height: 1.4;
+#fkcart-modal#fkcart-modal .pfh-shipbar__icon {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--pfh-fk-blue) 16%, #ffffff);
+	color: #557f82;
 }
 
-#fkcart-modal#fkcart-modal .pfh-shipbar__text strong { font-weight: 600; }
+#fkcart-modal#fkcart-modal .pfh-shipbar__icon svg {
+	width: 19px;
+	height: 19px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.6;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+#fkcart-modal#fkcart-modal .pfh-shipbar__main {
+	display: grid;
+	flex: 1 1 auto;
+	gap: 7px;
+	min-width: 0;
+	padding-top: 1px;
+}
+
+#fkcart-modal#fkcart-modal .pfh-shipbar__text {
+	margin: 0;
+	color: var(--pfh-fk-ink);
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 1.35;
+}
+
+#fkcart-modal#fkcart-modal .pfh-shipbar__text strong {
+	color: var(--pfh-fk-now);
+	font-weight: 600;
+	white-space: nowrap;
+}
 
 #fkcart-modal#fkcart-modal .pfh-shipbar__track {
-	height: 6px;
+	height: 5px;
 	overflow: hidden;
-	border-radius: 3px;
-	background: var(--pfh-fk-line);
+	border-radius: 999px;
+	background: var(--pfh-fk-tint);
 }
 
 #fkcart-modal#fkcart-modal .pfh-shipbar__fill {
@@ -906,9 +969,6 @@
 	transition: width .45s var(--pfh-fk-ease);
 }
 
-#fkcart-modal#fkcart-modal .pfh-shipbar.is-done .pfh-shipbar__fill { background: var(--pfh-fk-saved); }
-#fkcart-modal#fkcart-modal .pfh-shipbar.is-done .pfh-shipbar__text { color: var(--pfh-fk-saved); font-weight: 500; }
-
 #fkcart-modal#fkcart-modal .pfh-shipbar__note {
 	margin: 0;
 	color: var(--pfh-fk-muted);
@@ -916,6 +976,46 @@
 	line-height: 1.4;
 }
 
+/* Reached: a tick in the deeper teal, and the line says so in full. */
+#fkcart-modal#fkcart-modal .pfh-shipbar.is-done .pfh-shipbar__icon {
+	background: #557f82;
+	color: #ffffff;
+}
+
+#fkcart-modal#fkcart-modal .pfh-shipbar.is-done .pfh-shipbar__text { font-weight: 600; }
+#fkcart-modal#fkcart-modal .pfh-shipbar.is-done .pfh-shipbar__fill { background: #557f82; }
+
+@media (max-width: 600px) {
+	#fkcart-modal#fkcart-modal .pfh-shipbar { padding: 12px 18px 13px; gap: 10px; }
+	#fkcart-modal#fkcart-modal .pfh-shipbar__icon { width: 30px; height: 30px; }
+	#fkcart-modal#fkcart-modal .pfh-shipbar__icon svg { width: 17px; height: 17px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
 	#fkcart-modal#fkcart-modal .pfh-shipbar__fill { transition: none; }
+}
+
+/* ---------------------------------------------------------------------
+ * A cart line on a phone: the old price above the new one, both to the
+ * right, so the pair never runs past the edge of the drawer (feedback,
+ * 2026-10-02: "€ 2,3" was cut off on an iPhone).
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 600px) {
+	#fkcart-modal#fkcart-modal .fkcart-slider-body > .fkcart-item-wrap .fkcart-item-misc {
+		min-width: 0;
+		max-width: 46%;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body > .fkcart-item-wrap .fkcart-item-misc .fkcart-item-price {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 1px;
+	}
+
+	#fkcart-modal#fkcart-modal .fkcart-slider-body > .fkcart-item-wrap .fkcart-discounted-text {
+		white-space: normal;
+		text-align: right;
+	}
 }
