@@ -53,6 +53,14 @@ function picture( $name, $transparent, $as = 'png' ) {
 	return $id;
 }
 
+// Leftovers of a run that stopped half way.
+foreach ( get_posts( [ 'post_type' => 'attachment', 'post_status' => 'any', 'posts_per_page' => -1, 'fields' => 'ids', 's' => 'pfh-test-' ] ) as $old ) {
+	wp_delete_attachment( $old, true );
+}
+foreach ( get_posts( [ 'post_type' => 'product', 'post_status' => 'any', 'posts_per_page' => -1, 'fields' => 'ids', 'title' => 'PFH photo test' ] ) as $old ) {
+	wp_delete_post( $old, true );
+}
+
 echo "── which kind of photograph ──\n";
 $cut   = picture( 'pfh-test-cutout', true );
 $photo = picture( 'pfh-test-photo', false, 'jpg' );
@@ -148,9 +156,42 @@ ok( 'and a cut-out again', false === PFH_Widgets_Photo::has_backdrop( $fl ) );
 ok( 'the JPEG is left on disk', file_exists( $jpg ) );
 ok( 'nothing else is listed', ! array_filter( PFH_Widgets_Photo::flattened(), static function ( $r ) use ( $fl ) { return $r['id'] === $fl; } ) );
 
+// A palette PNG whose see-through part lives in a tRNS chunk: the kind the
+// optimiser misjudged.
+$pal = picture( 'pfh-test-palette', true );
+$ppng = get_attached_file( $pal );
+$im   = imagecreatefrompng( $ppng );
+imagetruecolortopalette( $im, false, 64 );
+imagecolortransparent( $im, imagecolorat( $im, 0, 0 ) );
+imagepng( $im, $ppng );
+imagedestroy( $im );
+$pjpg = preg_replace( '/\.png$/', '.jpg', $ppng );
+imagejpeg( imagecreatefrompng( $ppng ), $pjpg, 80 );
+update_attached_file( $pal, $pjpg );
+
+// And a photograph saved as PNG, opaque throughout: the JPEG is better.
+$opq  = picture( 'pfh-test-opaque', false );
+$opng = get_attached_file( $opq );
+$ojpg = preg_replace( '/\.png$/', '.jpg', $opng );
+imagejpeg( imagecreatefrompng( $opng ), $ojpg, 80 );
+update_attached_file( $opq, $ojpg );
+
+$rows = [];
+foreach ( PFH_Widgets_Photo::flattened() as $r ) { $rows[ $r['id'] ] = $r; }
+ok( 'a palette PNG with a transparent entry counts as see-through', ! empty( $rows[ $pal ]['transparent'] ) );
+ok( 'an opaque PNG does not', isset( $rows[ $opq ] ) && empty( $rows[ $opq ]['transparent'] ) );
+require_once ABSPATH . 'wp-admin/includes/template.php';
+ob_start();
+PFH_Widgets_Photo::render_repair_box();
+$box = ob_get_clean();
+ok( 'the repair box lists the see-through one', false !== strpos( $box, 'pfh-test-palette' ) );
+ok( 'and leaves the opaque one out', false === strpos( $box, 'pfh-test-opaque' ) );
+
 /* ---- clean up ---- */
 wp_delete_post( $pid, true );
 foreach ( $made as $id ) { wp_delete_attachment( $id, true ); }
 @unlink( $jpg );
+@unlink( $pjpg );
+@unlink( $ojpg );
 
 echo "\n$pass passed, $fail failed\n";

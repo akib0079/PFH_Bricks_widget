@@ -202,6 +202,35 @@ foreach ( get_attached_media( '', $fixture_id ) as $attachment ) {
 	wp_delete_post( $attachment->ID, true );
 }
 
+echo "\n── the old shop's tabs ──\n";
+$old_id = $bare_id;
+if ( $old_id ) {
+	$kept = get_post_meta( $old_id, 'wb_custom_tabs', true );
+	update_post_meta( $old_id, 'wb_custom_tabs', [
+		[ 'title' => 'inhoud', 'content' => '<p>Inhoud: 450 ml</p><p>Servings: 15</p>', 'tab_type' => 'local' ],
+		[ 'title' => 'Ingrediënten', 'content' => '<p><span style="font-weight: 400">citroensap, aardbeiensap</span></p>', 'tab_type' => 'local' ],
+		[ 'title' => 'Houdbaarheid', 'content' => '', 'tab_type' => 'local' ],
+		[ 'title' => 'Voedingswaarden', 'content' => '<table style="height: 184px"><tbody><tr><td>Voedingswaarden</td><td>580ml glas</td></tr><tr><td>Energie</td><td>740 kj</td></tr></tbody></table>', 'tab_type' => 'local' ],
+	] );
+	$html = tabs( $old_id, [], true );
+	preg_match_all( '#data-pfh-tab="([^"]+)"><span>([^<]+)#', $html, $m );
+	ok( 'the old tabs show where the fields are empty', in_array( 'Ingrediënten', $m[2], true ) && in_array( 'Voedingswaarden', $m[2], true ), implode( ' / ', $m[2] ) );
+	ok( 'an old tab with no field of its own gets one, after the description', isset( $m[2][1] ) && 'Inhoud' === $m[2][1], implode( ' / ', $m[2] ) );
+	ok( 'an old tab with nothing in it stays away', ! in_array( 'Houdbaarheid', $m[2], true ) );
+	ok( 'the old table is there, without its inline height', false !== strpos( $html, '<td>Energie</td>' ) && false === strpos( $html, 'height: 184px' ) );
+	ok( 'and the old text without its inline styles', false !== strpos( $html, 'citroensap, aardbeiensap' ) && false === strpos( $html, 'font-weight: 400' ) );
+
+	update_post_meta( $old_id, PFH_Widgets_Product_Fields::INGREDIENTS, 'Eigen ingrediëntenlijst' );
+	$own = tabs( $old_id, [], true );
+	ok( 'a field filled in here wins over the old tab', false !== strpos( $own, 'Eigen ingrediëntenlijst' ) && false === strpos( $own, 'aardbeiensap' ) );
+	delete_post_meta( $old_id, PFH_Widgets_Product_Fields::INGREDIENTS );
+
+	$off = tabs( $old_id, [ 'legacyTabs' => false ], true );
+	ok( 'and the old tabs can be switched off', false === strpos( $off, 'Inhoud' ) && false === strpos( $off, 'aardbeiensap' ) );
+
+	'' === $kept ? delete_post_meta( $old_id, 'wb_custom_tabs' ) : update_post_meta( $old_id, 'wb_custom_tabs', $kept );
+}
+
 wp_delete_post( $fixture_id, true );
 
 foreach ( $fixture['taxonomies'] as $taxonomy ) {

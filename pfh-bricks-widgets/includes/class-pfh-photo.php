@@ -32,6 +32,9 @@ class PFH_Widgets_Photo {
 
 	const REPAIR_ACTION = 'pfh_repair_photos';
 
+	/** How long one click of the repair button may work before stopping. */
+	const REPAIR_SECONDS = 40;
+
 	public static function init() {
 		// A regenerated or replaced file may be a different kind of picture.
 		add_filter( 'wp_update_attachment_metadata', [ __CLASS__, 'forget' ], 10, 2 );
@@ -84,8 +87,16 @@ class PFH_Widgets_Photo {
 	 * @return bool
 	 */
 	private static function look( $attachment_id ) {
-		$file = self::small_file( $attachment_id );
+		return self::file_has_backdrop( self::small_file( $attachment_id ) );
+	}
 
+	/**
+	 * The same question asked of a file on disk.
+	 *
+	 * @param string $file Path.
+	 * @return bool
+	 */
+	private static function file_has_backdrop( $file ) {
 		if ( '' === $file || ! is_readable( $file ) ) {
 			return false;
 		}
@@ -139,6 +150,48 @@ class PFH_Widgets_Photo {
 		imagedestroy( $image );
 
 		return $solid;
+	}
+
+	/**
+	 * Is this a packshot on plain white: all four corners near white?
+	 *
+	 * Such a photograph sits on a white page as well as a cut-out does, so a
+	 * category without a cut-out product can still lead with one of its own
+	 * (feedback, 2026-09-28: the honey page showed a lemonade jar).
+	 *
+	 * @param int $attachment_id Attachment.
+	 * @return bool
+	 */
+	public static function on_white( $attachment_id ) {
+		$file = self::small_file( (int) $attachment_id );
+
+		if ( '' === $file || ! is_readable( $file ) || ! function_exists( 'imagecreatefromstring' ) ) {
+			return false;
+		}
+
+		$bytes = @file_get_contents( $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file, failure handled.
+		$image = $bytes ? @imagecreatefromstring( $bytes ) : false; // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- unreadable images are handled.
+
+		if ( ! $image ) {
+			return false;
+		}
+
+		$w     = imagesx( $image );
+		$h     = imagesy( $image );
+		$white = true;
+
+		foreach ( [ [ 2, 2 ], [ $w - 3, 2 ], [ 2, $h - 3 ], [ $w - 3, $h - 3 ] ] as $point ) {
+			$rgba = imagecolorsforindex( $image, imagecolorat( $image, max( 0, $point[0] ), max( 0, $point[1] ) ) );
+
+			if ( min( $rgba['red'], $rgba['green'], $rgba['blue'] ) < 238 || ( isset( $rgba['alpha'] ) && $rgba['alpha'] > 20 ) ) {
+				$white = false;
+				break;
+			}
+		}
+
+		imagedestroy( $image );
+
+		return $white;
 	}
 
 	/**
@@ -241,15 +294,61 @@ class PFH_Widgets_Photo {
 				$png = preg_replace( '/-scaled\.png$/i', '.png', $png );
 			}
 
+			/*
+			 * Only a PNG that is actually see-through is worth going back to.
+			 * One that is opaque throughout — a photograph saved as PNG — is
+			 * better as the JPEG it became: same picture, a fraction of the
+			 * weight, which is what the converter was for.
+			 */
+			$readable = is_readable( $png );
+
 			$out[] = [
-				'id'       => $id,
-				'file'     => $file,
-				'png'      => is_readable( $png ) ? $png : '',
-				'products' => self::used_by( $id ),
+				'id'          => $id,
+				'file'        => $file,
+				'png'         => $readable ? $png : '',
+				'transparent' => $readable && self::png_is_see_through( $png ),
+				'products'    => self::used_by( $id ),
 			];
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Is any corner of this PNG see-through?
+	 *
+	 * The header says whether the file can hold transparency at all; only if
+	 * it can is the picture opened, and a very large one is taken on trust
+	 * rather than decoded on an admin screen.
+	 *
+	 * @param string $file Path of a PNG.
+	 * @return bool
+	 */
+	private static function png_is_see_through( $file ) {
+		$head = @file_get_contents( $file, false, null, 0, 33 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file, failure handled.
+
+		if ( ! is_string( $head ) || 33 !== strlen( $head ) || "\x89PNG\r\n\x1a\n" !== substr( $head, 0, 8 ) ) {
+			return false;
+		}
+
+		$size = unpack( 'Nw/Nh', substr( $head, 16, 8 ) );
+		$type = ord( $head[25] );
+
+		// Grey or RGB with an alpha channel can be see-through; the others
+		// only through a tRNS chunk.
+		if ( 4 !== $type && 6 !== $type ) {
+			$bytes = @file_get_contents( $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file, failure handled.
+
+			if ( ! is_string( $bytes ) || false === strpos( $bytes, 'tRNS' ) ) {
+				return false;
+			}
+		}
+
+		if ( (int) $size['w'] * (int) $size['h'] > 16000000 ) {
+			return true;
+		}
+
+		return ! self::file_has_backdrop( $file );
 	}
 
 	/**
@@ -295,20 +394,29 @@ class PFH_Widgets_Photo {
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 		}
 
-		update_attached_file( (int) $attachment_id, $png );
-		wp_update_post(
-			[
-				'ID'             => (int) $attachment_id,
-				'post_mime_type' => 'image/png',
-			]
-		);
-
+		/*
+		 * The sizes first, the switch after: a request cut short while the
+		 * sizes are made leaves the attachment as it was, still listed, so
+		 * the next run picks it up again rather than leaving it half done.
+		 */
 		$meta = wp_generate_attachment_metadata( (int) $attachment_id, $png );
 
 		if ( ! is_array( $meta ) || empty( $meta ) ) {
 			return false;
 		}
 
+		// A large original gets WordPress's "-scaled" copy, and that copy is
+		// what the attachment points at, as on any upload.
+		$uploads = wp_get_upload_dir();
+		$file    = ! empty( $meta['file'] ) && ! empty( $uploads['basedir'] ) ? path_join( $uploads['basedir'], $meta['file'] ) : $png;
+
+		update_attached_file( (int) $attachment_id, is_readable( $file ) ? $file : $png );
+		wp_update_post(
+			[
+				'ID'             => (int) $attachment_id,
+				'post_mime_type' => 'image/png',
+			]
+		);
 		wp_update_attachment_metadata( (int) $attachment_id, $meta );
 		clean_attachment_cache( (int) $attachment_id );
 
@@ -324,9 +432,20 @@ class PFH_Widgets_Photo {
 
 		$fixed = 0;
 		$left  = 0;
+		$start = time();
 
 		foreach ( self::flattened() as $row ) {
-			if ( $row['png'] && self::repair( $row['id'], $row['png'] ) ) {
+			if ( ! $row['transparent'] ) {
+				continue;
+			}
+
+			// Hosts end a request after a minute or so, and every photo
+			// means a fresh set of sizes; the rest waits for the next click.
+			if ( time() - $start > self::REPAIR_SECONDS ) {
+				break;
+			}
+
+			if ( self::repair( $row['id'], $row['png'] ) ) {
 				$fixed++;
 			} else {
 				$left++;
@@ -335,6 +454,19 @@ class PFH_Widgets_Photo {
 
 		if ( function_exists( 'wc_delete_product_transients' ) ) {
 			wc_delete_product_transients();
+		}
+
+		// A repaired photo may now be the cut-out a category header looks for.
+		if ( class_exists( 'PFH_Widgets_Collection' ) ) {
+			global $wpdb;
+
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->prepare(
+					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+					$wpdb->esc_like( '_transient_' . PFH_Widgets_Collection::HEADER_CACHE ) . '%',
+					$wpdb->esc_like( '_transient_timeout_' . PFH_Widgets_Collection::HEADER_CACHE ) . '%'
+				)
+			);
 		}
 
 		wp_safe_redirect(
@@ -354,7 +486,14 @@ class PFH_Widgets_Photo {
 	 * The repair box on the Diagnose screen.
 	 */
 	public static function render_repair_box() {
-		$rows = self::flattened();
+		$rows = array_values(
+			array_filter(
+				self::flattened(),
+				static function ( $row ) {
+					return $row['transparent'] || '' === $row['png'];
+				}
+			)
+		);
 
 		echo '<div class="card" style="max-width:none;margin:16px 0">';
 		echo '<h2>' . esc_html__( 'Productfoto\'s met een zwarte achtergrond', 'pfh-widgets' ) . '</h2>';
@@ -366,7 +505,7 @@ class PFH_Widgets_Photo {
 				esc_html(
 					sprintf(
 						/* translators: 1: repaired, 2: not repaired. */
-						__( '%1$d hersteld, %2$d niet automatisch te herstellen.', 'pfh-widgets' ),
+						__( '%1$d hersteld, %2$d niet automatisch te herstellen. Staan er hieronder nog foto\'s, klik dan nogmaals.', 'pfh-widgets' ),
 						absint( $_GET['pfh_photos_ok'] ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 						absint( $_GET['pfh_photos_bad'] ?? 0 ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 					)
@@ -379,7 +518,7 @@ class PFH_Widgets_Photo {
 			return;
 		}
 
-		echo '<p>' . esc_html__( 'Deze foto\'s zijn bij het uploaden van PNG naar JPG omgezet, waardoor de doorzichtige achtergrond zwart werd. Waar de originele PNG nog op de server staat, zet de knop de foto terug. Er wordt niets verwijderd.', 'pfh-widgets' ) . '</p>';
+		echo '<p>' . esc_html__( 'Deze foto\'s zijn bij het uploaden van PNG naar JPG omgezet, waardoor de doorzichtige achtergrond zwart werd. Waar de originele PNG nog op de server staat, zet de knop de foto terug. Er wordt niets verwijderd. Omgezette PNG\'s zonder doorzichtigheid blijven JPG: dat is hetzelfde plaatje, maar lichter.', 'pfh-widgets' ) . '</p>';
 		echo '<table class="widefat striped" style="max-width:900px"><thead><tr><th>ID</th><th>' . esc_html__( 'Bestand', 'pfh-widgets' ) . '</th><th>' . esc_html__( 'Originele PNG', 'pfh-widgets' ) . '</th><th>' . esc_html__( 'Producten', 'pfh-widgets' ) . '</th></tr></thead><tbody>';
 
 		foreach ( $rows as $row ) {

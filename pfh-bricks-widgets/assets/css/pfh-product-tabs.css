@@ -303,6 +303,42 @@
 .pfh-tabs__table .is-figure { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pfh-tabs__table.is-striped tbody tr:nth-child(odd) { background: var(--pfh-tabs-card); }
 
+/* The old shop's tables (Voedingswaarden): drawn like the table above, the
+   first row being their header. */
+.pfh-tabs__rich--old table {
+	width: 100%;
+	height: auto;
+	margin: 0 0 16px;
+	border-collapse: collapse;
+	font-size: var(--pfh-tabs-text);
+	line-height: 1.5;
+}
+
+.pfh-tabs__rich--old td,
+.pfh-tabs__rich--old th {
+	padding: 12px 16px;
+	border: 0;
+	border-bottom: 1px solid var(--pfh-tabs-line, #eaeaea);
+	text-align: left;
+	vertical-align: top;
+}
+
+.pfh-tabs__rich--old td + td { text-align: right; font-variant-numeric: tabular-nums; }
+
+.pfh-tabs__rich--old tr:first-child td,
+.pfh-tabs__rich--old th {
+	background: var(--pfh-tabs-panel);
+	color: var(--pfh-tabs-accent);
+	font-weight: 600;
+}
+
+.pfh-tabs__rich--old p:empty { display: none; }
+
+@media (max-width: 767px) {
+	.pfh-tabs__rich--old td,
+	.pfh-tabs__rich--old th { padding: 10px 12px; }
+}
+
 /* ---------- the steps panel ---------- */
 
 .pfh-tabs__steps {

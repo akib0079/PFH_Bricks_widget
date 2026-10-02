@@ -108,8 +108,8 @@ if ( $parent && $child ) {
 
 	echo "\n── the header picture ──\n";
 	delete_term_meta( $parent->term_id, PFH_Widgets_Collection::META );
-	delete_transient( 'pfh_cat_header_' . $parent->term_id );
-	delete_transient( 'pfh_cat_header_' . $child->term_id );
+	delete_transient( PFH_Widgets_Collection::HEADER_CACHE . $parent->term_id );
+	delete_transient( PFH_Widgets_Collection::HEADER_CACHE . $child->term_id );
 
 	// Give one of the child's products a cut-out picture to find.
 	$up   = wp_upload_dir();
@@ -142,11 +142,27 @@ if ( $parent && $child ) {
 	$found = PFH_Widgets_Collection::header_image( $child );
 	ok( 'a picture chosen on the parent is used by its subcategories', $found && (int) $found['id'] === (int) $att );
 
+	// No cut-out among its products: a packshot on white will do.
+	$wpath = trailingslashit( $up['path'] ) . 'pfh-header-white.jpg';
+	$im    = imagecreatetruecolor( 400, 400 );
+	imagefill( $im, 0, 0, imagecolorallocate( $im, 255, 255, 255 ) );
+	imagefilledellipse( $im, 200, 200, 150, 260, imagecolorallocate( $im, 200, 120, 20 ) );
+	imagejpeg( $im, $wpath, 90 );
+	imagedestroy( $im );
+	$white = wp_insert_attachment( [ 'post_mime_type' => 'image/jpeg', 'post_title' => 'white', 'post_status' => 'inherit' ], $wpath );
+	wp_update_attachment_metadata( $white, wp_generate_attachment_metadata( $white, $wpath ) );
+	foreach ( $ids as $id ) { set_post_thumbnail( $id, $white ); }
+	delete_term_meta( $parent->term_id, PFH_Widgets_Collection::META );
+	delete_transient( PFH_Widgets_Collection::HEADER_CACHE . $child->term_id );
+	$picked = PFH_Widgets_Collection::header_image( $child );
+	ok( 'without a cut-out, a product photographed on white', $picked && (int) $picked['id'] === (int) $white );
+	wp_delete_attachment( $white, true );
+
 	foreach ( $was as $id => $thumb ) {
 		$thumb ? set_post_thumbnail( $id, $thumb ) : delete_post_thumbnail( $id );
 	}
 	delete_term_meta( $parent->term_id, PFH_Widgets_Collection::META );
-	delete_transient( 'pfh_cat_header_' . $child->term_id );
+	delete_transient( PFH_Widgets_Collection::HEADER_CACHE . $child->term_id );
 	wp_delete_attachment( $att, true );
 }
 
@@ -163,10 +179,48 @@ if ( $parent && $child ) {
 	ok( 'and nowhere else', '' === trim( $elsewhere ) );
 	ok( 'unlimited, it shows anywhere', false !== strpos( draw( el( 'PFH_Element_Notice', 'n3' ) ), 'pfh-notice' ) );
 }
+if ( $parent && $child ) {
+	land( $child );
+	$elsewhere_cat = get_terms( [ 'taxonomy' => 'product_cat', 'parent' => 0, 'hide_empty' => true, 'exclude' => [ $parent->term_id ], 'number' => 1 ] );
+	$typed = [ 'titleTop' => 'Proefpakketten', 'text' => 'Ontdek de wereld van Gia Giamas.', 'points' => [ [ 'text' => 'Kies zelf 3 smaken' ] ] ];
+	$mine  = draw( el( 'PFH_Element_Highlight', 'hb1', $typed + [ 'typedCats' => $parent->slug ] ) );
+	ok( 'the typed bundle copy shows under the category it is about', false !== strpos( $mine, 'Proefpakketten' ) );
+	if ( $elsewhere_cat ) {
+		$other_copy = draw( el( 'PFH_Element_Highlight', 'hb2', $typed + [ 'typedCats' => $elsewhere_cat[0]->slug ] ) );
+		$best       = PFH_Widgets_Collection::best_seller( $child );
+		ok( 'elsewhere, the category\'s own best seller instead', $best && false === strpos( $other_copy, 'Proefpakketten' ) && false !== strpos( $other_copy, esc_html( get_the_title( $best ) ) ), substr( strip_tags( $other_copy ), 0, 120 ) );
+		ok( '  without the typed selling points', false === strpos( $other_copy, 'Kies zelf 3 smaken' ) );
+		ok( '  linking to that product', false !== strpos( $other_copy, esc_url( get_permalink( $best ) ) ) );
+	}
+	$plain = draw( el( 'PFH_Element_Highlight', 'hb3', $typed ) );
+	ok( 'with no categories named, the typed copy shows everywhere, as before', false !== strpos( $plain, 'Proefpakketten' ) );
+}
+
 $faq = draw( el( 'PFH_Element_Faq', 'f1', [ 'title' => 'Veelgestelde Vragen' ] ) );
 ok( 'a FAQ saved with "Vragen" reads "vragen"', false !== strpos( $faq, 'Veelgestelde vragen' ) && false === strpos( $faq, 'Veelgestelde Vragen' ) );
 $hl = draw( el( 'PFH_Element_Highlight', 'h1', [ 'saving' => 'Bespaar € 5,49 — 15% korting', 'fromCategory' => false ] ) );
 ok( 'a saving typed with a percentage loses it', false !== strpos( $hl, '>Bespaar € 5,49<' ), substr( strip_tags( $hl ), 0, 120 ) );
+
+echo "\n── the menu: subcategories, and only ones with products ──\n";
+require_once WP_PLUGIN_DIR . '/pfh-bricks-widgets/elements/class-pfh-element-header.php';
+$empty_parent = wp_insert_term( 'PFH lege verzorging', 'product_cat' );
+$empty_parent = is_wp_error( $empty_parent ) ? (int) $empty_parent->get_error_data() : (int) $empty_parent['term_id'];
+$empty_child  = wp_insert_term( 'PFH lege sub', 'product_cat', [ 'parent' => $empty_parent ] );
+$empty_child  = is_wp_error( $empty_child ) ? (int) $empty_child->get_error_data() : (int) $empty_child['term_id'];
+$nav = static function ( $parent_id ) {
+	$e           = new PFH_Element_Header( [ 'id' => 'hdm' . wp_rand( 1, 99999 ) ] );
+	$e->settings = [ 'navItems' => [ [ 'label' => 'Menu', 'hasMega' => true, 'megaSource' => 'product_cat', 'megaParent' => (string) $parent_id, 'link' => [ 'type' => 'external', 'url' => '/x/' ] ] ] ];
+	ob_start();
+	$e->render();
+	return (string) ob_get_clean();
+};
+ok( 'a menu item whose subcategories are all empty is a plain link', false === strpos( $nav( $empty_parent ), 'has-mega' ) && false === strpos( $nav( $empty_parent ), 'PFH lege sub' ) );
+if ( $parent ) {
+	$full = $nav( $parent->term_id );
+	ok( 'one with products in its subcategories opens them', false !== strpos( $full, 'has-mega' ) && false !== strpos( $full, esc_html( $child->name ) ) );
+}
+wp_delete_term( $empty_child, 'product_cat' );
+wp_delete_term( $empty_parent, 'product_cat' );
 
 wp_reset_query();
 echo "\n$pass passed, $fail failed\n";

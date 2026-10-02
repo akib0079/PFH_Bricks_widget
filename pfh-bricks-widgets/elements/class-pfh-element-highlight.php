@@ -98,6 +98,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 
 		// The category's own settings.
 		'fromCategory' => true,
+		'typedCats'    => '',
 
 		// Layout.
 		'maxWidth'    => 1240,
@@ -123,6 +124,14 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * @var array|null
 	 */
 	private $offer = null;
+
+	/**
+	 * True when the product was picked from the category being viewed,
+	 * because the typed copy is about another one.
+	 *
+	 * @var bool
+	 */
+	private $auto = false;
 
 	/**
 	 * The picture being drawn, worked out once per render.
@@ -285,6 +294,17 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			esc_html__( 'Follow each category\'s own settings', 'pfh-widgets' ),
 			'fromCategory',
 			[ 'description' => esc_html__( 'On a category page, the category can hide this banner, reword it and choose the product it sells (Products → Categories → edit → Collection page). The product then sets the price, the saving and the link. Anything the category leaves empty keeps what is typed here.', 'pfh-widgets' ) ]
+		);
+
+		$this->controls['typedCats'] = $this->field(
+			'copy',
+			esc_html__( 'The copy below is about these categories', 'pfh-widgets' ),
+			'typedCats',
+			[
+				'placeholder' => 'gia-giamas-lemonade',
+				'description' => esc_html__( 'Category slugs or IDs, comma-separated; their subcategories count too. On any other category that has not chosen a product of its own, the banner shows that category\'s best seller (on sale first) instead of this copy, and is left out where there is none. Empty: the copy shows on every category.', 'pfh-widgets' ),
+				'required'    => [ 'fromCategory', '=', true ],
+			]
 		);
 
 		$this->controls['showGift'] = $this->switch_field( 'copy', esc_html__( 'Gift icon before the eyebrow', 'pfh-widgets' ), 'showGift' );
@@ -525,6 +545,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 
 		$this->own   = null;
 		$this->offer = null;
+		$this->auto  = false;
 
 		if ( $this->flag( 'fromCategory' ) && class_exists( 'PFH_Widgets_Collection' ) ) {
 			$own = PFH_Widgets_Collection::section( 'bundle' );
@@ -535,6 +556,24 @@ class PFH_Element_Highlight extends \Bricks\Element {
 
 			$this->own   = $own;
 			$this->offer = $own ? PFH_Widgets_Collection::offer( (int) $own['product'], (string) $own['saving'] ) : null;
+
+			/*
+			 * The typed copy sells Gia Giamas tasting packs; on the candles
+			 * or the olive oil it advertised something else entirely
+			 * (feedback, 2026-09-28). A category that chose nothing shows
+			 * its own best seller instead, or no banner at all.
+			 */
+			if ( ! $this->offer && ! $this->typed_copy_fits() ) {
+				$pick = PFH_Widgets_Collection::best_seller( PFH_Widgets_Collection::term() );
+
+				$this->offer = $pick ? PFH_Widgets_Collection::offer( $pick, $own && '' !== (string) $own['saving'] ? (string) $own['saving'] : PFH_Widgets_Collection::SAVING ) : null;
+
+				if ( ! $this->offer ) {
+					return;
+				}
+
+				$this->auto = true;
+			}
 		}
 
 		$this->picture = $this->image();
@@ -794,6 +833,22 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			return trim( (string) $this->own[ $from_category[ $key ] ] );
 		}
 
+		// A product picked for the category speaks for itself: its name and
+		// its own short description, not copy written about another one.
+		if ( $this->auto ) {
+			if ( 'titleTop' === $key ) {
+				return (string) $this->offer['name'];
+			}
+
+			if ( 'titleBottom' === $key ) {
+				return '';
+			}
+
+			if ( 'text' === $key ) {
+				return PFH_Widgets_Collection::pitch( (int) $this->offer['id'] );
+			}
+		}
+
 		if ( array_key_exists( $key, (array) $this->settings ) ) {
 			$value = $this->settings[ $key ];
 
@@ -851,10 +906,33 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	}
 
 	/**
+	 * Is the typed copy about the category being viewed?
+	 *
+	 * Yes when no categories are named for it (as before), off a category
+	 * page, in the builder, or on a named category or one under it.
+	 *
+	 * @return bool
+	 */
+	private function typed_copy_fits() {
+		$wanted = array_filter( array_map( 'trim', explode( ',', $this->text( 'typedCats' ) ) ) );
+		$term   = PFH_Widgets_Collection::term();
+
+		if ( ! $wanted || ! $term || PFH_Widgets_Helpers::is_builder_context() ) {
+			return true;
+		}
+
+		return PFH_Widgets_Collection::term_within( $term, $wanted );
+	}
+
+	/**
 	 * @param string $key Repeater setting.
 	 * @return array
 	 */
 	private function rows( $key ) {
+		if ( 'points' === $key && $this->auto && ( ! $this->own || empty( $this->own['points'] ) ) ) {
+			return [];
+		}
+
 		if ( 'points' === $key && $this->own && ! empty( $this->own['points'] ) ) {
 			return array_map(
 				static function ( $point ) {

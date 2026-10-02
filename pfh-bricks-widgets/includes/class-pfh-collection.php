@@ -32,6 +32,9 @@ defined( 'ABSPATH' ) || exit;
 
 class PFH_Widgets_Collection {
 
+	/** Where a category's picked header picture is kept; v2 also picks packshots on white. */
+	const HEADER_CACHE = 'pfh_cat_header_v2_';
+
 	const META  = '_pfh_collection';
 	const NONCE = 'pfh_collection_save';
 
@@ -233,6 +236,110 @@ class PFH_Widgets_Collection {
 			'image'    => $image,
 			'image_id' => $image ? $image_id : 0,
 		];
+	}
+
+	/**
+	 * The product a category leads with when it chose none: its best seller,
+	 * one on sale before one that is not, so the banner has a saving to show.
+	 *
+	 * @param WP_Term|null $term Category.
+	 * @return int Product, or 0.
+	 */
+	public static function best_seller( $term ) {
+		if ( ! $term instanceof WP_Term || ! function_exists( 'wc_get_product_ids_on_sale' ) ) {
+			return 0;
+		}
+
+		$args = [
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'meta_key'       => 'total_sales', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- one row.
+			'orderby'        => 'meta_value_num',
+			'order'          => 'DESC',
+			'tax_query'      => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- one row.
+				'relation' => 'AND',
+				[
+					'taxonomy'         => 'product_cat',
+					'field'            => 'term_id',
+					'terms'            => [ (int) $term->term_id ],
+					'include_children' => true,
+				],
+				[
+					'taxonomy' => 'product_visibility',
+					'field'    => 'name',
+					'terms'    => [ 'exclude-from-catalog', 'outofstock' ],
+					'operator' => 'NOT IN',
+				],
+			],
+		];
+
+		$on_sale = array_filter( array_map( 'intval', wc_get_product_ids_on_sale() ) );
+
+		if ( $on_sale ) {
+			$found = get_posts( array_merge( $args, [ 'post__in' => $on_sale ] ) );
+
+			if ( $found ) {
+				return (int) $found[0];
+			}
+		}
+
+		$found = get_posts( $args );
+
+		return $found ? (int) $found[0] : 0;
+	}
+
+	/**
+	 * A product's own pitch: its short description, as one plain paragraph.
+	 *
+	 * @param int $product_id Product.
+	 * @return string
+	 */
+	public static function pitch( $product_id ) {
+		$product = function_exists( 'wc_get_product' ) ? wc_get_product( (int) $product_id ) : null;
+
+		if ( ! $product ) {
+			return '';
+		}
+
+		$text = trim( (string) $product->get_short_description() );
+
+		if ( '' === $text ) {
+			$text = (string) $product->get_description();
+		}
+
+		// The first paragraph only: the rest is the ticked list the product
+		// page shows, which reads oddly run together.
+		$text  = preg_split( '#</p>|\n\s*\n#i', strip_shortcodes( $text ) );
+		$first = trim( html_entity_decode( wp_strip_all_tags( (string) $text[0] ), ENT_QUOTES, 'UTF-8' ) );
+
+		return wp_trim_words( $first, 30, '…' );
+	}
+
+	/**
+	 * Is a category one of these, or under one of them?
+	 *
+	 * @param WP_Term  $term   Category.
+	 * @param string[] $wanted Slugs or IDs.
+	 * @return bool
+	 */
+	public static function term_within( WP_Term $term, array $wanted ) {
+		$ids = [];
+
+		foreach ( $wanted as $want ) {
+			$want  = trim( (string) $want );
+			$found = ctype_digit( $want ) ? get_term( (int) $want, 'product_cat' ) : get_term_by( 'slug', $want, 'product_cat' );
+
+			if ( $found && ! is_wp_error( $found ) ) {
+				$ids[] = (int) $found->term_id;
+			}
+		}
+
+		$line = array_merge( [ (int) $term->term_id ], array_map( 'intval', get_ancestors( $term->term_id, 'product_cat', 'taxonomy' ) ) );
+
+		return (bool) array_intersect( $ids, $line );
 	}
 
 	/**
@@ -561,7 +668,7 @@ class PFH_Widgets_Collection {
 			}
 		}
 
-		$key    = 'pfh_cat_header_' . $term->term_id;
+		$key    = self::HEADER_CACHE . $term->term_id;
 		$cached = get_transient( $key );
 
 		if ( is_array( $cached ) ) {
@@ -591,15 +698,31 @@ class PFH_Widgets_Collection {
 				]
 			);
 
+			$white = 0;
+
 			foreach ( $products as $product_id ) {
 				$image = (int) get_post_thumbnail_id( $product_id );
 
+				if ( ! $image ) {
+					continue;
+				}
+
 				// A cut-out, so it sits on the page like the designed banner
 				// rather than as a photo in a box.
-				if ( $image && ! PFH_Widgets_Photo::has_backdrop( $image ) ) {
+				if ( ! PFH_Widgets_Photo::has_backdrop( $image ) ) {
 					$found = [ 'id' => $image, 'url' => (string) wp_get_attachment_image_url( $image, 'large' ) ];
 					break;
 				}
+
+				// Failing that, a packshot on white, which a white page hides
+				// the edges of just as well.
+				if ( ! $white && PFH_Widgets_Photo::on_white( $image ) ) {
+					$white = $image;
+				}
+			}
+
+			if ( ! $found && $white ) {
+				$found = [ 'id' => $white, 'url' => (string) wp_get_attachment_image_url( $white, 'large' ) ];
 			}
 		}
 
@@ -788,7 +911,7 @@ class PFH_Widgets_Collection {
 		}
 
 		// The automatic header picture is worked out again on the next view.
-		delete_transient( 'pfh_cat_header_' . (int) $term_id );
+		delete_transient( self::HEADER_CACHE . (int) $term_id );
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every field is sanitised in clean().
 		$raw   = isset( $_POST['pfh_collection'] ) && is_array( $_POST['pfh_collection'] ) ? wp_unslash( $_POST['pfh_collection'] ) : [];

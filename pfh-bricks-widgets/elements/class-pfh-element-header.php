@@ -2142,9 +2142,15 @@ class PFH_Element_Header extends \Bricks\Element {
 				}
 			}
 		} else {
+			/*
+			 * Only subcategories with something in them: an empty one is a
+			 * card with a placeholder leading to an empty page. A menu item
+			 * whose subcategories are all still empty is a plain link until
+			 * the first product goes in (Natuurlijke verzorging, 2026-10).
+			 */
 			$args = [
 				'taxonomy'   => 'product_cat',
-				'hide_empty' => false,
+				'hide_empty' => true,
 				'parent'     => isset( $item['megaParent'] ) ? (int) $item['megaParent'] : 0,
 				'number'     => $limit,
 				'orderby'    => 'menu_order',

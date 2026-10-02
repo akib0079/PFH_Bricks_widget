@@ -14,6 +14,15 @@
  * The steps panel is the same copy on every product — it is set here, once —
  * but each product can turn it off.
  *
+ * The old shop kept its tabs per product too (Inhoud, Ingrediënten,
+ * Houdbaarheid, Voedingswaarden — the theme's "custom tabs"), and that copy
+ * is still on 25 products. Where this plugin's own field for a tab is empty,
+ * the old tab's text is shown in it, and an old tab with no counterpart here
+ * (Inhoud, Schoonmaak advies) gets a tab of its own. The client missed them
+ * (feedback, 2026-09-28) and nothing has to be typed in twice.
+ *
+ * @see PFH_Element_Product_Tabs::legacy_tabs()
+ *
  * @package PFH_Widgets
  */
 
@@ -83,6 +92,13 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 			$this->controls[ $key . 'On' ]    = $this->switch_field( 'tabs', sprintf( /* translators: tab name */ esc_html__( 'Show %s', 'pfh-widgets' ), $tab['label'] ), true );
 			$this->controls[ $key . 'Label' ] = $this->text_field( 'tabs', sprintf( /* translators: tab name */ esc_html__( '%s label', 'pfh-widgets' ), $tab['label'] ), $tab['label'], [ 'inline' => true ] );
 		}
+
+		$this->controls['legacyTabs'] = $this->switch_field(
+			'tabs',
+			esc_html__( 'Use the old shop\'s tabs where a field is empty', 'pfh-widgets' ),
+			true,
+			[ 'description' => esc_html__( 'The tabs typed in on the old site (Inhoud, Ingrediënten, Houdbaarheid, Voedingswaarden). A field filled in here always wins.', 'pfh-widgets' ) ]
+		);
 
 		$this->controls['hideEmpty'] = $this->switch_field(
 			'tabs',
@@ -379,6 +395,19 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 			'nutrition' => $this->nutrition_panel( $product ),
 		];
 
+		$legacy = $this->switched_on( 'legacyTabs' ) ? self::legacy_tabs( (int) $product->get_id() ) : [];
+		$extra  = [];
+
+		foreach ( $legacy as $slug => $old ) {
+			if ( isset( $built[ $slug ] ) ) {
+				if ( '' === $built[ $slug ] ) {
+					$built[ $slug ] = $this->legacy_panel( $old );
+				}
+			} else {
+				$extra[ $slug ] = $old;
+			}
+		}
+
 		foreach ( $this->tab_spec() as $key => $tab ) {
 			if ( ! $this->switched_on( $key . 'On' ) ) {
 				continue;
@@ -395,9 +424,102 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 				'label' => '' !== $label ? $label : $tab['label'],
 				'html'  => $built[ $key ],
 			];
+
+			// The old tabs this plugin has no field for come straight after
+			// the description, where the old shop had Inhoud.
+			if ( 'desc' === $key ) {
+				foreach ( $extra as $slug => $old ) {
+					$out[ $slug ] = [
+						'label' => $old['title'],
+						'html'  => $this->legacy_panel( $old ),
+					];
+				}
+
+				$extra = [];
+			}
+		}
+
+		// Description switched off: the old tabs still have a place.
+		foreach ( $extra as $slug => $old ) {
+			$out[ $slug ] = [
+				'label' => $old['title'],
+				'html'  => $this->legacy_panel( $old ),
+			];
 		}
 
 		return $out;
+	}
+
+	/**
+	 * The old shop's tabs for one product, keyed by where they belong.
+	 *
+	 * A tab whose title is one of this element's own (Ingrediënten,
+	 * Houdbaarheid, Voedingswaarden) is keyed like it, so it can fill that
+	 * tab; any other is keyed by its title.
+	 *
+	 * @param int $product_id Product.
+	 * @return array<string, array{title: string, content: string}>
+	 */
+	public static function legacy_tabs( $product_id ) {
+		$stored = get_post_meta( (int) $product_id, 'wb_custom_tabs', true );
+
+		if ( ! is_array( $stored ) ) {
+			return [];
+		}
+
+		$own = [
+			'ingredienten'    => 'ingr',
+			'houdbaarheid'    => 'storage',
+			'voedingswaarden' => 'nutrition',
+			'omschrijving'    => 'desc',
+			'beschrijving'    => 'desc',
+		];
+
+		$out = [];
+
+		foreach ( $stored as $tab ) {
+			if ( ! is_array( $tab ) ) {
+				continue;
+			}
+
+			$title   = trim( wp_strip_all_tags( isset( $tab['title'] ) ? (string) $tab['title'] : '' ) );
+			$content = trim( strip_shortcodes( isset( $tab['content'] ) ? (string) $tab['content'] : '' ) );
+
+			if ( '' === $title || '' === trim( wp_strip_all_tags( $content ) ) ) {
+				continue;
+			}
+
+			$slug = sanitize_title( remove_accents( $title ) );
+			$key  = isset( $own[ $slug ] ) ? $own[ $slug ] : 'old-' . $slug;
+
+			// The old description would only repeat WooCommerce's own.
+			if ( 'desc' === $key || isset( $out[ $key ] ) ) {
+				continue;
+			}
+
+			$out[ $key ] = [
+				// "inhoud" on one product, "Inhoud" on the rest.
+				'title'   => function_exists( 'mb_strtoupper' ) ? mb_strtoupper( mb_substr( $title, 0, 1 ) ) . mb_substr( $title, 1 ) : ucfirst( $title ),
+				'content' => $content,
+			];
+		}
+
+		return $out;
+	}
+
+	/**
+	 * One old tab, in this element's type.
+	 *
+	 * The old copy came out of a page builder: inline heights and spans with
+	 * nothing in them, which the rich-text styles below make plain again.
+	 *
+	 * @param array $old Title and content.
+	 * @return string
+	 */
+	private function legacy_panel( array $old ) {
+		$body = preg_replace( '/\sstyle="[^"]*"/i', '', wp_kses_post( wpautop( $old['content'] ) ) );
+
+		return $this->heading( $old['title'] ) . '<div class="pfh-tabs__rich pfh-tabs__rich--old">' . $body . '</div>';
 	}
 
 	/**
