@@ -329,11 +329,20 @@ class PFH_Element_Counter extends \Bricks\Element {
 			$label = isset( $item['label'] ) ? (string) $item['label'] : '';
 			$sub   = isset( $item['sub'] ) ? (string) $item['sub'] : '';
 
-			if ( $live ) {
+			// A typed %score% is filled in even with the live switch off.
+			if ( $live || preg_match( '/%(?:score|count|total)%/', $value ) ) {
 				$value = PFH_Widgets_Reviews::tokens( $value, $figures );
 			}
 
-			$sub = PFH_Widgets_Reviews::tokens( $sub, $figures );
+			/*
+			 * Typed tokens (%count%, %score%) are filled in on any line. The
+			 * numbers already in a line are only renumbered under a live
+			 * figure: under "669 mg" a "Per 100 ml" came out as "Per 396 ml"
+			 * (recipes page, 2026-10-02).
+			 */
+			if ( $live || preg_match( '/%(?:score|count|total)%|%s/', $sub ) ) {
+				$sub = PFH_Widgets_Reviews::tokens( $sub, $figures );
+			}
 
 			echo '<li class="pfh-counter__item">';
 

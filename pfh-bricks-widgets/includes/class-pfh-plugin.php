@@ -70,6 +70,10 @@ class PFH_Widgets_Plugin {
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-notice.php',
 				'class' => 'PFH_Element_Notice',
 			],
+			'pfh-recipes' => [
+				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-recipes.php',
+				'class' => 'PFH_Element_Recipes',
+			],
 			'pfh-counter' => [
 				'file'  => PFH_WIDGETS_DIR . 'elements/class-pfh-element-counter.php',
 				'class' => 'PFH_Element_Counter',

@@ -377,6 +377,13 @@ class PFH_Widgets_Assets {
 		);
 
 		wp_register_style(
+			'pfh-recipes',
+			PFH_WIDGETS_URL . 'assets/css/pfh-recipes.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_style(
 			'pfh-rating',
 			PFH_WIDGETS_URL . 'assets/css/pfh-rating.css',
 			[ 'pfh-base' ],
@@ -713,6 +720,14 @@ class PFH_Widgets_Assets {
 	public static function highlight() {
 		self::base();
 		wp_enqueue_style( 'pfh-highlight' );
+	}
+
+	/**
+	 * Enqueue everything the recipe cards need.
+	 */
+	public static function recipes() {
+		self::base();
+		wp_enqueue_style( 'pfh-recipes' );
 	}
 
 	/**

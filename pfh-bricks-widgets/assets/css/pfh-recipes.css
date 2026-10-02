@@ -1,0 +1,220 @@
+/*!
+ * Products For Home — recipe cards (PFH_Element_Recipes).
+ *
+ * The section heading of the shop (Playfair with an underlined italic
+ * accent) over cards built like its product cards: a photo in a rounded
+ * tile, the name in Outfit, a line of text and a teal link that moves on
+ * hover. Three across, two on a tablet, and on a phone one row per recipe,
+ * photo beside the words.
+ */
+
+.pfh-rc {
+	--pfh-rc-cols: 3;
+	--pfh-rc-gap: 32px 24px;
+	--pfh-rc-radius: 16px;
+
+	width: 100%;
+	padding-block: var(--pfh-rc-pad-t, 72px) var(--pfh-rc-pad-b, 72px);
+	background: var(--pfh-rc-bg, #ffffff);
+	font-family: var(--pfh-font);
+}
+
+.pfh-rc__inner {
+	width: 100%;
+	max-width: calc(var(--pfh-container) + var(--pfh-gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter);
+}
+
+/* ---------- heading ---------- */
+
+.pfh-rc__head {
+	display: grid;
+	gap: 12px;
+	max-width: 640px;
+	margin-bottom: 40px;
+}
+
+.pfh-rc .pfh-rc__eyebrow {
+	margin: 0;
+	color: var(--pfh-rc-accent);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: .14em;
+	text-transform: uppercase;
+}
+
+.pfh-rc .pfh-rc__title {
+	margin: 0;
+	color: var(--pfh-rc-head);
+	font-family: "Playfair Display", Georgia, serif;
+	font-size: clamp(30px, 3.4vw, 42px);
+	font-weight: 400;
+	line-height: 1.15;
+	text-wrap: balance;
+}
+
+.pfh-rc__title em,
+.pfh-rc__title i {
+	color: var(--pfh-rc-accent);
+	font-style: italic;
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 6px;
+}
+
+.pfh-rc .pfh-rc__lede {
+	margin: 0;
+	color: var(--pfh-rc-text);
+	font-size: 16px;
+	line-height: 1.6;
+}
+
+/* ---------- grid ---------- */
+
+.pfh-rc .pfh-rc__grid {
+	display: grid;
+	grid-template-columns: repeat(var(--pfh-rc-cols), minmax(0, 1fr));
+	gap: var(--pfh-rc-gap);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-rc__item { min-width: 0; margin: 0; }
+
+.pfh-rc__card {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	height: 100%;
+	color: inherit;
+	text-decoration: none;
+}
+
+.pfh-rc__media {
+	position: relative;
+	display: block;
+	overflow: hidden;
+	aspect-ratio: 4 / 3;
+	border-radius: var(--pfh-rc-radius);
+	background: var(--pfh-rc-media);
+}
+
+.pfh-rc .pfh-rc__img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	object-fit: cover;
+	transition: transform .6s var(--pfh-ease);
+}
+
+.pfh-rc__body {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.pfh-rc .pfh-rc__name {
+	margin: 0;
+	color: var(--pfh-rc-name);
+	font-family: var(--pfh-font);
+	font-size: 20px;
+	font-weight: 500;
+	line-height: 1.3;
+}
+
+.pfh-rc__text {
+	color: var(--pfh-rc-text);
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.pfh-rc__more {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: auto;
+	padding-top: 4px;
+	color: var(--pfh-rc-link);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.pfh-rc .pfh-rc__arrow {
+	width: 16px;
+	height: 16px;
+	transition: transform .3s var(--pfh-ease);
+}
+
+a.pfh-rc__card:hover .pfh-rc__img { transform: scale(1.04); }
+a.pfh-rc__card:hover .pfh-rc__arrow { transform: translateX(4px); }
+a.pfh-rc__card:hover .pfh-rc__name { color: var(--pfh-rc-accent); }
+
+a.pfh-rc__card:focus-visible {
+	outline: 2px solid var(--pfh-rc-link);
+	outline-offset: 6px;
+	border-radius: var(--pfh-rc-radius);
+}
+
+.pfh-rc--empty {
+	padding: 32px;
+	border: 1px dashed rgba(20, 24, 27, .2);
+	text-align: center;
+}
+
+/* ---------- smaller screens ---------- */
+
+@media (max-width: 991px) {
+	.pfh-rc { --pfh-rc-cols: 2; }
+	.pfh-rc__head { margin-bottom: 32px; }
+}
+
+@media (max-width: 575px) {
+	.pfh-rc {
+		--pfh-rc-gap: 14px;
+		--pfh-rc-radius: 12px;
+		padding-block: min(var(--pfh-rc-pad-t, 72px), 48px) min(var(--pfh-rc-pad-b, 72px), 48px);
+	}
+
+	.pfh-rc .pfh-rc__grid { grid-template-columns: minmax(0, 1fr); }
+
+	/* One row per recipe: the photo beside the words. */
+	.pfh-rc__card {
+		flex-direction: row;
+		align-items: center;
+		gap: 16px;
+		padding: 10px;
+		border: 1px solid rgba(20, 24, 27, .08);
+		border-radius: 16px;
+	}
+
+	.pfh-rc__media {
+		flex: 0 0 104px;
+		width: 104px;
+		aspect-ratio: 1 / 1;
+	}
+
+	.pfh-rc__body { gap: 4px; }
+	.pfh-rc .pfh-rc__name { font-size: 17px; }
+
+	.pfh-rc__text {
+		display: -webkit-box;
+		overflow: hidden;
+		font-size: 13px;
+		line-height: 1.5;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+
+	.pfh-rc__more { padding-top: 2px; font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pfh-rc .pfh-rc__img,
+	.pfh-rc .pfh-rc__arrow { transition: none; }
+}

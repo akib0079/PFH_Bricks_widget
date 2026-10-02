@@ -24,6 +24,12 @@
 	--pfh-sh-banner-fit: contain;
 
 	display: block;
+	/*
+	 * Full width wherever it is placed. A plain Bricks section centres its
+	 * children at their own width, so on an ordinary page (the recipes page,
+	 * 2026-10-02) the header shrank to its text and lost its picture.
+	 */
+	width: 100%;
 	padding-block: var(--pfh-sh-pt) var(--pfh-sh-pb);
 }
 
@@ -430,6 +436,8 @@
  * ================================================================== */
 
 .pfh-counter {
+	/* Full width in a plain section too; see .pfh-shophead. */
+	width: 100%;
 	--pfh-ct-max: 1240px;
 	--pfh-ct-pt: 24px;
 	--pfh-ct-pb: 56px;

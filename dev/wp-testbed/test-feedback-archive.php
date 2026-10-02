@@ -103,6 +103,9 @@ if ( $parent && $child ) {
 	ok( 'a category with figures shows its own', false !== strpos( $own, 'Rauwe honing' ) && false === strpos( $own, 'Origineel recept' ) );
 	ok( 'a row without a figure is dropped', false === strpos( $own, 'no figure, no row' ) );
 	ok( 'live tokens still work in them', false === strpos( $own, '%score%' ) );
+	$plain_numbers = draw( el( 'PFH_Element_Counter', 'c4', [ 'fromCategory' => false, 'items' => [ [ 'value' => '669 mg', 'label' => 'Vitamine C', 'sub' => 'Per 100 ml Pandasia' ], [ 'value' => '%score%/10', 'label' => 'Klantbeoordeling', 'sub' => 'Op %count% reviews' ] ] ] ) );
+	ok( 'a number in a small line stays as typed', false !== strpos( $plain_numbers, 'Per 100 ml Pandasia' ) );
+	ok( '  while tokens are still filled in', false === strpos( $plain_numbers, '%count%' ) && false === strpos( $plain_numbers, '%score%' ) );
 	update_term_meta( $parent->term_id, PFH_Widgets_Collection::META, PFH_Widgets_Collection::clean( [ 'figures' => [ 'hide' => '1' ] ] ) );
 	ok( 'and a category can hide the row', '' === trim( draw( el( 'PFH_Element_Counter', 'c3' ) ) ) );
 
