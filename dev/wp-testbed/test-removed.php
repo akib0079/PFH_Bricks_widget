@@ -39,7 +39,7 @@ ok( 'no URL rewriting', ! has_filter( 'post_type_link', [ 'PFH_Widgets_Permalink
 echo "\n── the settings screen ──\n";
 
 $tabs = array_keys( PFH_Widgets_Settings::tabs() );
-ok( 'the tabs are WebwinkelKeur, Instagram and Licentie', [ 'reviews', 'license', 'instagram' ] === $tabs, implode( ',', $tabs ) );
+ok( 'the tabs are WebwinkelKeur, Winkelwagen, Licentie and Instagram', [ 'reviews', 'cart', 'license', 'instagram' ] === $tabs, implode( ',', $tabs ) );
 
 wp_set_current_user( 1 );
 

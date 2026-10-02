@@ -14,17 +14,6 @@ defined( 'ABSPATH' ) || exit;
 trait PFH_Product_Card_Trait {
 
 	/**
-	 * Default review destination.
-	 *
-	 * A trait cannot hold a constant before PHP 8.2, so this is a method.
-	 *
-	 * @return string
-	 */
-	private static function review_url() {
-		return PFH_Widgets_Reviews::review_url();
-	}
-
-	/**
 	 * Parse a comma separated list of IDs.
 	 *
 	 * @param string $value Raw control value.
@@ -729,17 +718,18 @@ trait PFH_Product_Card_Trait {
 		$stars = $row['stars'];
 		$text  = $row['text'];
 
-		$link = PFH_Widgets_Helpers::link( $this->get( 'reviewLink' ) );
-
-		// An unlinked trust row is decoration; send it to the review page.
-		if ( '' === $link['href'] ) {
-			$link = [
-				'href'   => self::review_url(),
-				'target' => '_blank',
-				'rel'    => 'noopener nofollow',
-				'aria'   => '',
-			];
-		}
+		/*
+		 * The row counts this product's own reviews, so it leads to them:
+		 * the Reviews tab on the product page. It used to open the shop's
+		 * WebwinkelKeur page, which lists none of them.
+		 */
+		$href = ! empty( $card['link']['href'] ) ? strtok( (string) $card['link']['href'], '#' ) . '#reviews' : '';
+		$link = [
+			'href'   => $href,
+			'target' => '',
+			'rel'    => '',
+			'aria'   => '',
+		];
 
 		$tag = $link['href'] ? 'a' : 'div';
 
@@ -1389,20 +1379,6 @@ trait PFH_Product_Card_Trait {
 			'type'     => 'checkbox',
 			'default'  => true,
 			'required' => [ 'reviewEnable', '=', true ],
-		];
-
-		$this->controls['reviewLink'] = [
-			'tab'         => 'content',
-			'group'       => 'reviews',
-			'label'       => esc_html__( 'Review link', 'pfh-widgets' ),
-			'type'        => 'link',
-			'default'     => [
-				'type'   => 'external',
-				'url'    => self::review_url(),
-				'newTab' => true,
-			],
-			'required'    => [ 'reviewEnable', '=', true ],
-			'description' => esc_html__( 'Defaults to the WebwinkelKeur page for this shop.', 'pfh-widgets' ),
 		];
 
 		$this->controls['starColor'] = [

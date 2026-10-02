@@ -283,6 +283,7 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 			'ingr'      => [ 'label' => 'Ingrediënten' ],
 			'storage'   => [ 'label' => 'Houdbaarheid' ],
 			'nutrition' => [ 'label' => 'Voedingswaarden' ],
+			'reviews'   => [ 'label' => 'Reviews' ],
 		];
 	}
 
@@ -316,6 +317,12 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 		$steps = $this->steps_markup( $product );
 
 		echo '<section ' . $this->render_attributes( '_root' ) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bricks escapes its own attributes.
+
+		// Where "2 reviews" on a product card leads; the script opens the tab.
+		if ( isset( $panels['reviews'] ) ) {
+			echo '<span id="reviews" class="pfh-tabs__anchor" data-pfh-tabs-anchor="reviews"></span>';
+		}
+
 		echo '<div class="pfh-tabs__inner">';
 
 		/* ---- the tab strip ---- */
@@ -393,6 +400,7 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 			'ingr'      => $this->ingredients_panel( $product ),
 			'storage'   => $this->storage_panel( $product ),
 			'nutrition' => $this->nutrition_panel( $product ),
+			'reviews'   => $this->reviews_panel( $product ),
 		];
 
 		$legacy = $this->switched_on( 'legacyTabs' ) ? self::legacy_tabs( (int) $product->get_id() ) : [];
@@ -419,9 +427,14 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 			}
 
 			$label = trim( (string) $this->setting( $key . 'Label', $tab['label'] ) );
+			$label = '' !== $label ? $label : $tab['label'];
+
+			if ( 'reviews' === $key ) {
+				$label .= ' (' . number_format_i18n( (int) $product->get_review_count() ) . ')';
+			}
 
 			$out[ $key ] = [
-				'label' => '' !== $label ? $label : $tab['label'],
+				'label' => $label,
 				'html'  => $built[ $key ],
 			];
 
@@ -505,6 +518,95 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 		}
 
 		return $out;
+	}
+
+	/**
+	 * The product's own reviews, newest first.
+	 *
+	 * Product cards show a product's review count and stars (the shop's
+	 * WebwinkelKeur score was taken off them, feedback 2026-09-28); this is
+	 * where that count leads. A product without reviews has no tab.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	private function reviews_panel( $product ) {
+		$id = (int) $product->get_id();
+
+		if ( (int) $product->get_review_count() <= 0 ) {
+			return '';
+		}
+
+		$reviews = get_comments(
+			[
+				'post_id' => $id,
+				'status'  => 'approve',
+				'type'    => 'review',
+				'number'  => 50,
+				'orderby' => 'comment_date_gmt',
+				'order'   => 'DESC',
+			]
+		);
+
+		if ( ! $reviews ) {
+			return '';
+		}
+
+		$average = (float) $product->get_average_rating();
+		$count   = (int) $product->get_review_count();
+
+		$html  = $this->heading( (string) $this->setting( 'reviewsHeading', 'Reviews' ) );
+		$html .= '<p class="pfh-tabs__review-sum">' . self::stars( $average )
+			. '<span>' . esc_html(
+				sprintf(
+					/* translators: 1: average rating, 2: number of reviews. */
+					_n( '%1$s van 5 · %2$s review', '%1$s van 5 · %2$s reviews', $count, 'pfh-widgets' ),
+					number_format_i18n( $average, 1 ),
+					number_format_i18n( $count )
+				)
+			) . '</span></p>';
+
+		$html .= '<ul class="pfh-tabs__review-list">';
+
+		foreach ( $reviews as $review ) {
+			$rating = (int) get_comment_meta( $review->comment_ID, 'rating', true );
+			$text   = trim( (string) $review->comment_content );
+
+			$html .= '<li class="pfh-tabs__review">';
+			$html .= '<div class="pfh-tabs__review-head">';
+
+			if ( $rating > 0 ) {
+				$html .= self::stars( $rating );
+			}
+
+			$html .= '<strong class="pfh-tabs__review-name">' . esc_html( get_comment_author( $review ) ) . '</strong>';
+			$html .= '<time class="pfh-tabs__review-date" datetime="' . esc_attr( mysql2date( 'c', $review->comment_date_gmt, false ) ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $review->comment_date ) ) . '</time>';
+			$html .= '</div>';
+
+			if ( '' !== $text ) {
+				$html .= '<div class="pfh-tabs__review-text">' . wp_kses_post( wpautop( $text ) ) . '</div>';
+			}
+
+			$html .= '</li>';
+		}
+
+		return $html . '</ul>';
+	}
+
+	/**
+	 * Five stars, filled to a rating.
+	 *
+	 * @param float $rating Out of five.
+	 * @return string
+	 */
+	private static function stars( $rating ) {
+		$out = '<span class="pfh-tabs__stars" role="img" aria-label="' . esc_attr( sprintf( /* translators: %s: rating out of five. */ __( '%s van 5 sterren', 'pfh-widgets' ), number_format_i18n( (float) $rating, 1 ) ) ) . '">';
+
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$out .= PFH_Widgets_Icons::get( 'star', 'pfh-tabs__star' . ( $rating >= $i - 0.25 ? ' is-on' : '' ) );
+		}
+
+		return $out . '</span>';
 	}
 
 	/**

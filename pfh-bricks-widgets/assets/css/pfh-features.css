@@ -346,6 +346,28 @@
 @media (max-width: 767px) {
 	.pfh-hf.is-phone-no-head .pfh-hf__head { display: none; }
 	.pfh-hf.is-phone-first-only .pfh-hf__tile:not(:first-child) { display: none; }
+
+	/*
+	 * One tile left: it takes the whole width at the height of its own
+	 * text. Between 576 and 767px the grid still had two columns, so the
+	 * tile sat at half width with the empty rows of the others above and
+	 * below it.
+	 */
+	.pfh-hf.is-phone-first-only {
+		--pfh-hf-pad-t: 40px;
+		--pfh-hf-pad-b: 40px;
+	}
+
+	.pfh-hf.is-phone-first-only .pfh-hf__grid {
+		grid-template-columns: minmax(0, 1fr);
+		grid-auto-rows: auto;
+	}
+
+	.pfh-hf.is-phone-first-only .pfh-hf__tile:first-child {
+		grid-column: 1 / -1;
+		grid-row: auto;
+		min-height: 200px;
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {

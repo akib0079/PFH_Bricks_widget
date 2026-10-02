@@ -64,6 +64,27 @@
 			}
 		}
 
+		// "#reviews" — the link on a product card's review count — opens
+		// the reviews tab and brings it into view.
+		root.pfhOpenTab = function ( key ) {
+			var at = -1;
+
+			buttons.forEach( function ( button, i ) {
+				if ( key === button.getAttribute( 'data-pfh-tab' ) ) {
+					at = i;
+				}
+			} );
+
+			if ( at < 0 ) {
+				return false;
+			}
+
+			show( at, false );
+			root.scrollIntoView( { behavior: 'smooth', block: 'start' } );
+
+			return true;
+		};
+
 		buttons.forEach( function ( button, i ) {
 			button.addEventListener( 'click', function () {
 				show( i, false );
@@ -100,9 +121,44 @@
 
 	window.pfhProductTabsInit = start;
 
-	if ( 'loading' === document.readyState ) {
-		document.addEventListener( 'DOMContentLoaded', start );
-	} else {
+	function follow( hash ) {
+		var key = ( hash || '' ).replace( /^#/, '' );
+
+		if ( 'reviews' !== key ) {
+			return false;
+		}
+
+		var anchor = document.querySelector( '[data-pfh-tabs-anchor="reviews"]' );
+		var root = anchor ? anchor.closest( '.pfh-tabs' ) : null;
+
+		return !! ( root && root.pfhOpenTab && root.pfhOpenTab( key ) );
+	}
+
+	window.addEventListener( 'hashchange', function () {
+		follow( window.location.hash );
+	} );
+
+	// A link to #reviews on this same page, like the rating under the title.
+	document.addEventListener( 'click', function ( event ) {
+		var link = event.target.closest ? event.target.closest( 'a[href$="#reviews"]' ) : null;
+
+		if ( ! link || link.pathname !== window.location.pathname ) {
+			return;
+		}
+
+		if ( follow( '#reviews' ) ) {
+			event.preventDefault();
+		}
+	} );
+
+	function boot() {
 		start();
+		follow( window.location.hash );
+	}
+
+	if ( 'loading' === document.readyState ) {
+		document.addEventListener( 'DOMContentLoaded', boot );
+	} else {
+		boot();
 	}
 }() );

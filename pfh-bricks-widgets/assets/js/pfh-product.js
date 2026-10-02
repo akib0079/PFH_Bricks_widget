@@ -760,6 +760,27 @@
 		bar.removeAttribute( 'hidden' );
 		form.addEventListener( 'pfh:price', copyPrice );
 
+		/*
+		 * The bar's button presses the page's own, which has scrolled out of
+		 * sight — so its spinner and its "Toegevoegd" were running where
+		 * nobody could see them. The bar's button now shows them too.
+		 */
+		if ( go && 'MutationObserver' in window ) {
+			var goLabel = go.querySelector( '[data-pfh-sticky-label]' );
+			var buyLabel = buy.querySelector( '.pfh-pdp__cart-label' );
+			var goSaid = goLabel ? goLabel.textContent : '';
+
+			new window.MutationObserver( function () {
+				go.classList.toggle( 'is-busy', buy.classList.contains( 'is-busy' ) );
+				go.classList.toggle( 'is-done', buy.classList.contains( 'is-done' ) );
+				go.setAttribute( 'aria-busy', buy.classList.contains( 'is-busy' ) ? 'true' : 'false' );
+
+				if ( goLabel ) {
+					goLabel.textContent = buy.classList.contains( 'is-done' ) && buyLabel ? buyLabel.textContent : goSaid;
+				}
+			} ).observe( buy, { attributes: true, attributeFilter: [ 'class' ] } );
+		}
+
 		if ( go ) {
 			go.addEventListener( 'click', function () {
 				if ( ! buy.disabled ) {

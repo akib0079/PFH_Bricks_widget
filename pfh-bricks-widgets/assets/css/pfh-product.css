@@ -590,6 +590,14 @@
 
 @keyframes pfh-pdp-spin { to { transform: rotate(360deg); } }
 
+/* The bar's button shows what the page's own button is doing: that one has
+   scrolled out of sight by the time the bar is used. */
+.pfh-pdp__sticky-btn { position: relative; overflow: hidden; }
+.pfh-pdp__sticky-btn.is-busy { cursor: progress; }
+.pfh-pdp__sticky-btn.is-busy .pfh-pdp__cart-label { opacity: 0; }
+.pfh-pdp__sticky-btn.is-busy .pfh-pdp__cart-spin { opacity: 1; animation: pfh-pdp-spin .7s linear infinite; }
+.pfh-pdp__sticky-btn.is-done { filter: brightness(1.04); }
+
 .pfh-pdp__cart:hover { filter: brightness(.94); }
 .pfh-pdp__cart[disabled] { background: var(--pfh-pdp-line); color: var(--pfh-pdp-muted); cursor: not-allowed; filter: none; }
 
@@ -869,7 +877,8 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.pfh-pdp__thumbs-track { scroll-behavior: auto; }
-	.pfh-pdp__cart.is-busy .pfh-pdp__cart-spin { animation-duration: 1.6s; }
+	.pfh-pdp__cart.is-busy .pfh-pdp__cart-spin,
+	.pfh-pdp__sticky-btn.is-busy .pfh-pdp__cart-spin { animation-duration: 1.6s; }
 	.pfh-pdp__shot,
 	.pfh-pdp__pill,
 	.pfh-pdp__cart { transition: none; }

@@ -866,3 +866,56 @@
 		transition: none !important;
 	}
 }
+
+/* ---------------------------------------------------------------------
+ * The free-shipping bar (see PFH_Widgets_Shipbar): a message at the top
+ * of the drawer, in the blue of the buying buttons.
+ * ------------------------------------------------------------------ */
+
+#fkcart-modal#fkcart-modal .pfh-shipbar {
+	display: grid;
+	gap: 8px;
+	margin: 0;
+	padding: 14px 24px 16px;
+	border-bottom: 1px solid var(--pfh-fk-line);
+	background: var(--pfh-fk-band);
+	color: var(--pfh-fk-ink);
+	font-family: Outfit, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+#fkcart-modal#fkcart-modal .pfh-shipbar__text {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+#fkcart-modal#fkcart-modal .pfh-shipbar__text strong { font-weight: 600; }
+
+#fkcart-modal#fkcart-modal .pfh-shipbar__track {
+	height: 6px;
+	overflow: hidden;
+	border-radius: 3px;
+	background: var(--pfh-fk-line);
+}
+
+#fkcart-modal#fkcart-modal .pfh-shipbar__fill {
+	width: 0;
+	height: 100%;
+	border-radius: inherit;
+	background: var(--pfh-fk-blue);
+	transition: width .45s var(--pfh-fk-ease);
+}
+
+#fkcart-modal#fkcart-modal .pfh-shipbar.is-done .pfh-shipbar__fill { background: var(--pfh-fk-saved); }
+#fkcart-modal#fkcart-modal .pfh-shipbar.is-done .pfh-shipbar__text { color: var(--pfh-fk-saved); font-weight: 500; }
+
+#fkcart-modal#fkcart-modal .pfh-shipbar__note {
+	margin: 0;
+	color: var(--pfh-fk-muted);
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#fkcart-modal#fkcart-modal .pfh-shipbar__fill { transition: none; }
+}

@@ -528,7 +528,7 @@ class PFH_Element_Product extends \Bricks\Element {
 		printf( '<span class="pfh-pdp__sticky-name">%s</span>', esc_html( $product->get_name() ) );
 		printf( '<span class="pfh-pdp__sticky-price" data-pfh-sticky-price>%s</span>', wp_kses_post( $price['now'] ) );
 		printf(
-			'<button type="button" class="pfh-pdp__sticky-btn" data-pfh-sticky-buy>%s</button>',
+			'<button type="button" class="pfh-pdp__sticky-btn" data-pfh-sticky-buy><span class="pfh-pdp__cart-label" data-pfh-sticky-label>%s</span><span class="pfh-pdp__cart-spin" aria-hidden="true"></span></button>',
 			esc_html( (string) $this->setting( 'cartLabel', 'Voeg toe aan winkelmand' ) )
 		);
 
