@@ -443,7 +443,7 @@ class PFH_Widgets_Collection {
 				self::card(
 					'bundle',
 					__( 'Bundle offer', 'pfh-widgets' ),
-					__( 'The wide banner above the footer. Choose the product it sells: its price, its saving and its link then come from the product, so they are always current. The whole banner links to it.', 'pfh-widgets' ),
+					__( 'The wide banner above the footer. Choose the product it sells: its price, its saving and its link then come from the product, so they are always current. The whole banner links to it. Nothing chosen: the banner text set in Bricks, or — on a category that text is not about — this category\'s best seller.', 'pfh-widgets' ),
 					$data['bundle'],
 					static function () use ( $data, $name ) {
 						$d = $data['bundle'];
@@ -634,7 +634,7 @@ class PFH_Widgets_Collection {
 				<span class="pfh-col__state pfh-col__state--<?php echo ! empty( $data['image'] ) ? 'custom' : 'default'; ?>"><?php echo esc_html( ! empty( $data['image'] ) ? __( 'Customised', 'pfh-widgets' ) : __( 'Automatic', 'pfh-widgets' ) ); ?></span>
 			</summary>
 			<div class="pfh-col__card-body">
-				<p class="description"><?php esc_html_e( 'The picture beside the title at the top of this category. Empty: a product from this category on a transparent background is used, so the picture always matches the category.', 'pfh-widgets' ); ?></p>
+				<p class="description"><?php esc_html_e( 'The picture beside the title at the top of this category. Empty: one of this category\'s best sellers is used — on a transparent background, or else on plain white — so the picture always matches the category.', 'pfh-widgets' ); ?></p>
 				<div class="pfh-col__fields">
 					<?php self::media( $name . '[header][image]', (int) $data['image'] ); ?>
 				</div>
