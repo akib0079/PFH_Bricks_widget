@@ -44,4 +44,8 @@ ok( 'features drop their heading on phones', false !== strpos( $feat, 'is-phone-
 ok( '  and show their first tile only', false !== strpos( $feat, 'is-phone-first-only' ) );
 ok( 'the hero keeps its stars on a phone, without the faces', false === strpos( $css, '.pfh-hero.is-phone-compact .pfh-hero__rating,' ) && false !== strpos( $css, '.pfh-hero.is-phone-compact .pfh-hero__avatars,' ) );
 
+$hcss = file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/css/pfh-header.css' );
+ok( 'the menu and search open above the sticky header, not under it', 2 === substr_count( $hcss, 'z-index: var(--pfh-z-panel, 1120);' ) && false !== strpos( $hcss, ':root { --pfh-z-panel: 1120; }' ) && false !== strpos( $hcss, 'z-index: 1000;' ) );
+ok( '  starting under whatever of the WordPress toolbar is on screen', false !== strpos( $hcss, 'top: var(--pfh-panel-top, 0px);' ) && false !== strpos( file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/js/pfh-header.js' ), "'--pfh-panel-top'" ) );
+
 echo "\n$pass passed, $fail failed\n";

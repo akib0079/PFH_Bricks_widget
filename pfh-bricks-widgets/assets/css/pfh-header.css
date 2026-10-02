@@ -77,6 +77,23 @@
 	z-index: 1000;
 }
 
+/*
+ * The panels the header opens — the phone menu, search, the cart drawer —
+ * live at the end of the page, so they must outrank the sticky wrapper
+ * above (1000). At var(--pfh-z) + 20 they slid under it: the menu lost its
+ * heading and first item, the search its field (feedback, 2026-10-02).
+ * For a signed-in editor they start under whatever of WordPress's own
+ * toolbar is on screen when they open (measured by the script), which would
+ * otherwise cover their close buttons; for a shopper that is nothing.
+ */
+:root { --pfh-z-panel: 1120; }
+
+/* Doubled up to outrank the panels' own "inset: 0", further down. */
+.pfh-drawer.pfh-drawer,
+.pfh-search.pfh-search {
+	top: var(--pfh-panel-top, 0px);
+}
+
 #brx-header:has(.pfh-header.is-sticky) .pfh-header.is-sticky {
 	position: relative;
 	top: auto;
@@ -499,7 +516,7 @@
 .pfh-search {
 	position: fixed;
 	inset: 0;
-	z-index: calc(var(--pfh-z) + 20);
+	z-index: var(--pfh-z-panel, 1120);
 	display: flex;
 	align-items: flex-start;
 	justify-content: center;
@@ -731,7 +748,7 @@
 .pfh-drawer {
 	position: fixed;
 	inset: 0;
-	z-index: calc(var(--pfh-z) + 20);
+	z-index: var(--pfh-z-panel, 1120);
 	visibility: hidden;
 	pointer-events: none;
 }

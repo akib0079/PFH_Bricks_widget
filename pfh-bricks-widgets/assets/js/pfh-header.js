@@ -41,6 +41,13 @@
 		if ( lock ) {
 			var width = window.innerWidth - root.clientWidth;
 
+			// A signed-in editor's WordPress toolbar sits above everything;
+			// the panel starts under whatever of it is on screen now (on a
+			// phone it scrolls away, so this is often nothing).
+			var toolbar = document.getElementById( 'wpadminbar' );
+			var below = toolbar ? Math.max( 0, Math.round( toolbar.getBoundingClientRect().bottom ) ) : 0;
+
+			root.style.setProperty( '--pfh-panel-top', below + 'px' );
 			root.style.setProperty( '--pfh-sbw', width > 0 ? width + 'px' : '0px' );
 			root.classList.add( 'pfh-locked' );
 			document.body.classList.add( 'pfh-locked' );
