@@ -32,8 +32,8 @@ defined( 'ABSPATH' ) || exit;
 
 class PFH_Widgets_Collection {
 
-	/** Where a category's picked header picture is kept; v2 also picks packshots on white. */
-	const HEADER_CACHE = 'pfh_cat_header_v2_';
+	/** Where a category's picked header picture is kept; v3 falls back to any product photo. */
+	const HEADER_CACHE = 'pfh_cat_header_v3_';
 
 	const META  = '_pfh_collection';
 	const NONCE = 'pfh_collection_save';
@@ -699,12 +699,17 @@ class PFH_Widgets_Collection {
 			);
 
 			$white = 0;
+			$any   = 0;
 
 			foreach ( $products as $product_id ) {
 				$image = (int) get_post_thumbnail_id( $product_id );
 
 				if ( ! $image ) {
 					continue;
+				}
+
+				if ( ! $any ) {
+					$any = $image;
 				}
 
 				// A cut-out, so it sits on the page like the designed banner
@@ -723,6 +728,16 @@ class PFH_Widgets_Collection {
 
 			if ( ! $found && $white ) {
 				$found = [ 'id' => $white, 'url' => (string) wp_get_attachment_image_url( $white, 'large' ) ];
+			}
+
+			/*
+			 * Last, the best seller's own photograph, whatever its background:
+			 * a picture of this category's products beats the lemonade jar of
+			 * the generic banner (Natuurlijke verzorging, feedback #1012055).
+			 * The header draws it as a photo tile.
+			 */
+			if ( ! $found && $any ) {
+				$found = [ 'id' => $any, 'url' => (string) wp_get_attachment_image_url( $any, 'large' ) ];
 			}
 		}
 

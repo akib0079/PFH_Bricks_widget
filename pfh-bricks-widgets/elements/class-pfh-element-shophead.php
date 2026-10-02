@@ -591,9 +591,15 @@ class PFH_Element_Shophead extends \Bricks\Element {
 		 * edit screen, or one of its own products cut out. Every category
 		 * showed the Gia Giamas jar, honey included (feedback, 2026-09-28).
 		 */
+		$photo = false;
+
 		if ( $this->is_on( 'bannerFromCategory', true ) && class_exists( 'PFH_Widgets_Collection' ) ) {
 			$own = PFH_Widgets_Collection::header_image();
 			$url = $own ? $own['url'] : '';
+
+			// A photograph with its own background is shown as a tile, not
+			// as a cut-out floating beside the title.
+			$photo = $own && class_exists( 'PFH_Widgets_Photo' ) && PFH_Widgets_Photo::has_backdrop( (int) $own['id'] );
 		}
 
 		if ( ! $url ) {
@@ -608,7 +614,8 @@ class PFH_Element_Shophead extends \Bricks\Element {
 		}
 
 		printf(
-			'<div class="pfh-shophead__banner"><img src="%s" alt="" loading="lazy" decoding="async" /></div>',
+			'<div class="pfh-shophead__banner%s"><img src="%s" alt="" loading="lazy" decoding="async" /></div>',
+			$photo ? ' pfh-shophead__banner--photo' : '',
 			esc_url( $url )
 		);
 	}

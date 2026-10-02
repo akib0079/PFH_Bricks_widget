@@ -134,9 +134,9 @@ ok( 'the wording is a setting', false !== strpos( pdp( $variable->ID, [ 'reviews
 echo "\n── price: the amount saved, not a percentage ──\n";
 ok( 'the sale price leads', false !== strpos( $html, 'pfh-pdp__price-now' ) && false !== strpos( $html, '85,96' ) );
 ok( 'the old price is struck through', false !== strpos( $html, 'pfh-pdp__price-was' ) && false !== strpos( $html, '99,96' ) );
-ok( 'and what it saves is named in euros', false !== strpos( $html, '14 VOORDEEL' ) );
+ok( 'and what it saves is named in euros, to the cent', false !== strpos( $html, '14,00 VOORDEEL' ) );
 ok( 'not as a percentage', false === strpos( $html, '% VOORDEEL' ) && false === strpos( $html, '14%' ) );
-ok( 'the wording is a setting', false !== strpos( pdp( $variable->ID, [ 'savingSuffix' => 'KORTING' ] ), '14 KORTING' ) );
+ok( 'the wording is a setting', false !== strpos( pdp( $variable->ID, [ 'savingSuffix' => 'KORTING' ] ), '14,00 KORTING' ) );
 ok( 'and it can be turned off', false === strpos( pdp( $variable->ID, [ 'showSaving' => false ] ), 'pfh-pdp__save">' ) );
 
 echo "\n── variants are pills, and a real field behind them ──\n";
@@ -183,8 +183,15 @@ $gone = wc_get_product( $simple_id );
 $gone->set_stock_status( 'outofstock' );
 $gone->save();
 $sold = pdp( $simple_id );
-ok( 'a product out of stock cannot be bought', false !== strpos( $sold, 'data-pfh-buy disabled' ) || false !== strpos( $sold, 'disabled data-pfh-buy' ) );
-ok( 'and says so on the button', false !== strpos( $sold, 'Niet beschikbaar' ) );
+ok( 'a product out of stock cannot be bought', false === strpos( $sold, 'data-pfh-buy' ) );
+ok( '  and offers the waitlist instead', false !== strpos( $sold, 'Informeer wanneer beschikbaar' ) );
+update_option( PFH_Widgets_Waitlist::OPTION, [ 'enabled' => false ] + PFH_Widgets_Waitlist::defaults() );
+PFH_Widgets_Waitlist::forget();
+$sold = pdp( $simple_id );
+ok( 'without the waitlist the button is switched off', false !== strpos( $sold, 'data-pfh-buy disabled' ) || false !== strpos( $sold, 'disabled data-pfh-buy' ) );
+ok( '  and says so', false !== strpos( $sold, 'Niet beschikbaar' ) );
+delete_option( PFH_Widgets_Waitlist::OPTION );
+PFH_Widgets_Waitlist::forget();
 $gone->set_stock_status( 'instock' );
 $gone->save();
 

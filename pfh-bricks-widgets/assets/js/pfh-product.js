@@ -728,7 +728,8 @@
 
 	function sticky( root, form ) {
 		var bar = root.querySelector( '[data-pfh-sticky]' );
-		var buy = form.querySelector( '[data-pfh-buy]' );
+		// Sold out, the waitlist's button stands in for the cart's.
+		var buy = form.querySelector( '[data-pfh-buy]' ) || root.querySelector( '[data-pfh-wl-open]' );
 
 		if ( ! bar || ! buy || ! ( 'IntersectionObserver' in window ) ) {
 			return;

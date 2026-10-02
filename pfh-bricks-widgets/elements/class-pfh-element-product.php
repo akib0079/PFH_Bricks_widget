@@ -266,7 +266,21 @@ class PFH_Element_Product extends \Bricks\Element {
 		);
 
 		$this->controls['savingSuffix'] = $this->text_field( 'price', esc_html__( 'Saving wording', 'pfh-widgets' ), [ 'inline' => true, 'default' => 'VOORDEEL' ] );
-		$this->controls['savingWhole']  = $this->switch_field( 'price', esc_html__( 'Round the saving to whole euros', 'pfh-widgets' ) );
+		// Two decimals, as the client asked: "€ 2,45 VOORDEEL" (#1011812).
+		$this->controls['savingWhole']  = $this->switch_field( 'price', esc_html__( 'Round the saving to whole euros', 'pfh-widgets' ), false );
+
+		$this->controls['savingMin'] = [
+			'tab'         => 'content',
+			'group'       => 'price',
+			'label'       => esc_html__( 'Show the saving from (€)', 'pfh-widgets' ),
+			'type'        => 'number',
+			'min'         => 0,
+			'max'         => 1000,
+			'step'        => 0.5,
+			'inline'      => true,
+			'default'     => 2,
+			'description' => esc_html__( 'A smaller saving is not worth a badge: below this amount it is left out.', 'pfh-widgets' ),
+		];
 	}
 
 	private function variant_controls() {
@@ -529,7 +543,7 @@ class PFH_Element_Product extends \Bricks\Element {
 		printf( '<span class="pfh-pdp__sticky-price" data-pfh-sticky-price>%s</span>', wp_kses_post( $price['now'] ) );
 		printf(
 			'<button type="button" class="pfh-pdp__sticky-btn" data-pfh-sticky-buy><span class="pfh-pdp__cart-label" data-pfh-sticky-label>%s</span><span class="pfh-pdp__cart-spin" aria-hidden="true"></span></button>',
-			esc_html( (string) $this->setting( 'cartLabel', 'Voeg toe aan winkelmand' ) )
+			esc_html( class_exists( 'PFH_Widgets_Waitlist' ) && PFH_Widgets_Waitlist::applies( $product ) ? PFH_Widgets_Waitlist::label() : (string) $this->setting( 'cartLabel', 'Voeg toe aan winkelmand' ) )
 		);
 
 		echo '</div>';
@@ -859,7 +873,8 @@ class PFH_Element_Product extends \Bricks\Element {
 		}
 
 		$saving = $parts['saving'];
-		$show   = $this->switched_on( 'showSaving' ) && $saving > 0;
+		$min    = max( 0, (float) str_replace( ',', '.', (string) $this->setting( 'savingMin', 2 ) ) );
+		$show   = $this->switched_on( 'showSaving' ) && $saving > 0 && $saving + 0.0001 >= $min;
 
 		return [
 			'now'  => wc_price( $parts['now'] ),
@@ -906,9 +921,20 @@ class PFH_Element_Product extends \Bricks\Element {
 		}
 
 		$this->render_highlights( $product );
-		$this->render_buy( $product, $variable );
+
+		// Sold out: the waitlist takes the cart button's place, after the
+		// form, since its own form cannot sit inside this one.
+		$waitlist = class_exists( 'PFH_Widgets_Waitlist' ) && PFH_Widgets_Waitlist::applies( $product );
+
+		if ( ! $waitlist ) {
+			$this->render_buy( $product, $variable );
+		}
 
 		echo '</form>';
+
+		if ( $waitlist ) {
+			echo PFH_Widgets_Waitlist::form( $product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in form().
+		}
 	}
 
 	/**

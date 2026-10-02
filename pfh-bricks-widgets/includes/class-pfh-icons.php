@@ -118,6 +118,7 @@ class PFH_Widgets_Icons {
 			'plus'      => '<path d="M12 5v14M5 12h14" ' . $stroke . '/>',
 			'trash'     => '<path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m2.5 0-.7 12a1.8 1.8 0 0 1-1.8 1.7H9a1.8 1.8 0 0 1-1.8-1.7L6.5 7" ' . $stroke . '/>',
 			'check'     => '<path d="m5 13 4.5 4.5L19 7" ' . $stroke . '/>',
+			'bell'      => '<path d="M6.2 16.5V11a5.8 5.8 0 0 1 11.6 0v5.5l1.6 2H4.6l1.6-2Z" ' . $stroke . '/><path d="M10 20.6a2.2 2.2 0 0 0 4 0" ' . $stroke . '/>',
 			'lock'      => '<rect x="5" y="10.5" width="14" height="10" rx="2.2" ' . $stroke . '/><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5" ' . $stroke . '/><path d="M12 14.6v2" ' . $stroke . '/>',
 			'tag'       => '<path d="M3.5 11.9V5a1.5 1.5 0 0 1 1.5-1.5h6.9a1.5 1.5 0 0 1 1.06.44l7.6 7.6a1.5 1.5 0 0 1 0 2.12l-6.9 6.9a1.5 1.5 0 0 1-2.12 0l-7.6-7.6a1.5 1.5 0 0 1-.44-1.06Z" ' . $stroke . '/><circle cx="8.2" cy="8.2" r="1.4" ' . $stroke . '/>',
 			'arrow-ne'  => '<path d="M7 17 17 7m0 0H8m9 0v9" ' . $stroke . '/>',

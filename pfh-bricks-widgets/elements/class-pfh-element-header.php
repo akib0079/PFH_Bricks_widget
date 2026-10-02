@@ -409,6 +409,13 @@ class PFH_Element_Header extends \Bricks\Element {
 					'description' => esc_html__( 'Comma separated. Overrides the parent setting and keeps this exact order.', 'pfh-widgets' ),
 					'required'    => [ [ 'hasMega', '=', true ], [ 'megaSource', '=', 'product_cat' ] ],
 				],
+				'megaExtra'    => [
+					'label'       => esc_html__( 'Extra cards after the categories', 'pfh-widgets' ),
+					'type'        => 'textarea',
+					'placeholder' => 'Recepten | /recepten-van-gia-giamas/ | https://…/image.jpg | Bekijk recepten',
+					'description' => esc_html__( 'One per line: Title | URL | Image URL | Link text (the last two are optional). For a page that is not a category, such as the recipes.', 'pfh-widgets' ),
+					'required'    => [ [ 'hasMega', '=', true ], [ 'megaSource', '=', 'product_cat' ] ],
+				],
 				'megaProdCat'  => [
 					'label'       => esc_html__( 'Product category', 'pfh-widgets' ),
 					'type'        => 'select',
@@ -1687,8 +1694,11 @@ class PFH_Element_Header extends \Bricks\Element {
 			echo '</span>';
 			echo '<span class="pfh-card__title">' . esc_html( $card['title'] ) . '</span>';
 
-			if ( $link_text ) {
-				echo '<span class="pfh-card__link">' . esc_html( $link_text );
+			// A card of its own can say where it leads: "Bekijk recepten".
+			$card_link = ! empty( $card['link'] ) ? (string) $card['link'] : $link_text;
+
+			if ( $card_link ) {
+				echo '<span class="pfh-card__link">' . esc_html( $card_link );
 
 				if ( $arrow ) {
 					echo PFH_Widgets_Icons::get( 'arrow', 'pfh-card__arrow' );
@@ -2056,9 +2066,32 @@ class PFH_Element_Header extends \Bricks\Element {
 			return [];
 		}
 
-		return 'products' === $source
-			? $this->mega_cards_from_products( $item, $limit )
-			: $this->mega_cards_from_terms( $item, $limit );
+		if ( 'products' === $source ) {
+			return $this->mega_cards_from_products( $item, $limit );
+		}
+
+		/*
+		 * The categories, then any extra cards: the live shop's Gia Giamas
+		 * menu ends with "Recepten", a page rather than a category (feedback
+		 * #1011827, 2026-10-02).
+		 */
+		$cards = array_values( $this->mega_cards_from_terms( $item, $limit ) );
+
+		foreach ( PFH_Widgets_Helpers::parse_lines( isset( $item['megaExtra'] ) ? $item['megaExtra'] : '' ) as $row ) {
+			if ( empty( $row[0] ) ) {
+				continue;
+			}
+
+			$cards[] = [
+				'title' => PFH_Widgets_Helpers::dd( $row[0] ),
+				'url'   => isset( $row[1] ) && '' !== $row[1] ? $row[1] : '#',
+				'image' => isset( $row[2] ) && '' !== $row[2] ? $row[2] : $this->placeholder_image(),
+				'fill'  => ! empty( $row[2] ),
+				'link'  => isset( $row[3] ) ? trim( (string) $row[3] ) : '',
+			];
+		}
+
+		return array_slice( $cards, 0, $limit );
 	}
 
 	/**

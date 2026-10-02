@@ -110,6 +110,19 @@
 	object-position: center right;
 }
 
+/* A photograph with its own background: a rounded tile, cropped to fill. */
+.pfh-shophead__banner--photo {
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	border-radius: 16px;
+}
+
+.pfh-shophead__banner--photo img {
+	width: 100%;
+	object-fit: cover;
+	object-position: center;
+}
+
 /* ---------- responsive ---------- */
 
 @media (max-width: 1023px) {

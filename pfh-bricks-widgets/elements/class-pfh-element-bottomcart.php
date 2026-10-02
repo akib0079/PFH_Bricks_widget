@@ -115,6 +115,21 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 			'required' => [ 'showSaving', '=', true ],
 		];
 
+		// The same floor as the product page above it (#1011812).
+		$this->controls['savingMin'] = [
+			'tab'         => 'content',
+			'group'       => 'content',
+			'label'       => esc_html__( 'Show the saving from (€)', 'pfh-widgets' ),
+			'type'        => 'number',
+			'min'         => 0,
+			'max'         => 1000,
+			'step'        => 0.5,
+			'inline'      => true,
+			'default'     => 2,
+			'required'    => [ 'showSaving', '=', true ],
+			'description' => esc_html__( 'Below this amount the saving is left out.', 'pfh-widgets' ),
+		];
+
 		$this->controls['buttonLabel'] = [
 			'tab'     => 'content',
 			'group'   => 'content',
@@ -333,6 +348,13 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 	 * @param WC_Product $product Product.
 	 */
 	private function render_form( $product ) {
+		// Sold out: the waitlist, the same as on the page above.
+		if ( class_exists( 'PFH_Widgets_Waitlist' ) && PFH_Widgets_Waitlist::applies( $product ) ) {
+			echo PFH_Widgets_Waitlist::form( $product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in form().
+
+			return;
+		}
+
 		$variable   = $product->is_type( 'variable' );
 		$variations = $variable ? $this->variation_data( $product ) : [];
 
@@ -533,7 +555,8 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 		}
 
 		$saving = $parts['saving'];
-		$show   = $this->switched_on( 'showSaving', true ) && $saving > 0;
+		$min    = max( 0, (float) str_replace( ',', '.', (string) $this->setting( 'savingMin', 2 ) ) );
+		$show   = $this->switched_on( 'showSaving', true ) && $saving > 0 && $saving + 0.0001 >= $min;
 		$label  = trim( (string) $this->setting( 'savingLabel', '' ) );
 
 		return [

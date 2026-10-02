@@ -296,6 +296,8 @@ class PFH_Widgets_Plugin {
 		PFH_Widgets_Wishlist::init();
 		PFH_Widgets_Badge::init();
 		PFH_Widgets_Shipbar::init();
+		PFH_Widgets_Waitlist::init();
+		PFH_Widgets_Waitlist_Admin::init();
 		PFH_Widgets_License::init();
 		PFH_Widgets_Instagram::init();
 		PFH_Widgets_Account::init();
