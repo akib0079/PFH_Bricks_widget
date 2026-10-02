@@ -499,9 +499,20 @@
 
 	.pfh-hl__text { max-width: none; }
 
+	/*
+	 * Stacked, the picture fades in from the top — and from its sides too:
+	 * a photo whose side edge the desktop fade hid showed it here, a light
+	 * strip down the left of the bundle picture (feedback, 2026-09-28).
+	 */
 	.pfh-hl--blend:not(.pfh-hl--multiply) .pfh-hl__media {
-		-webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--pfh-hl-fade, 14%));
-		mask-image: linear-gradient(to bottom, transparent 0, #000 var(--pfh-hl-fade, 14%));
+		-webkit-mask-image:
+			linear-gradient(to bottom, transparent 0, #000 var(--pfh-hl-fade, 14%)),
+			linear-gradient(to right, transparent 0, #000 var(--pfh-hl-fade, 14%), #000 calc(100% - var(--pfh-hl-fade, 14%)), transparent 100%);
+		-webkit-mask-composite: source-in;
+		mask-image:
+			linear-gradient(to bottom, transparent 0, #000 var(--pfh-hl-fade, 14%)),
+			linear-gradient(to right, transparent 0, #000 var(--pfh-hl-fade, 14%), #000 calc(100% - var(--pfh-hl-fade, 14%)), transparent 100%);
+		mask-composite: intersect;
 	}
 }
 
