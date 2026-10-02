@@ -41,7 +41,7 @@ ok( '  on a phone the picture comes first and the rest is left out', false !== s
 ok( 'categories sit two by two on phones', false !== strpos( draw( 'PFH_Element_Categories' ), 'is-phone-grid' ) );
 $feat = draw( 'PFH_Element_Features' );
 ok( 'features drop their heading on phones', false !== strpos( $feat, 'is-phone-no-head' ) );
-ok( '  and show every tile, unless set to the first only', false === strpos( $feat, 'is-phone-first-only' ) );
+ok( '  and show their first tile only', false !== strpos( $feat, 'is-phone-first-only' ) );
 ok( 'the hero keeps its stars on a phone, without the faces', false === strpos( $css, '.pfh-hero.is-phone-compact .pfh-hero__rating,' ) && false !== strpos( $css, '.pfh-hero.is-phone-compact .pfh-hero__avatars,' ) );
 
 echo "\n$pass passed, $fail failed\n";
