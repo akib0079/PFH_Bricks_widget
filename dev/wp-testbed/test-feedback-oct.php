@@ -155,4 +155,9 @@ foreach ( array_merge( $subs, [ $parent ] ) as $t ) {
 }
 wp_delete_attachment( $att, true );
 
+echo "\n── the hero's dots on a phone (2026-10-03) ──\n";
+$hero_css = file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/css/pfh-hero.css' );
+$phone    = substr( $hero_css, strpos( $hero_css, '@media (max-width: 991px)' ) );
+ok( 'with the marquee band too, the hero keeps room for its dots', (bool) preg_match( '/\.pfh-hero,\s*\.pfh-hero\.has-marquee\s*\{\s*padding-bottom:\s*calc\(var\(--pfh-hero-pad-y\) \+ var\(--pfh-mq-space, 0px\) \+ 30px\)/', $phone ) );
+
 echo "\n$pass passed, $fail failed\n";

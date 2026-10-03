@@ -795,14 +795,19 @@
 		top: auto;
 		right: auto;
 		left: 50%;
-		bottom: calc(var(--pfh-mq-space, 0px) + 16px);
+		bottom: calc(var(--pfh-mq-space, 0px) + 20px);
 		flex-direction: row;
 		transform: translateX(-50%);
 	}
 
-	/* Room for the dots strip below the content. */
-	.pfh-hero {
-		padding-bottom: calc(var(--pfh-hero-pad-y) + var(--pfh-mq-space, 0px) + 34px);
+	/*
+	 * Room for the dots strip below the content. With the marquee band too:
+	 * .has-marquee sets its own padding and, with two classes, won — so on a
+	 * phone the dots sat on the edge of the "Shop nu" button (2026-10-03).
+	 */
+	.pfh-hero,
+	.pfh-hero.has-marquee {
+		padding-bottom: calc(var(--pfh-hero-pad-y) + var(--pfh-mq-space, 0px) + 30px);
 	}
 
 	.pfh-hero__decor-img.is-hidden-mobile {

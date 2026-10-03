@@ -570,8 +570,9 @@ class PFH_Widgets_Collection {
 	 * @param string $name  Field name.
 	 * @param int    $value Attachment id.
 	 */
-	private static function media( $name, $value ) {
-		$src = $value ? wp_get_attachment_image_url( $value, 'thumbnail' ) : '';
+	private static function media( $name, $value, $help = null ) {
+		$src  = $value ? wp_get_attachment_image_url( $value, 'thumbnail' ) : '';
+		$help = null === $help ? __( 'Leave empty to use the product\'s own cut-out picture, or the section\'s image when no product is chosen.', 'pfh-widgets' ) : $help;
 		?>
 		<div class="pfh-col__field pfh-col__media">
 			<span class="pfh-col__label"><?php esc_html_e( 'Image', 'pfh-widgets' ); ?></span>
@@ -581,7 +582,7 @@ class PFH_Widgets_Collection {
 				<button type="button" class="button pfh-col__pick"><?php esc_html_e( 'Choose image', 'pfh-widgets' ); ?></button>
 				<button type="button" class="button-link pfh-col__drop"<?php echo $src ? '' : ' hidden'; ?>><?php esc_html_e( 'Remove', 'pfh-widgets' ); ?></button>
 			</span>
-			<span class="description"><?php esc_html_e( 'Leave empty to use the product\'s own cut-out picture, or the section\'s image when no product is chosen.', 'pfh-widgets' ); ?></span>
+			<span class="description"><?php echo esc_html( $help ); ?></span>
 		</div>
 		<?php
 	}
@@ -634,9 +635,9 @@ class PFH_Widgets_Collection {
 				<span class="pfh-col__state pfh-col__state--<?php echo ! empty( $data['image'] ) ? 'custom' : 'default'; ?>"><?php echo esc_html( ! empty( $data['image'] ) ? __( 'Customised', 'pfh-widgets' ) : __( 'Automatic', 'pfh-widgets' ) ); ?></span>
 			</summary>
 			<div class="pfh-col__card-body">
-				<p class="description"><?php esc_html_e( 'The picture beside the title at the top of this category. Empty: one of this category\'s best sellers is used — on a transparent background, or else on plain white — so the picture always matches the category.', 'pfh-widgets' ); ?></p>
+				<p class="description"><?php esc_html_e( 'The picture beside the title at the top of this category, and on this category\'s card in the menu. Empty: a photo of one of this category\'s best sellers is used, so the picture always matches the category.', 'pfh-widgets' ); ?></p>
 				<div class="pfh-col__fields">
-					<?php self::media( $name . '[header][image]', (int) $data['image'] ); ?>
+					<?php self::media( $name . '[header][image]', (int) $data['image'], __( 'A PNG with a transparent background looks best. Subcategories without a picture of their own use this one.', 'pfh-widgets' ) ); ?>
 				</div>
 			</div>
 		</details>
