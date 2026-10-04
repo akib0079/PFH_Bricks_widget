@@ -29,6 +29,22 @@ class PFH_Element_Account extends \Bricks\Element {
 	public $icon         = 'ti-user';
 	public $css_selector = '.pfh-acc';
 
+	/**
+	 * The My Account address being shown — WooCommerce's endpoint and its
+	 * value, e.g. [ 'edit-address', 'billing' ] — and the pane it opens.
+	 *
+	 * Every account address WooCommerce sends people to (an email's "view
+	 * order", the reset link, "edit address") is the same page with an
+	 * endpoint on the end. The element drew the same overview for all of
+	 * them, so none of those worked (go-live check, 2026-10-04).
+	 *
+	 * @var array{0: string, 1: string}
+	 */
+	private $endpoint = [ '', '' ];
+
+	/** @var string */
+	private $active = 'dashboard';
+
 	public function get_label() {
 		return esc_html__( 'PFH My Account', 'pfh-widgets' );
 	}
@@ -200,6 +216,8 @@ class PFH_Element_Account extends \Bricks\Element {
 		echo '<section ' . $this->render_attributes( '_root' ) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bricks escapes its own attributes.
 		echo '<div class="pfh-acc__inner">';
 
+		$this->endpoint = self::current_endpoint();
+
 		if ( is_user_logged_in() ) {
 			$this->render_account();
 		} else {
@@ -230,6 +248,28 @@ class PFH_Element_Account extends \Bricks\Element {
 		echo '<div class="pfh-acc__auth-main">';
 
 		$this->render_notices();
+
+		/*
+		 * "Wachtwoord vergeten?", and the link in the reset email, which
+		 * WooCommerce turns into ?show-reset-form. Its own forms, so its own
+		 * checks and emails apply. A new account with a generated password
+		 * also sets it here.
+		 */
+		if ( 'lost-password' === $this->endpoint[0] && class_exists( 'WC_Shortcode_My_Account' ) ) {
+			echo '<div class="pfh-acc__woo-form">';
+			WC_Shortcode_My_Account::lost_password();
+			echo '</div>';
+
+			printf(
+				'<p class="pfh-acc__hint"><a class="pfh-acc__link" href="%s">%s</a></p>',
+				esc_url( wc_get_page_permalink( 'myaccount' ) ),
+				esc_html__( 'Terug naar inloggen', 'pfh-widgets' )
+			);
+
+			echo '</div></div>';
+
+			return;
+		}
 
 		if ( $register ) {
 			printf(
@@ -350,6 +390,13 @@ class PFH_Element_Account extends \Bricks\Element {
 			esc_html__( 'Wachtwoord vergeten?', 'pfh-widgets' )
 		);
 
+		// Anything a plugin adds to the login form (a captcha) still shows.
+		if ( has_action( 'woocommerce_login_form' ) ) {
+			echo '<div class="pfh-acc__woo">';
+			do_action( 'woocommerce_login_form' );
+			echo '</div>';
+		}
+
 		wp_nonce_field( 'woocommerce-login', 'woocommerce-login-nonce' );
 
 		printf(
@@ -413,8 +460,11 @@ class PFH_Element_Account extends \Bricks\Element {
 	 * ------------------------------------------------------------------ */
 
 	private function render_account() {
-		$user   = wp_get_current_user();
-		$orders = $this->orders();
+		$user         = wp_get_current_user();
+		$this->active = $this->pane_for( $this->endpoint[0] );
+		$page         = 'orders' === $this->endpoint[0] ? max( 1, absint( $this->endpoint[1] ) ) : 1;
+		$listing      = $this->orders( $page );
+		$orders       = $listing['orders'];
 
 		printf(
 			'<div class="pfh-acc__head"><div><p class="pfh-acc__eyebrow">%s</p><h1 class="pfh-acc__title">%s</h1><p class="pfh-acc__lede">%s</p></div>%s</div>',
@@ -428,14 +478,16 @@ class PFH_Element_Account extends \Bricks\Element {
 		);
 
 		echo '<div class="pfh-acc__layout">';
-		$this->render_rail( count( $orders ) );
+		$this->render_rail( $listing['total'] );
 
 		echo '<div class="pfh-acc__panel">';
 		$this->render_notices();
-		$this->render_dashboard( $orders );
-		$this->render_orders( $orders );
+		$this->render_dashboard( 1 === $page ? $orders : $this->orders( 1 )['orders'], $listing['total'] );
+		$this->render_orders( $orders, $page, $listing['pages'] );
 		$this->render_addresses();
 		$this->render_details( $user );
+		$this->render_woo_pane( 'payments', 'payment-methods' );
+		$this->render_woo_pane( 'downloads', 'downloads' );
 		$this->render_wishlist();
 		$this->render_plugin_panes();
 		echo '</div></div>';
@@ -474,8 +526,20 @@ class PFH_Element_Account extends \Bricks\Element {
 			$tabs['wishlist'] = [ 'heart-line', __( 'Verlanglijst', 'pfh-widgets' ), count( PFH_Widgets_Wishlist::ids() ) ];
 		}
 
+		// Saved payment methods and downloads, when WooCommerce offers them
+		// (the live shop lists "Betaal methodes").
+		foreach ( [ 'payments' => [ 'payment-methods', 'lock', __( 'Betaalmethodes', 'pfh-widgets' ) ], 'downloads' => [ 'downloads', 'arrow-ne', __( 'Downloads', 'pfh-widgets' ) ] ] as $pane => $info ) {
+			if ( $this->woo_item( $info[0] ) ) {
+				$tabs[ $pane ] = [ $info[1], $info[2], null ];
+			}
+		}
+
 		foreach ( $this->plugin_endpoints() as $endpoint => $label ) {
 			$tabs[ 'ep-' . $endpoint ] = [ 'star-line', $label, null ];
+		}
+
+		if ( ! isset( $tabs[ $this->active ] ) ) {
+			$this->active = 'dashboard';
 		}
 
 		printf(
@@ -483,21 +547,19 @@ class PFH_Element_Account extends \Bricks\Element {
 			esc_attr__( 'Mijn account', 'pfh-widgets' )
 		);
 
-		$first = true;
-
 		foreach ( $tabs as $key => $tab ) {
+			$on = $key === $this->active;
+
 			printf(
 				'<button type="button" class="pfh-acc__tab" role="tab" id="pfh-tab-%1$s-%2$s" aria-controls="pfh-pane-%1$s-%2$s" aria-selected="%3$s" tabindex="%4$d" data-pfh-acc-tab="%1$s">%5$s<span>%6$s</span>%7$s</button>',
 				esc_attr( $key ),
 				esc_attr( $this->uid() ),
-				$first ? 'true' : 'false',
-				$first ? 0 : -1,
+				$on ? 'true' : 'false',
+				$on ? 0 : -1,
 				PFH_Widgets_Icons::get( $tab[0] ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 				esc_html( $tab[1] ),
 				null === $tab[2] ? '' : '<span class="pfh-acc__tab-count">' . esc_html( number_format_i18n( $tab[2] ) ) . '</span>'
 			);
-
-			$first = false;
 		}
 
 		printf(
@@ -587,7 +649,9 @@ class PFH_Element_Account extends \Bricks\Element {
 	 * @param string $key      Pane key.
 	 * @param bool   $selected Whether it opens.
 	 */
-	private function open_pane( $key, $selected = false ) {
+	private function open_pane( $key, $selected = null ) {
+		$selected = null === $selected ? $key === $this->active : $selected;
+
 		printf(
 			'<section class="pfh-acc__pane" id="pfh-pane-%1$s-%2$s" role="tabpanel" aria-labelledby="pfh-tab-%1$s-%2$s" tabindex="0"%3$s>',
 			esc_attr( $key ),
@@ -597,22 +661,25 @@ class PFH_Element_Account extends \Bricks\Element {
 	}
 
 	/**
-	 * @param WC_Order[] $orders Orders.
+	 * @param WC_Order[] $orders Newest orders.
+	 * @param int        $total  All of this customer's orders.
 	 */
-	private function render_dashboard( array $orders ) {
-		$this->open_pane( 'dashboard', true );
+	private function render_dashboard( array $orders, $total = 0 ) {
+		$this->open_pane( 'dashboard' );
 
 		if ( $this->switched_on( 'showStats', true ) ) {
-			$spent   = 0.0;
-			$moving  = 0;
-
-			foreach ( $orders as $order ) {
-				$spent += (float) $order->get_total();
-
-				if ( in_array( $order->get_status(), [ 'processing', 'on-hold' ], true ) ) {
-					$moving++;
-				}
-			}
+			// Over every order, not only the ones listed on this page.
+			$spent  = function_exists( 'wc_get_customer_total_spent' ) ? (float) wc_get_customer_total_spent( get_current_user_id() ) : 0.0;
+			$moving = count(
+				wc_get_orders(
+					[
+						'customer' => get_current_user_id(),
+						'status'   => [ 'processing', 'on-hold' ],
+						'limit'    => -1,
+						'return'   => 'ids',
+					]
+				)
+			);
 
 			echo '<div class="pfh-acc__card pfh-acc__block">';
 			printf( '<h2 class="pfh-acc__block-title">%s</h2>', esc_html__( 'Overzicht', 'pfh-widgets' ) );
@@ -620,7 +687,7 @@ class PFH_Element_Account extends \Bricks\Element {
 			echo '<ul class="pfh-acc__stats">';
 
 			$stats = [
-				[ number_format_i18n( count( $orders ) ), __( 'Bestellingen', 'pfh-widgets' ) ],
+				[ number_format_i18n( max( (int) $total, count( $orders ) ) ), __( 'Bestellingen', 'pfh-widgets' ) ],
 				[ number_format_i18n( $moving ), __( 'Onderweg', 'pfh-widgets' ) ],
 				[ wp_strip_all_tags( wc_price( $spent ) ), __( 'Totaal besteed', 'pfh-widgets' ) ],
 			];
@@ -659,15 +726,34 @@ class PFH_Element_Account extends \Bricks\Element {
 	}
 
 	/**
-	 * @param WC_Order[] $orders Orders.
+	 * @param WC_Order[] $orders Orders on this page.
+	 * @param int        $page   Page.
+	 * @param int        $pages  Pages.
 	 */
-	private function render_orders( array $orders ) {
+	private function render_orders( array $orders, $page = 1, $pages = 1 ) {
 		$this->open_pane( 'orders' );
 
 		echo '<div class="pfh-acc__card pfh-acc__block">';
 		printf( '<h2 class="pfh-acc__block-title">%s</h2>', esc_html__( 'Bestellingen', 'pfh-widgets' ) );
 
-		if ( ! $orders ) {
+		/*
+		 * /mijn-account/view-order/123/ — the "view order" link in every
+		 * order email — opens that order here, unfolded, on top.
+		 */
+		$viewing = null;
+
+		if ( 'view-order' === $this->endpoint[0] ) {
+			$id    = absint( $this->endpoint[1] );
+			$found = $id ? wc_get_order( $id ) : false;
+
+			if ( $found && current_user_can( 'view_order', $id ) ) {
+				$viewing = $found;
+			} else {
+				printf( '<p class="pfh-acc__notice">%s</p>', esc_html__( 'Deze bestelling kon niet worden geopend.', 'pfh-widgets' ) );
+			}
+		}
+
+		if ( ! $orders && ! $viewing ) {
 			$this->render_empty();
 			echo '</div></section>';
 
@@ -677,11 +763,38 @@ class PFH_Element_Account extends \Bricks\Element {
 		printf( '<p class="pfh-acc__block-lede">%s</p>', esc_html__( 'Klap een bestelling open om de producten en de bezorging te zien.', 'pfh-widgets' ) );
 		echo '<ul class="pfh-acc__orders">';
 
+		if ( $viewing ) {
+			$this->render_order( $viewing, true );
+		}
+
 		foreach ( $orders as $order ) {
+			if ( $viewing && (int) $order->get_id() === (int) $viewing->get_id() ) {
+				continue;
+			}
+
 			$this->render_order( $order );
 		}
 
-		echo '</ul></div></section>';
+		echo '</ul>';
+
+		// Older orders, a page at a time, as WooCommerce's own list does.
+		if ( $pages > 1 ) {
+			echo '<nav class="pfh-acc__pager">';
+
+			if ( $page > 1 ) {
+				printf( '<a class="pfh-acc__btn pfh-acc__btn--quiet pfh-acc__btn--small" href="%s">%s</a>', esc_url( wc_get_endpoint_url( 'orders', $page - 1 ) ), esc_html__( 'Nieuwere bestellingen', 'pfh-widgets' ) );
+			}
+
+			printf( '<span class="pfh-acc__hint">%s</span>', esc_html( sprintf( /* translators: 1: page, 2: pages */ __( 'Pagina %1$d van %2$d', 'pfh-widgets' ), $page, $pages ) ) );
+
+			if ( $page < $pages ) {
+				printf( '<a class="pfh-acc__btn pfh-acc__btn--quiet pfh-acc__btn--small" href="%s">%s</a>', esc_url( wc_get_endpoint_url( 'orders', $page + 1 ) ), esc_html__( 'Oudere bestellingen', 'pfh-widgets' ) );
+			}
+
+			echo '</nav>';
+		}
+
+		echo '</div></section>';
 	}
 
 	/**
@@ -848,17 +961,32 @@ class PFH_Element_Account extends \Bricks\Element {
 
 		echo '</div><div class="pfh-acc__order-actions">';
 
-		printf(
-			'<a class="pfh-acc__btn pfh-acc__btn--small" href="%s">%s</a>',
-			esc_url( $order->get_view_order_url() ),
-			esc_html__( 'Bekijk bestelling', 'pfh-widgets' )
-		);
+		/*
+		 * WooCommerce's own list of what can be done with an order: pay,
+		 * cancel, view — and what plugins add to it, such as the invoice
+		 * download. The live shop shows these too.
+		 */
+		$actions = function_exists( 'wc_get_account_orders_actions' ) ? wc_get_account_orders_actions( $order ) : [];
 
-		if ( $order->needs_payment() ) {
+		foreach ( $actions as $key => $action ) {
+			if ( empty( $action['url'] ) || empty( $action['name'] ) ) {
+				continue;
+			}
+
+			printf(
+				'<a class="pfh-acc__btn pfh-acc__btn--small%s" href="%s">%s</a>',
+				'view' === $key ? '' : ' pfh-acc__btn--quiet',
+				esc_url( $action['url'] ),
+				esc_html( $action['name'] )
+			);
+		}
+
+		// "Opnieuw bestellen", as WooCommerce offers it on a completed order.
+		if ( $order->has_status( apply_filters( 'woocommerce_valid_order_statuses_for_order_again', [ 'completed' ] ) ) && get_current_user_id() === (int) $order->get_customer_id() ) {
 			printf(
 				'<a class="pfh-acc__btn pfh-acc__btn--quiet pfh-acc__btn--small" href="%s">%s</a>',
-				esc_url( $order->get_checkout_payment_url() ),
-				esc_html__( 'Betalen', 'pfh-widgets' )
+				esc_url( wp_nonce_url( add_query_arg( 'order_again', $order->get_id(), wc_get_cart_url() ), 'woocommerce-order_again' ) ),
+				esc_html__( 'Opnieuw bestellen', 'pfh-widgets' )
 			);
 		}
 
@@ -876,6 +1004,24 @@ class PFH_Element_Account extends \Bricks\Element {
 
 	private function render_addresses() {
 		$this->open_pane( 'addresses' );
+
+		/*
+		 * /mijn-account/edit-address/billing/: WooCommerce's own address form,
+		 * so its fields, its country rules and its save all apply. After
+		 * saving it comes back to the addresses with "Adres gewijzigd".
+		 */
+		if ( 'edit-address' === $this->endpoint[0] && '' !== $this->endpoint[1] ) {
+			echo '<div class="pfh-acc__card pfh-acc__block pfh-acc__woo-form">';
+			printf(
+				'<p class="pfh-acc__hint"><a class="pfh-acc__link" href="%s">%s</a></p>',
+				esc_url( wc_get_endpoint_url( 'edit-address', '', wc_get_page_permalink( 'myaccount' ) ) ),
+				esc_html__( 'Terug naar je adressen', 'pfh-widgets' )
+			);
+			do_action( 'woocommerce_account_edit-address_endpoint', $this->endpoint[1] );
+			echo '</div></section>';
+
+			return;
+		}
 
 		echo '<div class="pfh-acc__card pfh-acc__block">';
 		printf( '<h2 class="pfh-acc__block-title">%s</h2>', esc_html__( 'Adressen', 'pfh-widgets' ) );
@@ -940,6 +1086,14 @@ class PFH_Element_Account extends \Bricks\Element {
 
 		$this->password_field( 'np-' . $this->uid(), __( 'Nieuw wachtwoord', 'pfh-widgets' ), 'password_1', 'new-password' );
 		$this->password_field( 'np2-' . $this->uid(), __( 'Herhaal het nieuwe wachtwoord', 'pfh-widgets' ), 'password_2', 'new-password' );
+
+		/*
+		 * WooCommerce will not save the details without a display name, and
+		 * the form has no field for it, so every save failed with "Display
+		 * name is a required field" (go-live check, 2026-10-04). The name the
+		 * customer already shows under is kept.
+		 */
+		printf( '<input type="hidden" name="account_display_name" value="%s" />', esc_attr( $user->display_name ? $user->display_name : trim( $user->first_name . ' ' . $user->last_name ) ) );
 
 		wp_nonce_field( 'save_account_details', 'save-account-details-nonce' );
 
@@ -1036,22 +1190,129 @@ class PFH_Element_Account extends \Bricks\Element {
 	 *
 	 * @return WC_Order[]
 	 */
-	private function orders() {
+	private function orders( $page = 1 ) {
 		if ( ! function_exists( 'wc_get_orders' ) ) {
-			return [];
+			return [ 'orders' => [], 'total' => 0, 'pages' => 1 ];
 		}
 
-		$orders = wc_get_orders(
+		$found = wc_get_orders(
 			[
 				'customer' => get_current_user_id(),
 				'limit'    => max( 1, (int) $this->setting( 'orders', 20 ) ),
+				'page'     => max( 1, (int) $page ),
+				'paginate' => true,
 				'orderby'  => 'date',
 				'order'    => 'DESC',
 				'status'   => array_keys( wc_get_order_statuses() ),
 			]
 		);
 
-		return is_array( $orders ) ? $orders : [];
+		if ( ! is_object( $found ) ) {
+			return [ 'orders' => [], 'total' => 0, 'pages' => 1 ];
+		}
+
+		return [
+			'orders' => (array) $found->orders,
+			'total'  => (int) $found->total,
+			'pages'  => max( 1, (int) $found->max_num_pages ),
+		];
+	}
+
+	/**
+	 * Which pane an account address opens.
+	 *
+	 * @param string $endpoint WooCommerce endpoint.
+	 * @return string
+	 */
+	private function pane_for( $endpoint ) {
+		$map = [
+			'orders'                     => 'orders',
+			'view-order'                 => 'orders',
+			'edit-address'               => 'addresses',
+			'edit-account'               => 'details',
+			'payment-methods'            => 'payments',
+			'add-payment-method'         => 'payments',
+			'delete-payment-method'      => 'payments',
+			'set-default-payment-method' => 'payments',
+			'downloads'                  => 'downloads',
+		];
+
+		if ( isset( $map[ $endpoint ] ) ) {
+			return $map[ $endpoint ];
+		}
+
+		if ( '' !== $endpoint && isset( $this->plugin_endpoints()[ $endpoint ] ) ) {
+			return 'ep-' . $endpoint;
+		}
+
+		return 'dashboard';
+	}
+
+	/**
+	 * The current WooCommerce endpoint and its value.
+	 *
+	 * @return array{0: string, 1: string}
+	 */
+	public static function current_endpoint() {
+		if ( ! function_exists( 'WC' ) || ! WC()->query ) {
+			return [ '', '' ];
+		}
+
+		$key = (string) WC()->query->get_current_endpoint();
+
+		if ( '' === $key ) {
+			return [ '', '' ];
+		}
+
+		global $wp;
+
+		$vars = WC()->query->get_query_vars();
+		$var  = isset( $vars[ $key ] ) ? $vars[ $key ] : $key;
+
+		return [ $key, isset( $wp->query_vars[ $var ] ) ? (string) $wp->query_vars[ $var ] : '' ];
+	}
+
+	/**
+	 * @param string $endpoint WooCommerce endpoint.
+	 * @return bool Whether WooCommerce lists it in My Account.
+	 */
+	private function woo_item( $endpoint ) {
+		if ( ! function_exists( 'wc_get_account_menu_items' ) || ! array_key_exists( $endpoint, (array) wc_get_account_menu_items() ) ) {
+			return false;
+		}
+
+		// The shop sells nothing to download, and the live shop's menu has
+		// no Downloads: only a customer who has some gets the tab.
+		if ( 'downloads' === $endpoint ) {
+			return function_exists( 'wc_get_customer_available_downloads' ) && (bool) wc_get_customer_available_downloads( get_current_user_id() );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Saved payment methods or downloads: WooCommerce's own page, in a pane.
+	 *
+	 * @param string $pane     Pane key.
+	 * @param string $endpoint WooCommerce endpoint.
+	 */
+	private function render_woo_pane( $pane, $endpoint ) {
+		if ( ! $this->woo_item( $endpoint ) ) {
+			return;
+		}
+
+		$this->open_pane( $pane );
+		echo '<div class="pfh-acc__card pfh-acc__block pfh-acc__woo-form">';
+
+		$items = (array) wc_get_account_menu_items();
+		printf( '<h2 class="pfh-acc__block-title">%s</h2>', esc_html( wp_strip_all_tags( (string) $items[ $endpoint ] ) ) );
+
+		// Adding a card is its own WooCommerce page, shown in the same pane.
+		$which = 'payments' === $pane && 'add-payment-method' === $this->endpoint[0] ? 'add-payment-method' : $endpoint;
+
+		do_action( 'woocommerce_account_' . $which . '_endpoint', '' );
+
+		echo '</div></section>';
 	}
 
 	/**

@@ -140,13 +140,16 @@ echo "\n── a customer gets the account ──\n";
 ok( 'the rail is drawn', false !== strpos( $in, 'pfh-acc__rail' ) );
 // Overview, orders, addresses, details, the wishlist (feedback 2026-09-28)
 // and the waitlist (2026-10-02).
-ok( 'with a tab for each part', 6 === substr_count( $in, 'data-pfh-acc-tab=' ), substr_count( $in, 'data-pfh-acc-tab=' ) . ' tabs' );
+// Plus saved payment methods and downloads when WooCommerce lists them
+// (go-live check, 2026-10-04).
+$woo_tabs = count( array_intersect( [ 'payment-methods' ], array_keys( wc_get_account_menu_items() ) ) ) + ( wc_get_customer_available_downloads( get_current_user_id() ) ? 1 : 0 );
+ok( 'with a tab for each part', 6 + $woo_tabs === substr_count( $in, 'data-pfh-acc-tab=' ), substr_count( $in, 'data-pfh-acc-tab=' ) . ' tabs' );
 ok( '  the wishlist among them', false !== strpos( $in, 'data-pfh-acc-tab="wishlist"' ) );
 ok( '  and the waitlist', false !== strpos( $in, 'data-pfh-acc-tab="ep-pfh-wachtlijst"' ) );
 ok( '  and a way out', false !== strpos( $in, 'pfh-acc__tab--out' ) );
 ok( 'the first tab opens', 1 === substr_count( $in, 'aria-selected="true"' ) );
-ok( 'one pane for each tab', 6 === substr_count( $in, 'class="pfh-acc__pane"' ), substr_count( $in, 'class="pfh-acc__pane"' ) . ' panes' );
-ok( '  and only the first is shown', 5 === substr_count( $in, 'tabindex="0" hidden' ), substr_count( $in, 'tabindex="0" hidden' ) . ' hidden panes' );
+ok( 'one pane for each tab', 6 + $woo_tabs === substr_count( $in, 'class="pfh-acc__pane"' ), substr_count( $in, 'class="pfh-acc__pane"' ) . ' panes' );
+ok( '  and only the first is shown', 5 + $woo_tabs === substr_count( $in, 'tabindex="0" hidden' ), substr_count( $in, 'tabindex="0" hidden' ) . ' hidden panes' );
 ok( 'no sign-in card is shown', false === strpos( $in, 'pfh-acc__auth' ) );
 ok( 'the greeting names the customer', false !== strpos( $in, 'Test' ) );
 
