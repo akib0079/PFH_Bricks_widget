@@ -141,7 +141,7 @@ trait PFH_Product_Card_Trait {
 				'aria'   => '',
 			],
 			'price'    => $this->price_html( $product, 'current' ),
-			'oldPrice' => $product->is_on_sale() ? $this->price_html( $product, 'regular' ) : '',
+			'oldPrice' => $this->card_on_sale( $product ) ? $this->price_html( $product, 'regular' ) : '',
 			'onSale'   => $product->is_on_sale(),
 			'rating'   => (float) $product->get_average_rating(),
 			'reviews'  => (int) $product->get_review_count(),
@@ -503,9 +503,8 @@ trait PFH_Product_Card_Trait {
 			return '';
 		}
 
-		$amount = 'regular' === $which
-			? wc_get_price_to_display( $product, [ 'price' => $product->get_regular_price() ] )
-			: wc_get_price_to_display( $product );
+		$amounts = $this->card_amounts( $product );
+		$amount  = 'regular' === $which ? $amounts[1] : $amounts[0];
 
 		if ( '' === $amount || null === $amount ) {
 			return '';
@@ -519,6 +518,54 @@ trait PFH_Product_Card_Trait {
 		}
 
 		return $html;
+	}
+
+	/**
+	 * What the card shows as the price now and the price before.
+	 *
+	 * A variable product (the bundles) has no price of its own: asked for
+	 * its regular price, WooCommerce hands back the current one, so the card
+	 * printed "€ 41,97" twice and never the old price (client, 2026-10-04).
+	 * It shows its cheapest variation instead, now and before, as a pair.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return array{0: float|string, 1: float|string} Now, before.
+	 */
+	private function card_amounts( $product ) {
+		if ( $product->is_type( 'variable' ) ) {
+			$prices = $product->get_variation_prices( true );
+
+			if ( empty( $prices['price'] ) ) {
+				return [ '', '' ];
+			}
+
+			$id  = array_search( min( $prices['price'] ), $prices['price'] ); // phpcs:ignore WordPress.PHP.StrictInArray -- prices are strings.
+			$now = $prices['price'][ $id ];
+			$was = isset( $prices['regular_price'][ $id ] ) && '' !== $prices['regular_price'][ $id ] ? $prices['regular_price'][ $id ] : $now;
+
+			return [ $now, $was ];
+		}
+
+		return [
+			wc_get_price_to_display( $product ),
+			wc_get_price_to_display( $product, [ 'price' => $product->get_regular_price() ] ),
+		];
+	}
+
+	/**
+	 * Whether the card's own pair of prices shows a reduction.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return bool
+	 */
+	private function card_on_sale( $product ) {
+		if ( ! $product->is_on_sale() || ! function_exists( 'wc_get_price_to_display' ) ) {
+			return false;
+		}
+
+		$amounts = $this->card_amounts( $product );
+
+		return '' !== $amounts[0] && (float) $amounts[1] > (float) $amounts[0] + 0.001;
 	}
 
 	/**

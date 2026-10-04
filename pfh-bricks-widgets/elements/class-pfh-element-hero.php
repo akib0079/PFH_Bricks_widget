@@ -556,6 +556,15 @@ class PFH_Element_Hero extends \Bricks\Element {
 	 * ------------------------------------------------------------------ */
 
 	private function type_controls() {
+		$this->controls['titleH1'] = [
+			'tab'         => 'content',
+			'group'       => 'type',
+			'label'       => esc_html__( 'First title is the page heading (h1)', 'pfh-widgets' ),
+			'type'        => 'checkbox',
+			'default'     => true,
+			'description' => esc_html__( 'Every page needs one main heading for search engines. Turn off only if the page has its own h1 elsewhere.', 'pfh-widgets' ),
+		];
+
 		$this->controls['fontFamily'] = [
 			'tab'     => 'content',
 			'group'   => 'type',
@@ -1968,7 +1977,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 		);
 
 		echo '<div class="pfh-hero__col pfh-hero__col--text">';
-		$this->render_slide_text( $slide );
+		$this->render_slide_text( $slide, $index );
 		echo '</div>';
 
 		echo '<div class="pfh-hero__col pfh-hero__col--media">';
@@ -1998,9 +2007,17 @@ class PFH_Element_Hero extends \Bricks\Element {
 
 	/**
 	 * @param array $slide Normalised slide.
+	 * @param int   $index Zero based index.
 	 */
-	private function render_slide_text( $slide ) {
+	private function render_slide_text( $slide, $index = 0 ) {
 		$order = 0;
+
+		/*
+		 * The first slide's title is the page's main heading: the home page
+		 * had no <h1> at all, which search engines read as a page without a
+		 * subject (go-live check, 2026-10-03). The other slides stay <h2>.
+		 */
+		$tag = 0 === (int) $index && $this->is_on( 'titleH1' ) ? 'h1' : 'h2';
 
 		echo '<div class="pfh-hero__content">';
 
@@ -2022,7 +2039,8 @@ class PFH_Element_Hero extends \Bricks\Element {
 
 		if ( ! empty( $slide['title'] ) ) {
 			printf(
-				'<h2 class="pfh-hero__title" data-pfh-reveal style="--pfh-i:%d">%s</h2>',
+				'<%1$s class="pfh-hero__title" data-pfh-reveal style="--pfh-i:%2$d">%3$s</%1$s>',
+				$tag,
 				$order++,
 				wp_kses_post( nl2br( PFH_Widgets_Helpers::dd( $slide['title'] ) ) )
 			);

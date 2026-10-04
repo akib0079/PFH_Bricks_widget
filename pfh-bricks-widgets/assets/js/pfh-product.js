@@ -121,9 +121,30 @@
 
 		return {
 			paint: paint,
+
+			/*
+			 * Bring a thumbnail into view by moving the strip only. This was
+			 * scrollIntoView(), which also scrolls the page itself whenever
+			 * the strip sits partly below the fold: every arrow click on the
+			 * photo pulled the whole screen down (client, 2026-10-04).
+			 */
 			reveal: function ( thumb ) {
-				if ( thumb && thumb.scrollIntoView ) {
-					thumb.scrollIntoView( { block: 'nearest', inline: 'nearest' } );
+				if ( ! thumb ) {
+					return;
+				}
+
+				var box = track.getBoundingClientRect();
+				var at = thumb.getBoundingClientRect();
+				var shift = 0;
+
+				if ( at.left < box.left ) {
+					shift = at.left - box.left - 8;
+				} else if ( at.right > box.right ) {
+					shift = at.right - box.right + 8;
+				}
+
+				if ( shift ) {
+					track.scrollBy( { left: shift, behavior: 'smooth' } );
 				}
 			}
 		};

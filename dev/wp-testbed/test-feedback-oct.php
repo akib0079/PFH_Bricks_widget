@@ -160,4 +160,50 @@ $hero_css = file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/css/p
 $phone    = substr( $hero_css, strpos( $hero_css, '@media (max-width: 991px)' ) );
 ok( 'with the marquee band too, the hero keeps room for its dots', (bool) preg_match( '/\.pfh-hero,\s*\.pfh-hero\.has-marquee\s*\{\s*padding-bottom:\s*calc\(var\(--pfh-hero-pad-y\) \+ var\(--pfh-mq-space, 0px\) \+ 30px\)/', $phone ) );
 
+echo "\n── the home page has a main heading (go-live check) ──\n";
+$hero_html = oct_render( 'PFH_Element_Hero', 'pfh-hero', [] );
+ok( 'the first slide\'s title is the h1', 1 === substr_count( $hero_html, '<h1 class="pfh-hero__title"' ) );
+ok( '  and the others stay h2', substr_count( $hero_html, '<h2 class="pfh-hero__title"' ) >= 1 || 1 === substr_count( $hero_html, 'class="pfh-hero__slide' ) );
+ok( 'which can be turned off', 0 === substr_count( oct_render( 'PFH_Element_Hero', 'pfh-hero', [ 'titleH1' => false ] ), '<h1' ) );
+
+echo "\n── bundle cards show the old price too (2026-10-04) ──\n";
+$attr = new WC_Product_Attribute();
+$attr->set_name( 'Inhoud' );
+$attr->set_options( [ 'Klein', 'Groot' ] );
+$attr->set_visible( true );
+$attr->set_variation( true );
+$bundle = new WC_Product_Variable();
+$bundle->set_name( 'Oktober bundel' );
+$bundle->set_status( 'publish' );
+$bundle->set_attributes( [ $attr ] );
+$bundle_id = $bundle->save();
+foreach ( [ [ 'Klein', '20', '15' ], [ 'Groot', '30', '25' ] ] as $v ) {
+	$var = new WC_Product_Variation();
+	$var->set_parent_id( $bundle_id );
+	$var->set_attributes( [ 'inhoud' => $v[0] ] );
+	$var->set_regular_price( $v[1] );
+	$var->set_sale_price( $v[2] );
+	$var->set_status( 'publish' );
+	$var->save();
+}
+WC_Product_Variable::sync( $bundle_id );
+wc_delete_product_transients( $bundle_id );
+delete_transient( 'wc_products_onsale' );
+$grid = oct_render( 'PFH_Element_Products', 'pfh-products', [ 'source' => 'onsale', 'limit' => 60 ] );
+$at   = strpos( $grid, 'Oktober bundel' );
+$end  = false !== $at ? strpos( $grid, '</li>', $at ) : false;
+$card = false !== $at ? substr( $grid, $at, ( false !== $end ? $end : $at + 6000 ) - $at ) : '';
+ok( 'a bundle on sale is on the card', '' !== $card, 'card not found' );
+ok( '  at its cheapest price now', (bool) preg_match( '/pfh-prod__price">.*?15,00/s', $card ) );
+ok( '  with the price before struck through', (bool) preg_match( '/<del class="pfh-prod__old">.*?20,00/s', $card ) );
+ok( '  and not the same price twice', ! preg_match( '/<del class="pfh-prod__old">[^<]*(<[^>]+>[^<]*)*?15,00/U', $card ) );
+foreach ( wc_get_product( $bundle_id )->get_children() as $child ) {
+	wp_delete_post( $child, true );
+}
+wp_delete_post( $bundle_id, true );
+
+echo "\n── the product photos do not move the page (2026-10-04) ──\n";
+$pdp_js = file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/js/pfh-product.js' );
+ok( 'the thumbnail strip scrolls itself, never the window', false === strpos( $pdp_js, 'thumb.scrollIntoView' ) && false !== strpos( $pdp_js, "track.scrollBy( { left: shift" ) );
+
 echo "\n$pass passed, $fail failed\n";
