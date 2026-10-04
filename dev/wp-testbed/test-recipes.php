@@ -31,7 +31,7 @@ function recipes( array $over = [], $defaults = true ) {
 echo "── as it comes ──\n";
 $html = recipes();
 ok( 'six recipe cards', 6 === substr_count( $html, 'class="pfh-rc__item"' ) );
-ok( 'each a link to its recipe page', false !== strpos( $html, 'href="/home-made-juice/"' ) && false !== strpos( $html, 'href="/home-made-ice-tea/"' ) && 6 === substr_count( $html, '<a class="pfh-rc__card"' ) );
+ok( 'each a link to its recipe page', false !== strpos( $html, 'href="/recepten-van-gia-giamas/home-made-juice/"' ) && false !== strpos( $html, 'href="/recepten-van-gia-giamas/home-made-ice-tea/"' ) && 6 === substr_count( $html, '<a class="pfh-rc__card"' ) );
 ok( 'the heading keeps its italic accent', false !== strpos( $html, '<h2 class="pfh-rc__title">Wat maak je met <em>Gia Giamas</em>?</h2>' ) );
 ok( 'a small line above it', false !== strpos( $html, '<p class="pfh-rc__eyebrow">Recepten</p>' ) );
 ok( 'every card says where it leads', 6 === substr_count( $html, 'Bekijk recept' ) );
@@ -63,5 +63,12 @@ ok( 'no recipes, nothing on the page', '' === trim( recipes( [ 'items' => [] ] )
 ok( 'a script in a name is printed as text', false === strpos( recipes( [ 'items' => [ [ 'title' => '<script>x</script>', 'text' => 'a' ] ] ] ), '<script>' ) );
 
 wp_delete_attachment( $att, true );
+
+echo "\n── pages moved over from Elementor (2026-10-04) ──\n";
+$legacy_css = file_get_contents( WP_PLUGIN_DIR . '/pfh-bricks-widgets/assets/css/pfh-legacy.css' );
+ok( 'their stylesheet is part of the plugin', false !== strpos( $legacy_css, '.pfh-legacy' ) && false !== strpos( $legacy_css, 'Playfair Display' ) );
+PFH_Widgets_Assets::register();
+ok( '  and registered', wp_style_is( 'pfh-legacy', 'registered' ) );
+ok( 'the recipe cards link to the recipes at their real address', false === strpos( $html, 'href="/home-made-juice/"' ) );
 
 echo "\n$pass passed, $fail failed\n";

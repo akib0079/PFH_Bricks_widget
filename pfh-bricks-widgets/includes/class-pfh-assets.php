@@ -36,6 +36,8 @@ class PFH_Widgets_Assets {
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'register' ], 5 );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'register' ], 5 );
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'maybe_quickadd' ], 20 );
+		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'maybe_legacy' ], 20 );
+		add_action( 'template_redirect', [ __CLASS__, 'quiet_elementor' ], 99 );
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'maybe_fkcart' ], 100 );
 		add_action( 'wp_footer', [ __CLASS__, 'maybe_fkcart' ], 1 );
 	}
@@ -384,6 +386,13 @@ class PFH_Widgets_Assets {
 		);
 
 		wp_register_style(
+			'pfh-legacy',
+			PFH_WIDGETS_URL . 'assets/css/pfh-legacy.css',
+			[ 'pfh-base' ],
+			PFH_WIDGETS_VERSION
+		);
+
+		wp_register_style(
 			'pfh-rating',
 			PFH_WIDGETS_URL . 'assets/css/pfh-rating.css',
 			[ 'pfh-base' ],
@@ -518,6 +527,72 @@ class PFH_Widgets_Assets {
 		}
 
 		self::quickadd();
+	}
+
+	/**
+	 * The look of the pages moved over from Elementor (2026-10-04).
+	 *
+	 * Their sections carry the class pfh-legacy: the same layout as before,
+	 * in the shop's own fonts and colours. Only on a page that has one.
+	 */
+	public static function maybe_legacy() {
+		if ( is_admin() || ! is_singular() ) {
+			return;
+		}
+
+		$content = self::bricks_content( (int) get_queried_object_id() );
+
+		if ( ! $content || false === strpos( (string) wp_json_encode( $content ), 'pfh-legacy' ) ) {
+			return;
+		}
+
+		self::base();
+		wp_enqueue_style( 'pfh-legacy' );
+	}
+
+	/**
+	 * Keep Elementor out of a page that Bricks now draws.
+	 *
+	 * A page moved over from Elementor keeps its Elementor data, so it can be
+	 * looked back at, and Elementor still takes the page for one of its own.
+	 * Every Bricks text element passes its words through the_content, where
+	 * Elementor swaps them for the whole old Elementor layout — the page would
+	 * show the old design four or five times over, and none of the new words.
+	 * Elementor's own switch for that filter is turned off here, on such a
+	 * page only, after Elementor has set it up on template_redirect.
+	 */
+	public static function quiet_elementor() {
+		if ( is_admin() || ! is_singular() || ! class_exists( '\Elementor\Plugin' ) ) {
+			return;
+		}
+
+		$post_id = (int) get_queried_object_id();
+
+		if ( ! self::bricks_content( $post_id ) || 'wordpress' === get_post_meta( $post_id, '_bricks_editor_mode', true ) ) {
+			return;
+		}
+
+		$elementor = \Elementor\Plugin::instance();
+
+		if ( isset( $elementor->frontend ) && is_object( $elementor->frontend ) && method_exists( $elementor->frontend, 'remove_content_filter' ) ) {
+			$elementor->frontend->remove_content_filter();
+		}
+	}
+
+	/**
+	 * A post's Bricks layout, or an empty array when it has none.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return array
+	 */
+	private static function bricks_content( $post_id ) {
+		if ( ! $post_id || ! defined( 'BRICKS_DB_PAGE_CONTENT' ) ) {
+			return [];
+		}
+
+		$content = get_post_meta( $post_id, BRICKS_DB_PAGE_CONTENT, true );
+
+		return is_array( $content ) ? $content : [];
 	}
 
 	/**

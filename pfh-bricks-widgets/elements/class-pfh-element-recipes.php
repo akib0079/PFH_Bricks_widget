@@ -45,32 +45,32 @@ class PFH_Element_Recipes extends \Bricks\Element {
 			[
 				'title' => 'Vruchtensap & gezonde frisdrank',
 				'text'  => 'Zo maak je thuis een glas Gia Giamas, aangelengd met water of bruisend met soda.',
-				'link'  => [ 'type' => 'external', 'url' => '/home-made-juice/' ],
+				'link'  => [ 'type' => 'external', 'url' => '/recepten-van-gia-giamas/home-made-juice/' ],
 			],
 			[
 				'title' => 'Cocktails',
 				'text'  => 'Fruitige cocktails en mocktails met Gia Giamas als basis.',
-				'link'  => [ 'type' => 'external', 'url' => '/gia-giamas-cocktails/' ],
+				'link'  => [ 'type' => 'external', 'url' => '/recepten-van-gia-giamas/gia-giamas-cocktails/' ],
 			],
 			[
 				'title' => 'Granita slush',
 				'text'  => 'IJskoud en vol fruit: zo maak je een granita van Gia Giamas.',
-				'link'  => [ 'type' => 'external', 'url' => '/home-made-slush/' ],
+				'link'  => [ 'type' => 'external', 'url' => '/recepten-van-gia-giamas/home-made-slush/' ],
 			],
 			[
 				'title' => 'Water of soda to go',
 				'text'  => 'Een fles water of soda met een scheut Gia Giamas, voor onderweg.',
-				'link'  => [ 'type' => 'external', 'url' => '/gia-giamas-to-go/' ],
+				'link'  => [ 'type' => 'external', 'url' => '/recepten-van-gia-giamas/gia-giamas-to-go/' ],
 			],
 			[
 				'title' => 'Griekse yoghurt',
 				'text'  => 'Een scheut Gia Giamas door je yoghurt, als ontbijt of als toetje.',
-				'link'  => [ 'type' => 'external', 'url' => '/greek-yoghurt/' ],
+				'link'  => [ 'type' => 'external', 'url' => '/recepten-van-gia-giamas/greek-yoghurt/' ],
 			],
 			[
 				'title' => 'Ice tea',
 				'text'  => 'Huisgemaakte ice tea met de frisse smaak van Grieks fruit.',
-				'link'  => [ 'type' => 'external', 'url' => '/home-made-ice-tea/' ],
+				'link'  => [ 'type' => 'external', 'url' => '/recepten-van-gia-giamas/home-made-ice-tea/' ],
 			],
 		];
 	}

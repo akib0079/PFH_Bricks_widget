@@ -1,0 +1,409 @@
+/*!
+ * Products For Home — pages moved over from Elementor (2026-10-04).
+ *
+ * The landing pages, the recipes and the Gia Giamas page kept their own
+ * layout when they moved to Bricks: the same sections, columns, pictures and
+ * words. What changes is the type and the colour, which now come from the
+ * shop — Playfair Display for the big headings, Outfit for the rest, the
+ * dark green ink and the teal accent — instead of whatever each Elementor
+ * widget had set on its own.
+ *
+ * Each converted section carries .pfh-legacy; nothing outside it is touched.
+ */
+
+.pfh-legacy {
+	--pfh-lg-ink: #22301c;
+	--pfh-lg-body: #4f5a4c;
+	--pfh-lg-muted: #8d9589;
+	--pfh-lg-accent: #557f82;
+	--pfh-lg-accent-dark: #3c6467;
+	--pfh-lg-tint: #f4f7f4;
+	--pfh-lg-line: #e6ebe4;
+
+	width: 100%;
+	padding-block: var(--pfh-lg-pad, 64px);
+	color: var(--pfh-lg-body);
+	font-family: var(--pfh-font);
+	font-size: 16px;
+	line-height: 1.7;
+}
+
+.pfh-legacy + .pfh-legacy { padding-top: 0; }
+.pfh-legacy.pfh-legacy--band + .pfh-legacy,
+.pfh-legacy + .pfh-legacy.pfh-legacy--band { padding-top: var(--pfh-lg-pad, 64px); }
+
+.pfh-legacy .pfh-legacy__inner {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: 100%;
+	max-width: calc(var(--pfh-container, 1140px) + var(--pfh-gutter, 24px) * 2);
+	margin-inline: auto;
+	padding-inline: var(--pfh-gutter, 24px);
+}
+
+.pfh-legacy--narrow .pfh-legacy__inner { max-width: calc(860px + var(--pfh-gutter, 24px) * 2); }
+
+.pfh-legacy--center .pfh-legacy__inner { align-items: center; text-align: center; }
+
+/* ---------- columns ---------- */
+
+.pfh-legacy .pfh-legacy__cols {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: clamp(24px, 4vw, 56px);
+	width: 100%;
+}
+
+.pfh-legacy .pfh-legacy__col {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	gap: 18px;
+	min-width: 0;
+}
+
+.pfh-legacy .pfh-legacy__col[style*="--pfh-col"] { flex: 0 1 calc(var(--pfh-col) * 1% - 28px); }
+
+.pfh-legacy .pfh-legacy__col--top { align-self: flex-start; }
+
+/* Centred pieces, as they were centred in Elementor. */
+.pfh-legacy .pfh-legacy__center { align-self: center; max-width: 820px; margin-inline: auto; text-align: center; }
+.pfh-legacy .pfh-legacy__center ul { justify-items: center; }
+
+/* ---------- type ---------- */
+
+.pfh-legacy .pfh-legacy__h { margin: 0; color: var(--pfh-lg-ink); text-wrap: balance; }
+
+.pfh-legacy h1.pfh-legacy__h,
+.pfh-legacy h2.pfh-legacy__h {
+	font-family: "Playfair Display", Georgia, serif;
+	font-weight: 400;
+	line-height: 1.15;
+	letter-spacing: 0;
+}
+
+.pfh-legacy h1.pfh-legacy__h { font-size: clamp(34px, 4.2vw, 52px); }
+.pfh-legacy h2.pfh-legacy__h { font-size: clamp(28px, 3.2vw, 40px); }
+
+.pfh-legacy h3.pfh-legacy__h,
+.pfh-legacy h4.pfh-legacy__h {
+	font-family: var(--pfh-font);
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.pfh-legacy h3.pfh-legacy__h { font-size: 22px; }
+.pfh-legacy h4.pfh-legacy__h { font-size: 18px; }
+
+/* The small line above a heading ("Waarom Gia Giamas?"). */
+.pfh-legacy h5.pfh-legacy__h,
+.pfh-legacy h6.pfh-legacy__h {
+	color: var(--pfh-lg-accent);
+	font-family: var(--pfh-font);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: .14em;
+	text-transform: uppercase;
+}
+
+.pfh-legacy .pfh-legacy__text { width: 100%; color: var(--pfh-lg-body); }
+.pfh-legacy--center .pfh-legacy__text { max-width: 760px; }
+
+.pfh-legacy .pfh-legacy__text > :first-child { margin-top: 0; }
+.pfh-legacy .pfh-legacy__text > :last-child { margin-bottom: 0; }
+
+.pfh-legacy .pfh-legacy__text p { margin: 0 0 1em; }
+
+.pfh-legacy .pfh-legacy__text h2,
+.pfh-legacy .pfh-legacy__text h3,
+.pfh-legacy .pfh-legacy__text h4 {
+	margin: 1.6em 0 .5em;
+	color: var(--pfh-lg-ink);
+	line-height: 1.3;
+}
+
+.pfh-legacy .pfh-legacy__text h2 { font-family: "Playfair Display", Georgia, serif; font-size: clamp(24px, 2.6vw, 32px); font-weight: 400; }
+.pfh-legacy .pfh-legacy__text h3 { font-family: var(--pfh-font); font-size: 20px; font-weight: 600; }
+
+/* Elementor pages often set whole paragraphs as h4 or h5 to get a bigger or
+   lighter line. They keep their tags, and read as an intro line and as body
+   text. */
+.pfh-legacy .pfh-legacy__text h4 { font-family: var(--pfh-font); font-size: 18px; font-weight: 500; line-height: 1.55; }
+
+.pfh-legacy .pfh-legacy__text h5,
+.pfh-legacy .pfh-legacy__text h6 {
+	margin: 0 0 1em;
+	color: var(--pfh-lg-body);
+	font-family: var(--pfh-font);
+	font-size: inherit;
+	font-weight: 400;
+	line-height: inherit;
+}
+
+.pfh-legacy .pfh-legacy__text hr {
+	height: 1px;
+	margin: 2em 0;
+	border: 0;
+	background: var(--pfh-lg-line);
+}
+
+.pfh-legacy .pfh-legacy__text table {
+	width: 100%;
+	margin: 0 0 1.4em;
+	border-collapse: collapse;
+	font-size: 15px;
+}
+
+.pfh-legacy .pfh-legacy__text th,
+.pfh-legacy .pfh-legacy__text td {
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--pfh-lg-line);
+}
+
+.pfh-legacy .pfh-legacy__text thead th { background: var(--pfh-lg-tint); color: var(--pfh-lg-ink); font-weight: 600; }
+
+.pfh-legacy .pfh-legacy__text strong,
+.pfh-legacy .pfh-legacy__text b { color: var(--pfh-lg-ink); font-weight: 600; }
+
+.pfh-legacy .pfh-legacy__text a {
+	color: var(--pfh-lg-accent);
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+}
+
+.pfh-legacy .pfh-legacy__text a:hover { color: var(--pfh-lg-accent-dark); }
+
+/* Lists, and the checklists that were Elementor icon lists. */
+.pfh-legacy .pfh-legacy__text ul,
+.pfh-legacy .pfh-legacy__checks ul {
+	display: grid;
+	gap: 10px;
+	margin: 0 0 1em;
+	padding: 0;
+	list-style: none;
+	text-align: left;
+}
+
+.pfh-legacy .pfh-legacy__text ul li,
+.pfh-legacy .pfh-legacy__checks li {
+	position: relative;
+	padding-left: 30px;
+}
+
+.pfh-legacy .pfh-legacy__text ul li::before,
+.pfh-legacy .pfh-legacy__checks li::before {
+	content: "";
+	position: absolute;
+	top: .45em;
+	left: 0;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: rgba(85, 127, 130, .14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23557f82' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 13 4.5 4.5L19 7'/%3E%3C/svg%3E") center / 11px no-repeat;
+}
+
+.pfh-legacy .pfh-legacy__text ol { margin: 0 0 1em; padding-left: 1.3em; }
+.pfh-legacy .pfh-legacy__checks { width: 100%; color: var(--pfh-lg-ink); }
+
+/* ---------- pictures and buttons ---------- */
+
+.pfh-legacy .pfh-legacy__img,
+.pfh-legacy .pfh-legacy__img img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	border-radius: 16px;
+}
+
+.pfh-legacy .pfh-legacy__img { overflow: hidden; }
+
+.pfh-legacy .pfh-legacy__gallery { width: 100%; }
+
+/* Partner logos: whole, on a light tile, never cropped. With a ratio set,
+   Bricks paints each one as a background rather than an <img>, on a box made
+   square by its top padding — so the breathing room is a white border, not
+   padding, which would leave the logo no room at all. */
+.pfh-legacy .pfh-legacy__gallery.brxe-image-gallery .bricks-layout-inner {
+	border: 14px solid #ffffff;
+	border-radius: 12px;
+	background-clip: padding-box;
+	background-color: #ffffff;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: contain;
+	box-shadow: 0 0 0 1px var(--pfh-lg-line);
+}
+
+.pfh-legacy .pfh-legacy__gallery.brxe-image-gallery img {
+	padding: 14px;
+	border-radius: 12px;
+	background: #ffffff;
+	box-shadow: inset 0 0 0 1px var(--pfh-lg-line);
+	object-fit: contain;
+}
+
+/* A recipe or story heading inside a column is a step smaller. */
+.pfh-legacy .pfh-legacy__col .pfh-legacy__text h2 { font-size: clamp(22px, 2.2vw, 28px); }
+
+.pfh-legacy .pfh-legacy__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 48px;
+	padding: 12px 26px;
+	border: 0;
+	border-radius: 8px;
+	background: var(--pfh-lg-accent);
+	color: #ffffff;
+	font-family: var(--pfh-font);
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1.2;
+	text-decoration: none;
+	transition: background-color .2s ease;
+}
+
+.pfh-legacy .pfh-legacy__btn:hover { background: var(--pfh-lg-accent-dark); color: #ffffff; }
+
+.pfh-legacy .pfh-legacy__space { width: 100%; }
+
+.pfh-legacy .pfh-legacy__rule { width: 100%; height: 1px; background: var(--pfh-lg-line); }
+
+/* ---------- what customers said (was a testimonial carousel) ---------- */
+
+.pfh-legacy .pfh-legacy__quotes {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+	gap: 28px 24px;
+	width: 100%;
+}
+
+.pfh-legacy .pfh-legacy__quote { display: flex; flex-direction: column; gap: 4px; }
+
+.pfh-legacy .pfh-legacy__quote-text {
+	position: relative;
+	margin: 0 0 16px;
+	padding: 20px 22px;
+	border-radius: 14px;
+	background: var(--pfh-lg-accent);
+	color: #ffffff;
+	font-size: 15px;
+	line-height: 1.6;
+}
+
+/* The little tail of the speech bubble. */
+.pfh-legacy .pfh-legacy__quote-text::after {
+	content: "";
+	position: absolute;
+	bottom: -7px;
+	left: 26px;
+	width: 14px;
+	height: 14px;
+	border-radius: 2px;
+	background: inherit;
+	transform: rotate(45deg);
+}
+
+.pfh-legacy .pfh-legacy__quote-head { margin: 0; padding-left: 4px; color: var(--pfh-lg-ink); font-weight: 600; line-height: 1.4; }
+.pfh-legacy .pfh-legacy__quote-name { margin: 0; padding-left: 4px; color: var(--pfh-lg-muted); font-size: 14px; line-height: 1.4; }
+
+/* ---------- previous / all / next recipe ---------- */
+
+.pfh-legacy .pfh-legacy__postnav {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
+	gap: 16px;
+	width: 100%;
+	margin-top: 12px;
+	padding: 22px 0;
+	border-block: 1px solid var(--pfh-lg-line);
+	font-size: 15px;
+	line-height: 1.4;
+}
+
+.pfh-legacy .pfh-legacy__postnav a {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	color: var(--pfh-lg-ink);
+	text-decoration: none;
+	transition: color .2s ease;
+}
+
+.pfh-legacy .pfh-legacy__postnav a:hover { color: var(--pfh-lg-accent); }
+
+.pfh-legacy .pfh-legacy__nav-prev { justify-self: start; }
+.pfh-legacy .pfh-legacy__nav-next { justify-self: end; text-align: right; }
+.pfh-legacy .pfh-legacy__nav-prev::before { content: "\2190"; color: var(--pfh-lg-accent); }
+.pfh-legacy .pfh-legacy__nav-next::after { content: "\2192"; color: var(--pfh-lg-accent); }
+
+.pfh-legacy .pfh-legacy__postnav .pfh-legacy__nav-all {
+	color: var(--pfh-lg-accent);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: .12em;
+	text-transform: uppercase;
+}
+
+/* Four small squares, as the grid icon was. */
+.pfh-legacy .pfh-legacy__nav-all::before {
+	content: "";
+	width: 14px;
+	height: 14px;
+	background:
+		linear-gradient(currentColor 0 0) 0 0 / 6px 6px no-repeat,
+		linear-gradient(currentColor 0 0) 100% 0 / 6px 6px no-repeat,
+		linear-gradient(currentColor 0 0) 0 100% / 6px 6px no-repeat,
+		linear-gradient(currentColor 0 0) 100% 100% / 6px 6px no-repeat;
+}
+
+/* Embedded videos and maps keep their proportions. */
+.pfh-legacy .pfh-legacy__text iframe { max-width: 100%; border: 0; border-radius: 12px; }
+
+/* ---------- a tinted band ---------- */
+
+.pfh-legacy--band { background-color: var(--pfh-lg-tint); }
+
+/* A band that was a dark photo overlay in Elementor: the shop's deep green,
+   white type, and a white button. */
+.pfh-legacy.pfh-legacy--dark {
+	--pfh-lg-body: rgba(255, 255, 255, .86);
+	--pfh-lg-ink: #ffffff;
+	background-color: #2f3d2a;
+	color: var(--pfh-lg-body);
+}
+
+.pfh-legacy--dark .pfh-legacy__text a,
+.pfh-legacy--dark .pfh-legacy__text strong { color: #ffffff; }
+
+.pfh-legacy--dark .pfh-legacy__btn { background: #ffffff; color: #22301c; }
+.pfh-legacy--dark .pfh-legacy__btn:hover { background: #e8eee4; color: #22301c; }
+
+/* ---------- smaller screens ---------- */
+
+@media (max-width: 991px) {
+	.pfh-legacy { --pfh-lg-pad: 48px; }
+
+	.pfh-legacy .pfh-legacy__cols { flex-direction: column; align-items: stretch; }
+
+	.pfh-legacy .pfh-legacy__col,
+	.pfh-legacy .pfh-legacy__col[style*="--pfh-col"] { flex: 1 1 auto; }
+}
+
+@media (max-width: 575px) {
+	.pfh-legacy { --pfh-lg-pad: 36px; font-size: 15px; }
+	.pfh-legacy .pfh-legacy__inner { gap: 16px; }
+
+	/* Arrows only on a phone, as before: the names did not fit. */
+	.pfh-legacy .pfh-legacy__postnav { font-size: 14px; }
+	.pfh-legacy .pfh-legacy__nav-prev,
+	.pfh-legacy .pfh-legacy__nav-next { font-size: 0; }
+	.pfh-legacy .pfh-legacy__nav-prev::before,
+	.pfh-legacy .pfh-legacy__nav-next::after { font-size: 22px; }
+}
