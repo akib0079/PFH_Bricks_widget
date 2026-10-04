@@ -366,6 +366,108 @@
 /* Embedded videos and maps keep their proportions. */
 .pfh-legacy .pfh-legacy__text iframe { max-width: 100%; border: 0; border-radius: 12px; }
 
+/* ---------- the thank-you page (FunnelKit) ----------
+   FunnelKit draws the order and the customer's details; these rules give
+   them the shop's type and colours in place of its Open Sans and black. */
+
+.pfh-legacy .pfh-ty { align-items: flex-start; }
+
+.pfh-legacy .pfh-ty__head { display: flex; flex-direction: row; align-items: center; gap: 18px; width: 100%; }
+.pfh-legacy .pfh-ty__head > .brxe-block { gap: 4px; }
+
+.pfh-legacy .pfh-ty__check {
+	flex: 0 0 52px;
+	width: 52px;
+	height: 52px;
+	border-radius: 50%;
+	background: var(--pfh-lg-accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 13 4.5 4.5L19 7'/%3E%3C/svg%3E") center / 26px no-repeat;
+}
+
+.pfh-legacy .pfh-ty__eyebrow {
+	margin: 0;
+	color: var(--pfh-lg-accent);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: .14em;
+	text-transform: uppercase;
+}
+
+.pfh-legacy h1.pfh-legacy__h.pfh-ty__title { font-size: clamp(30px, 3.4vw, 42px); }
+
+.pfh-legacy .pfh-ty__card {
+	gap: 8px;
+	width: 100%;
+	padding: 24px;
+	border: 1px solid var(--pfh-lg-line);
+	border-radius: 16px;
+	background: #ffffff;
+}
+
+/* A Bricks block does not stretch its children; FunnelKit's boxes would
+   shrink to their text and leave the card half empty. */
+.pfh-legacy .pfh-ty__card > *,
+.pfh-legacy .pfh-ty .wfty_wrap,
+.pfh-legacy .pfh-ty .wfty_pro_list_cont {
+	align-self: stretch;
+	width: 100%;
+	float: none;
+}
+
+.pfh-legacy .pfh-ty__card-title {
+	margin: 0;
+	color: var(--pfh-lg-ink);
+	font-family: var(--pfh-font);
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.pfh-legacy .pfh-ty .wfty_wrap,
+.pfh-legacy .pfh-ty .wfty_box {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: var(--pfh-lg-body);
+	font-family: var(--pfh-font);
+}
+
+.pfh-legacy .pfh-ty .wfty_box + .wfty_box { margin-top: 24px; }
+
+.pfh-legacy .pfh-ty .wfty_title {
+	margin: 0 0 16px;
+	color: var(--pfh-lg-ink);
+	font-family: var(--pfh-font);
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.pfh-legacy .pfh-ty .wfty_box *:not(.wfty_title) { font-family: var(--pfh-font); }
+
+.pfh-legacy .pfh-ty .wfty_box table { width: 100%; border-collapse: collapse; }
+
+.pfh-legacy .pfh-ty .wfty_box th,
+.pfh-legacy .pfh-ty .wfty_box td {
+	border-color: var(--pfh-lg-line);
+	color: var(--pfh-lg-body);
+	font-size: 15px;
+}
+
+.pfh-legacy .pfh-ty .wfty_order_details tfoot tr:last-child th,
+.pfh-legacy .pfh-ty .wfty_order_details tfoot tr:last-child td,
+.pfh-legacy .pfh-ty .wfty_order_details tr:last-child th,
+.pfh-legacy .pfh-ty .wfty_order_details tr:last-child td {
+	color: var(--pfh-lg-ink);
+	font-size: 17px;
+	font-weight: 600;
+}
+
+.pfh-legacy .pfh-ty .wfty_pro_list img { border-radius: 10px; }
+.pfh-legacy .pfh-ty .wfty_customer_info strong,
+.pfh-legacy .pfh-ty .wfty_customer_info b { color: var(--pfh-lg-ink); }
+
 /* ---------- a tinted band ---------- */
 
 .pfh-legacy--band { background-color: var(--pfh-lg-tint); }

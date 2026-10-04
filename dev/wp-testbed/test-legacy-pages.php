@@ -92,6 +92,7 @@ ok( 'a dark band keeps white type and a white button', false !== strpos( $legacy
 ok( 'partner logos are shown whole', false !== strpos( $legacy_css, 'object-fit: contain' ) && false !== strpos( $legacy_css, 'background-size: contain' ) );
 ok( 'tables and dividers in the long texts are styled', false !== strpos( $legacy_css, '.pfh-legacy__text table' ) && false !== strpos( $legacy_css, '.pfh-legacy__text hr' ) );
 ok( 'paragraphs set as h5 read as body text', (bool) preg_match( '/\.pfh-legacy__text h5,[^{]*\{[^}]*font-weight: 400/', $legacy_css ) );
+ok( 'the thank-you page dresses FunnelKit\'s order and customer details', false !== strpos( $legacy_css, '.pfh-ty .wfty_title' ) && false !== strpos( $legacy_css, '.pfh-ty__check' ) );
 ok( 'braces balance', substr_count( $legacy_css, '{' ) === substr_count( $legacy_css, '}' ) );
 
 echo "\n── where it must not run ──\n";
