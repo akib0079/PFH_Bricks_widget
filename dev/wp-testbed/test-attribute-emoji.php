@@ -161,6 +161,84 @@ ok( '  and the one for "Citroen 2.0"', (bool) preg_match( '#data-pfh-pill="Citro
 ok( '  and none where there is no match', (bool) preg_match( '#data-pfh-pill="Onbekend" aria-pressed="(true|false)"><span class="pfh-pdp__pill-text"#', $page ) );
 ok( 'the value itself is untouched, so the variations still match', false !== strpos( $page, 'value="Citroen 2.0"' ) && 'Citroen 2.0' === wc_get_product( $vp_id )->get_attributes()['proefsmaak']->get_options()[1] );
 
+echo "\n── the quick-add popup ──\n";
+
+/**
+ * The popup's list of choices for a product, as the browser gets it.
+ *
+ * @param int $id Product.
+ * @return array
+ */
+function quickadd_choices( $id ) {
+	$_POST    = [ 'product_id' => $id, 'nonce' => wp_create_nonce( PFH_Widgets_Ajax::NONCE ) ];
+	$_REQUEST = $_POST;
+	$handler  = static function () {
+		return static function () { throw new RuntimeException( 'wp_die' ); };
+	};
+
+	add_filter( 'wp_doing_ajax', '__return_true' );
+	add_filter( 'wp_die_ajax_handler', $handler );
+	ob_start();
+
+	try {
+		PFH_Widgets_Quickadd::variations();
+	} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+		// wp_send_json ends in wp_die; the body is already buffered.
+	}
+
+	$body = (string) ob_get_clean();
+	remove_filter( 'wp_doing_ajax', '__return_true' );
+	remove_filter( 'wp_die_ajax_handler', $handler );
+
+	return (array) ( json_decode( $body, true )['data'] ?? [] );
+}
+
+// The shop's own case: values of a global attribute, stored as character
+// references on a table that cannot hold the emoji itself.
+add_filter( 'pfh_widgets_encode_attribute_emoji', '__return_true' );
+$qa_terms = [];
+foreach ( [ "\u{1F34A} Mandarijn", "\u{1F34E} Appel & Peer" ] as $n ) {
+	$made = wp_insert_term( $n, $gtax );
+	if ( ! is_wp_error( $made ) ) { $qa_terms[] = (int) $made['term_id']; }
+}
+remove_filter( 'pfh_widgets_encode_attribute_emoji', '__return_true' );
+$stored_name = get_term( $qa_terms[0], $gtax )->name;
+ok( 'the stand-in values are stored as the shop\'s are', 0 === strpos( $stored_name, '&#x1f34a;' ), $stored_name );
+
+$global = new WC_Product_Attribute();
+$global->set_id( $attr_id );
+$global->set_name( $gtax );
+$global->set_options( $qa_terms );
+$global->set_visible( true );
+$global->set_variation( true );
+$qp = new WC_Product_Variable();
+$qp->set_name( 'PFH quickadd emoji test & co' );
+$qp->set_status( 'publish' );
+$qp->set_attributes( [ $global ] );
+$qp_id = $qp->save();
+foreach ( $qa_terms as $tid ) {
+	$var = new WC_Product_Variation();
+	$var->set_parent_id( $qp_id );
+	$var->set_attributes( [ $gtax => get_term( $tid, $gtax )->slug ] );
+	$var->set_regular_price( '10' );
+	$var->save();
+}
+WC_Product_Variable::sync( $qp_id );
+wc_delete_product_transients( $qp_id );
+
+$qa     = quickadd_choices( $qp_id );
+$labels = wp_list_pluck( (array) ( $qa['attributes'][0]['options'] ?? [] ), 'label' );
+ok( 'its choices are the emoji and the words, as plain text', in_array( "\u{1F34A} Mandarijn", $labels, true ) && in_array( "\u{1F34E} Appel & Peer", $labels, true ), wp_json_encode( $labels ) );
+ok( '  no character reference and no &amp; left for the popup to escape again', false === strpos( implode( '|', $labels ), '&#' ) && false === strpos( implode( '|', $labels ), '&amp;' ) );
+ok( 'the values sent back are still the slugs the variations match on', in_array( get_term( $qa_terms[0], $gtax )->slug, wp_list_pluck( $qa['attributes'][0]['options'], 'value' ), true ) );
+ok( 'the product name is plain text too', 'PFH quickadd emoji test & co' === ( $qa['name'] ?? '' ), (string) ( $qa['name'] ?? '' ) );
+
+$qb     = quickadd_choices( $vp_id );
+$labels = wp_list_pluck( (array) ( $qb['attributes'][0]['options'] ?? [] ), 'label' );
+ok( 'a custom attribute borrows the emoji there as on the product page', [ "\u{1F34E} Appel / granaatappel", "\u{1F34B} Citroen 2.0", 'Onbekend' ] === $labels, wp_json_encode( $labels ) );
+
+foreach ( wc_get_product( $qp_id )->get_children() as $child ) { wp_delete_post( $child, true ); }
+wp_delete_post( $qp_id, true );
 foreach ( wc_get_product( $vp_id )->get_children() as $child ) { wp_delete_post( $child, true ); }
 wp_delete_post( $vp_id, true );
 foreach ( (array) get_terms( [ 'taxonomy' => $gtax, 'hide_empty' => false ] ) as $x ) { wp_delete_term( $x->term_id, $gtax ); }

@@ -175,13 +175,13 @@ class PFH_Widgets_Quickadd {
 			foreach ( (array) $options as $option ) {
 				$choices[] = [
 					'value' => $option,
-					'label' => self::term_label( $name, $option ),
+					'label' => self::option_label( $name, $option ),
 				];
 			}
 
 			$attributes[] = [
 				'name'    => 'attribute_' . sanitize_title( $name ),
-				'label'   => wc_attribute_label( $name, $product ),
+				'label'   => self::plain( wc_attribute_label( $name, $product ) ),
 				'options' => $choices,
 			];
 		}
@@ -203,7 +203,7 @@ class PFH_Widgets_Quickadd {
 		wp_send_json_success(
 			[
 				'id'         => $product->get_id(),
-				'name'       => $product->get_name(),
+				'name'       => self::plain( $product->get_name() ),
 				'price'      => $product->get_price_html(),
 				'image'      => wp_get_attachment_image_url( $product->get_image_id(), 'woocommerce_thumbnail' ),
 				'permalink'  => $product->get_permalink(),
@@ -233,6 +233,46 @@ class PFH_Widgets_Quickadd {
 		} catch ( Exception $e ) {
 			return 0;
 		}
+	}
+
+	/**
+	 * A value as the product page shows it: its emoji, then its words — as
+	 * plain text, because the popup escapes what it is given.
+	 *
+	 * Term names are stored HTML-escaped ("Appel &amp; Granaatappel"), and an
+	 * emoji as a character reference where the table cannot hold it
+	 * ("&#x1f34a; Mandarijn"). Escaped once more by the popup, both showed
+	 * as code. A custom attribute borrows the emoji its global namesake has,
+	 * as on the product page.
+	 *
+	 * @param string $attribute Attribute name.
+	 * @param string $value     Stored value.
+	 * @return string
+	 */
+	private static function option_label( $attribute, $value ) {
+		$label = self::term_label( $attribute, $value );
+
+		if ( ! class_exists( 'PFH_Widgets_Attribute_Emoji' ) ) {
+			return self::plain( $label );
+		}
+
+		list( $emoji, $words ) = PFH_Widgets_Attribute_Emoji::split( $label );
+
+		if ( '' === $emoji ) {
+			$emoji = PFH_Widgets_Attribute_Emoji::borrowed( $attribute, $words );
+		}
+
+		return trim( $emoji . ' ' . $words );
+	}
+
+	/**
+	 * Stored text as the characters it stands for.
+	 *
+	 * @param string $text Text.
+	 * @return string
+	 */
+	private static function plain( $text ) {
+		return html_entity_decode( (string) $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 	}
 
 	/**
