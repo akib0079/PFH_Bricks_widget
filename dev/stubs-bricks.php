@@ -10,6 +10,33 @@ class Element {
 	public $category = '';
 	public $name = '';
 
+	// The rest of Bricks' own public properties: an element that declares
+	// one of these private dies on load (Bricks 2.4.2 added $uid).
+	public $block = null;
+	public $label;
+	public $keywords;
+	public $icon;
+	public $control_options;
+	public $css_selector;
+	public $scripts = [];
+	public $post_id = 0;
+	public $draggable = true;
+	public $deprecated = false;
+	public $panel_condition = [];
+	public $id;
+	public $uid;
+	public $tag = 'div';
+	public $theme_styles = [];
+	public $is_frontend = false;
+	public $custom_attributes = true;
+	public $nestable = false;
+	public $nestable_item;
+	public $nestable_children;
+	public $nestable_hide = false;
+	public $nestable_html = '';
+	public $vue_component;
+	public $original_query = '';
+
 	public function __construct( $element = [] ) {
 		$this->element  = $element;
 		$this->settings = isset( $element['settings'] ) ? $element['settings'] : [];

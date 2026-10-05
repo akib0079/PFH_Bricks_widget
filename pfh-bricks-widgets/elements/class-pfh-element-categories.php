@@ -25,7 +25,7 @@ class PFH_Element_Categories extends \Bricks\Element {
 	 *
 	 * @var mixed
 	 */
-	private $slides = null;
+	private $pfh_slides = null;
 
 	/**
 	 * Cached element uid.
@@ -36,7 +36,7 @@ class PFH_Element_Categories extends \Bricks\Element {
 	 *
 	 * @var mixed
 	 */
-	private $uid = null;
+	private $pfh_uid = null;
 
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-categories';
@@ -893,12 +893,12 @@ class PFH_Element_Categories extends \Bricks\Element {
 		return $this->switched_on( $key, $default );
 	}
 
-	private function uid() {
-		if ( null === $this->uid ) {
-			$this->uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfhc' );
+	private function pfh_uid() {
+		if ( null === $this->pfh_uid ) {
+			$this->pfh_uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfhc' );
 		}
 
-		return $this->uid;
+		return $this->pfh_uid;
 	}
 
 	/**
@@ -907,11 +907,11 @@ class PFH_Element_Categories extends \Bricks\Element {
 	 * @return array<int, array>
 	 */
 	private function slides() {
-		if ( null !== $this->slides ) {
-			return $this->slides;
+		if ( null !== $this->pfh_slides ) {
+			return $this->pfh_slides;
 		}
 
-		$this->slides = [];
+		$this->pfh_slides = [];
 
 		foreach ( (array) $this->get( 'slides', [] ) as $slide ) {
 			if ( ! is_array( $slide ) ) {
@@ -919,11 +919,11 @@ class PFH_Element_Categories extends \Bricks\Element {
 			}
 
 			if ( ! empty( $slide['eyebrow'] ) || ! empty( $slide['title'] ) || ! empty( $slide['image'] ) ) {
-				$this->slides[] = $slide;
+				$this->pfh_slides[] = $slide;
 			}
 		}
 
-		return $this->slides;
+		return $this->pfh_slides;
 	}
 
 	/* ---------------------------------------------------------------------
@@ -977,7 +977,7 @@ class PFH_Element_Categories extends \Bricks\Element {
 
 		$this->set_attribute( '_root', 'class', $classes );
 		$this->set_attribute( '_root', 'style', $this->build_vars() );
-		$this->set_attribute( '_root', 'data-pfh-cats', $this->uid() );
+		$this->set_attribute( '_root', 'data-pfh-cats', $this->pfh_uid() );
 		$this->set_attribute( '_root', 'data-pfh-drag-slider', '' );
 		$this->set_attribute( '_root', 'data-pfh-config', wp_json_encode( $this->js_config() ) );
 
@@ -1102,7 +1102,7 @@ class PFH_Element_Categories extends \Bricks\Element {
 					data-pfh-bar-thumb
 					role="scrollbar"
 					tabindex="0"
-					aria-controls="pfh-viewport-<?php echo esc_attr( $this->uid() ); ?>"
+					aria-controls="pfh-viewport-<?php echo esc_attr( $this->pfh_uid() ); ?>"
 					aria-orientation="horizontal"
 					aria-label="<?php esc_attr_e( 'Schuif door de categorieën', 'pfh-widgets' ); ?>"
 					aria-valuemin="0"
@@ -1190,7 +1190,7 @@ class PFH_Element_Categories extends \Bricks\Element {
 
 	private function js_config() {
 		return [
-			'uid'   => $this->uid(),
+			'uid'   => $this->pfh_uid(),
 			'drag'  => $this->is_on( 'dragEnable' ),
 			'wheel' => $this->is_on( 'wheel', false ),
 			'bar'   => $this->is_on( 'barEnable' ),

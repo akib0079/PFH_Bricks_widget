@@ -41,7 +41,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 	 *
 	 * @var string|null
 	 */
-	private $uid = null;
+	private $pfh_uid = null;
 
 	/**
 	 * The shared card controls' defaults, as they are before card_defaults()
@@ -50,7 +50,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 	 *
 	 * @var array<string, mixed>
 	 */
-	private $shared_defaults = [];
+	private $pfh_shared_defaults = [];
 
 	/**
 	 * The card settings the design owns. Anything not listed — how many
@@ -81,7 +81,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 	 *
 	 * @var string
 	 */
-	private $base = '';
+	private $pfh_base = '';
 
 	/**
 	 * The category this archive belongs to, when it was handed over rather
@@ -89,7 +89,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 	 *
 	 * @var string|null
 	 */
-	private $context_cat = null;
+	private $pfh_context_cat = null;
 
 	/**
 	 * The category whose subcategories the pills are showing, if they are
@@ -98,7 +98,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 	 *
 	 * @var WP_Term|null
 	 */
-	private $pill_parent = null;
+	private $pfh_pill_parent = null;
 
 	public function get_label() {
 		return esc_html__( 'PFH Shop Archive', 'pfh-widgets' );
@@ -146,7 +146,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 		// them; migrate_card() needs both to tell inherited from chosen.
 		foreach ( self::CARD_KEYS as $key ) {
 			if ( isset( $this->controls[ $key ] ) && array_key_exists( 'default', $this->controls[ $key ] ) ) {
-				$this->shared_defaults[ $key ] = $this->controls[ $key ]['default'];
+				$this->pfh_shared_defaults[ $key ] = $this->controls[ $key ]['default'];
 			}
 		}
 
@@ -230,7 +230,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 		}
 
 		foreach ( self::CARD_KEYS as $key ) {
-			if ( ! array_key_exists( $key, $this->shared_defaults ) ) {
+			if ( ! array_key_exists( $key, $this->pfh_shared_defaults ) ) {
 				continue;
 			}
 
@@ -240,7 +240,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 
 			// Only a setting still holding the shared control's default is
 			// one the editor never chose. Anything else is theirs.
-			if ( $this->settings[ $key ] === $this->shared_defaults[ $key ] ) {
+			if ( $this->settings[ $key ] === $this->pfh_shared_defaults[ $key ] ) {
 				unset( $this->settings[ $key ] );
 			}
 		}
@@ -862,8 +862,8 @@ class PFH_Element_Archive extends \Bricks\Element {
 	 * @return string
 	 */
 	private function base_category() {
-		if ( null !== $this->context_cat ) {
-			return $this->context_cat;
+		if ( null !== $this->pfh_context_cat ) {
+			return $this->pfh_context_cat;
 		}
 
 		if ( is_tax( 'product_cat' ) ) {
@@ -937,7 +937,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 			);
 
 			if ( ! is_wp_error( $terms ) && $terms ) {
-				$this->pill_parent = $parent > 0 ? get_term( $parent, 'product_cat' ) : null;
+				$this->pfh_pill_parent = $parent > 0 ? get_term( $parent, 'product_cat' ) : null;
 
 				return $terms;
 			}
@@ -966,13 +966,13 @@ class PFH_Element_Archive extends \Bricks\Element {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public, read-only filter state.
 		$state = PFH_Widgets_Archive::state( wp_unslash( $_GET ), $config );
 
-		$this->base = self::current_base();
+		$this->pfh_base = self::current_base();
 
 		set_transient(
-			self::CONFIG . $this->uid(),
+			self::CONFIG . $this->pfh_uid(),
 			[
 				'settings' => $this->settings,
-				'base'     => $this->base,
+				'base'     => $this->pfh_base,
 			],
 			DAY_IN_SECONDS
 		);
@@ -1003,8 +1003,8 @@ class PFH_Element_Archive extends \Bricks\Element {
 
 		$this->set_attribute( '_root', 'class', $classes );
 		$this->set_attribute( '_root', 'style', $this->build_vars() );
-		$this->set_attribute( '_root', 'data-pfh-archive', $this->uid() );
-		$this->set_attribute( '_root', 'data-pfh-arch-ctx', self::sign( [ 'cat' => $this->base_category(), 'base' => $this->base ] ) );
+		$this->set_attribute( '_root', 'data-pfh-archive', $this->pfh_uid() );
+		$this->set_attribute( '_root', 'data-pfh-arch-ctx', self::sign( [ 'cat' => $this->base_category(), 'base' => $this->pfh_base ] ) );
 
 		echo '<section ' . $this->render_attributes( '_root' ) . '>';
 		echo '<div class="pfh-arch__inner">';
@@ -1116,7 +1116,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 			 * whole shop, which is not where anyone browsing honey meant to
 			 * go (feedback, 2026-09-28).
 			 */
-			$parent    = $this->pill_parent instanceof WP_Term ? $this->pill_parent : null;
+			$parent    = $this->pfh_pill_parent instanceof WP_Term ? $this->pfh_pill_parent : null;
 			$all_link  = $parent ? get_term_link( $parent ) : '';
 			$all_slug  = $parent ? $parent->slug : '';
 			$all_href  = ( $all_link && ! is_wp_error( $all_link ) ) ? $all_link : $this->shop_url();
@@ -1198,7 +1198,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 
 		printf(
 			'<button type="button" class="pfh-arch__filter-btn" data-pfh-arch-open aria-expanded="false" aria-controls="pfh-panel-%1$s">%2$s<span>%3$s</span>%4$s</button>',
-			esc_attr( $this->uid() ),
+			esc_attr( $this->pfh_uid() ),
 			PFH_Widgets_Icons::get( 'filter', 'pfh-arch__filter-icon' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
 			esc_html( (string) $this->get( 'filterLabel', 'Filter' ) ),
 			$active
@@ -1328,7 +1328,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 
 		printf(
 			'<div class="pfh-arch__scrim" data-pfh-arch-scrim hidden></div><aside class="pfh-arch__panel" id="pfh-panel-%s" data-pfh-arch-panel aria-label="%s" hidden>',
-			esc_attr( $this->uid() ),
+			esc_attr( $this->pfh_uid() ),
 			esc_attr( (string) $this->get( 'panelTitle', 'Filter' ) )
 		);
 
@@ -1548,7 +1548,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$element           = new self( [ 'id' => $id ] );
 		$element->name     = 'pfh-archive';
 		$element->settings = $settings;
-		$element->base     = isset( $stored['base'] ) ? (string) $stored['base'] : '';
+		$element->pfh_base = isset( $stored['base'] ) ? (string) $stored['base'] : '';
 
 		/*
 		 * Which category, and which page to build links on, come from the
@@ -1566,8 +1566,8 @@ class PFH_Element_Archive extends \Bricks\Element {
 		$context = isset( $raw['pfh_ctx'] ) ? self::unsign( (string) $raw['pfh_ctx'] ) : null;
 
 		if ( $context ) {
-			$element->context_cat = $context['cat'];
-			$element->base        = $context['base'];
+			$element->pfh_context_cat = $context['cat'];
+			$element->pfh_base        = $context['base'];
 		}
 
 		$element->element = [
@@ -1702,7 +1702,7 @@ class PFH_Element_Archive extends \Bricks\Element {
 			$current[ $key ] = $value;
 		}
 
-		$base = '' !== $this->base ? $this->base : self::current_base();
+		$base = '' !== $this->pfh_base ? $this->pfh_base : self::current_base();
 
 		return $current ? add_query_arg( $current, $base ) : $base;
 	}
@@ -1868,11 +1868,11 @@ class PFH_Element_Archive extends \Bricks\Element {
 		return ! empty( $this->settings[ $key ] );
 	}
 
-	private function uid() {
-		if ( null === $this->uid ) {
-			$this->uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfha' );
+	private function pfh_uid() {
+		if ( null === $this->pfh_uid ) {
+			$this->pfh_uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfha' );
 		}
 
-		return $this->uid;
+		return $this->pfh_uid;
 	}
 }

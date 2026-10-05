@@ -23,7 +23,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 	 *
 	 * @var mixed
 	 */
-	private $slides = null;
+	private $pfh_slides = null;
 
 	/**
 	 * Cached element uid.
@@ -34,7 +34,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 	 *
 	 * @var mixed
 	 */
-	private $uid = null;
+	private $pfh_uid = null;
 
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-hero';
@@ -1713,12 +1713,12 @@ class PFH_Element_Hero extends \Bricks\Element {
 		return $this->switched_on( $key, $default );
 	}
 
-	private function uid() {
-		if ( null === $this->uid ) {
-			$this->uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfhh' );
+	private function pfh_uid() {
+		if ( null === $this->pfh_uid ) {
+			$this->pfh_uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfhh' );
 		}
 
-		return $this->uid;
+		return $this->pfh_uid;
 	}
 
 	/**
@@ -1734,9 +1734,9 @@ class PFH_Element_Hero extends \Bricks\Element {
 		];
 
 		if ( 'black' === $mode ) {
-			$out['filter'] = 'url(#pfh-cut-black-' . $this->uid() . ')';
+			$out['filter'] = 'url(#pfh-cut-black-' . $this->pfh_uid() . ')';
 		} elseif ( 'white' === $mode ) {
-			$out['filter'] = 'url(#pfh-cut-white-' . $this->uid() . ')';
+			$out['filter'] = 'url(#pfh-cut-white-' . $this->pfh_uid() . ')';
 		} elseif ( 'screen' === $mode ) {
 			$out['blend'] = 'screen';
 		}
@@ -1826,7 +1826,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 
 		$this->set_attribute( '_root', 'class', $classes );
 		$this->set_attribute( '_root', 'style', $this->build_vars() );
-		$this->set_attribute( '_root', 'data-pfh-hero', $this->uid() );
+		$this->set_attribute( '_root', 'data-pfh-hero', $this->pfh_uid() );
 		$this->set_attribute( '_root', 'data-pfh-config', wp_json_encode( $this->js_config( count( $slides ) ) ) );
 		$this->set_attribute( '_root', 'role', 'region' );
 		$this->set_attribute( '_root', 'aria-roledescription', esc_attr__( 'carrousel', 'pfh-widgets' ) );
@@ -1865,7 +1865,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 	 */
 	private function render_filters() {
 		$strength = max( 2, (float) $this->get( 'cutoutStrength', 20 ) );
-		$uid      = $this->uid();
+		$uid      = $this->pfh_uid();
 		$s        = (string) round( $strength, 2 );
 		?>
 		<svg class="pfh-hero__filters" width="0" height="0" aria-hidden="true" focusable="false">
@@ -2405,11 +2405,11 @@ class PFH_Element_Hero extends \Bricks\Element {
 	 * @return array<int, array>
 	 */
 	private function slides() {
-		if ( null !== $this->slides ) {
-			return $this->slides;
+		if ( null !== $this->pfh_slides ) {
+			return $this->pfh_slides;
 		}
 
-		$this->slides = [];
+		$this->pfh_slides = [];
 
 		foreach ( (array) $this->get( 'slides', [] ) as $slide ) {
 			if ( ! is_array( $slide ) ) {
@@ -2420,11 +2420,11 @@ class PFH_Element_Hero extends \Bricks\Element {
 			$has_media = ! empty( $slide['image'] ) || ! empty( $slide['float1Image'] ) || ! empty( $slide['float2Image'] );
 
 			if ( $has_copy || $has_media ) {
-				$this->slides[] = $slide;
+				$this->pfh_slides[] = $slide;
 			}
 		}
 
-		return $this->slides;
+		return $this->pfh_slides;
 	}
 
 	/**
@@ -2566,7 +2566,7 @@ class PFH_Element_Hero extends \Bricks\Element {
 	 */
 	private function js_config( $total ) {
 		return [
-			'uid'          => $this->uid(),
+			'uid'          => $this->pfh_uid(),
 			'total'        => $total,
 			'autoplay'     => $this->is_on( 'autoplay' ) && $total > 1,
 			'interval'     => max( 2, (float) $this->get( 'interval', 6 ) ) * 1000,

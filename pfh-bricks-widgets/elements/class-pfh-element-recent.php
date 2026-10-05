@@ -114,7 +114,7 @@ class PFH_Element_Recent extends PFH_Element_Products {
 	 *
 	 * @var int
 	 */
-	private $exclude = 0;
+	private $pfh_exclude = 0;
 
 	public function render() {
 		// Whatever is stored, this element has one source.
@@ -122,8 +122,8 @@ class PFH_Element_Recent extends PFH_Element_Products {
 
 		// On a product page, "recently viewed" should not open with the page
 		// the shopper is already on.
-		if ( ! $this->exclude && is_singular( 'product' ) ) {
-			$this->exclude = (int) get_queried_object_id();
+		if ( ! $this->pfh_exclude && is_singular( 'product' ) ) {
+			$this->pfh_exclude = (int) get_queried_object_id();
 		}
 
 		// Read directly: the parent's is_on() is private to it, and widening
@@ -143,14 +143,14 @@ class PFH_Element_Recent extends PFH_Element_Products {
 		 * which is also the right resting state — a visitor with no history
 		 * never sees anything appear.
 		 */
-		$uid = $this->uid();
+		$uid = $this->pfh_uid();
 
 		set_transient( self::CONFIG . $uid, $this->settings, DAY_IN_SECONDS );
 
 		printf(
 			'<div class="pfh-recent" data-pfh-recent="%s" data-pfh-recent-exclude="%d" hidden></div>',
 			esc_attr( $uid ),
-			(int) $this->exclude
+			(int) $this->pfh_exclude
 		);
 	}
 
@@ -200,7 +200,7 @@ class PFH_Element_Recent extends PFH_Element_Products {
 		$fresh->element  = [ 'id' => $id, 'name' => $this->name, 'settings' => $settings ];
 		$fresh->controls = $this->controls;
 
-		$exclude = (int) $this->exclude;
+		$exclude = (int) $this->pfh_exclude;
 		$skip    = static function ( $args ) use ( $exclude ) {
 			if ( ! $exclude ) {
 				return $args;
@@ -250,7 +250,7 @@ class PFH_Element_Recent extends PFH_Element_Products {
 	 *
 	 * @return string
 	 */
-	private function uid() {
+	private function pfh_uid() {
 		$id = isset( $this->id ) ? (string) $this->id : '';
 
 		return $id ? sanitize_key( $id ) : substr( md5( wp_json_encode( $this->settings ) ), 0, 12 );
@@ -294,7 +294,7 @@ class PFH_Element_Recent extends PFH_Element_Products {
 		// The product page the request came from, so it is not listed on itself.
 		$exclude = isset( $_POST['exclude'] ) ? absint( wp_unslash( $_POST['exclude'] ) ) : 0;
 
-		$element->exclude = $exclude && 'product' === get_post_type( $exclude ) ? $exclude : 0;
+		$element->pfh_exclude = $exclude && 'product' === get_post_type( $exclude ) ? $exclude : 0;
 
 		// deferred is off in the settings above, so this renders the slider.
 		ob_start();

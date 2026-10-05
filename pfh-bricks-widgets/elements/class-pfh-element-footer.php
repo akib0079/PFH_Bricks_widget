@@ -23,7 +23,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 	 *
 	 * @var mixed
 	 */
-	private $uid = null;
+	private $pfh_uid = null;
 
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-footer';
@@ -859,12 +859,12 @@ class PFH_Element_Footer extends \Bricks\Element {
 		return $this->switched_on( $key, $default );
 	}
 
-	private function uid() {
-		if ( null === $this->uid ) {
-			$this->uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfhf' );
+	private function pfh_uid() {
+		if ( null === $this->pfh_uid ) {
+			$this->pfh_uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfhf' );
 		}
 
-		return $this->uid;
+		return $this->pfh_uid;
 	}
 
 	/* ---------------------------------------------------------------------
@@ -1100,7 +1100,7 @@ class PFH_Element_Footer extends \Bricks\Element {
 		$field  = (string) $this->get( 'newsletterField', 'E-MAIL' );
 		$field  = preg_replace( '/[^A-Za-z0-9_\-\[\]]/', '', $field );
 		$field  = $field ? $field : 'E-MAIL';
-		$id     = 'pfh-news-' . $this->uid();
+		$id     = 'pfh-news-' . $this->pfh_uid();
 
 		// Only open a new tab when the form actually posts somewhere else.
 		$target = $action ? ' target="_blank"' : '';

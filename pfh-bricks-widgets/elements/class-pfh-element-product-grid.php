@@ -24,7 +24,7 @@ class PFH_Element_Product_Grid extends \Bricks\Element {
 	 *
 	 * @var mixed
 	 */
-	private $uid = null;
+	private $pfh_uid = null;
 
 	use PFH_Product_Card_Trait;
 
@@ -494,12 +494,12 @@ class PFH_Element_Product_Grid extends \Bricks\Element {
 		return $this->switched_on( $key, $default );
 	}
 
-	private function uid() {
-		if ( null === $this->uid ) {
-			$this->uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfhg' );
+	private function pfh_uid() {
+		if ( null === $this->pfh_uid ) {
+			$this->pfh_uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfhg' );
 		}
 
-		return $this->uid;
+		return $this->pfh_uid;
 	}
 
 	/* ---------------------------------------------------------------------

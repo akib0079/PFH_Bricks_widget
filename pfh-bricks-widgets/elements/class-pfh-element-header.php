@@ -23,7 +23,7 @@ class PFH_Element_Header extends \Bricks\Element {
 	 *
 	 * @var mixed
 	 */
-	private $items = null;
+	private $pfh_items = null;
 
 	/**
 	 * Cached element uid.
@@ -34,7 +34,7 @@ class PFH_Element_Header extends \Bricks\Element {
 	 *
 	 * @var mixed
 	 */
-	private $uid = null;
+	private $pfh_uid = null;
 
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-header';
@@ -1298,12 +1298,12 @@ class PFH_Element_Header extends \Bricks\Element {
 	 *
 	 * @return string
 	 */
-	private function uid() {
-		if ( null === $this->uid ) {
-			$this->uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfh' );
+	private function pfh_uid() {
+		if ( null === $this->pfh_uid ) {
+			$this->pfh_uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfh' );
 		}
 
-		return $this->uid;
+		return $this->pfh_uid;
 	}
 
 	/* ---------------------------------------------------------------------
@@ -1344,7 +1344,7 @@ class PFH_Element_Header extends \Bricks\Element {
 
 		$this->set_attribute( '_root', 'class', $classes );
 		$this->set_attribute( '_root', 'style', $vars );
-		$this->set_attribute( '_root', 'data-pfh-header', $this->uid() );
+		$this->set_attribute( '_root', 'data-pfh-header', $this->pfh_uid() );
 		$this->set_attribute( '_root', 'data-pfh-config', wp_json_encode( $this->js_config() ) );
 
 		echo '<header ' . $this->render_attributes( '_root' ) . '>';
@@ -1473,7 +1473,7 @@ class PFH_Element_Header extends \Bricks\Element {
 	 */
 	private function js_config() {
 		return [
-			'uid'            => $this->uid(),
+			'uid'            => $this->pfh_uid(),
 			'megaTrigger'    => (string) $this->get( 'megaTrigger', 'hover' ),
 			'megaDelay'      => (int) $this->get( 'megaDelay', 90 ),
 			'megaOverlay'    => $this->is_on( 'megaOverlay' ),
@@ -1571,7 +1571,7 @@ class PFH_Element_Header extends \Bricks\Element {
 	}
 
 	private function render_burger() {
-		echo '<button type="button" class="pfh-burger" data-pfh-open="mobile" aria-expanded="false" aria-controls="pfh-mobile-' . esc_attr( $this->uid() ) . '" aria-label="' . esc_attr__( 'Menu openen', 'pfh-widgets' ) . '">';
+		echo '<button type="button" class="pfh-burger" data-pfh-open="mobile" aria-expanded="false" aria-controls="pfh-mobile-' . esc_attr( $this->pfh_uid() ) . '" aria-label="' . esc_attr__( 'Menu openen', 'pfh-widgets' ) . '">';
 		echo PFH_Widgets_Icons::get( 'burger' );
 		echo '</button>';
 	}
@@ -1634,7 +1634,7 @@ class PFH_Element_Header extends \Bricks\Element {
 				$li_class[] = 'is-current';
 			}
 
-			$panel_id = 'pfh-mega-' . $this->uid() . '-' . $index;
+			$panel_id = 'pfh-mega-' . $this->pfh_uid() . '-' . $index;
 
 			echo '<li class="' . esc_attr( implode( ' ', $li_class ) ) . '"' . ( $has_mega ? ' data-pfh-mega-item' : '' ) . '>';
 
@@ -1719,7 +1719,7 @@ class PFH_Element_Header extends \Bricks\Element {
 		echo '<div class="pfh-actions">';
 
 		if ( $this->is_on( 'showSearch' ) ) {
-			echo '<button type="button" class="pfh-actions__btn pfh-actions__btn--search" data-pfh-open="search" aria-expanded="false" aria-controls="pfh-search-' . esc_attr( $this->uid() ) . '" aria-label="' . esc_attr__( 'Zoeken', 'pfh-widgets' ) . '">';
+			echo '<button type="button" class="pfh-actions__btn pfh-actions__btn--search" data-pfh-open="search" aria-expanded="false" aria-controls="pfh-search-' . esc_attr( $this->pfh_uid() ) . '" aria-label="' . esc_attr__( 'Zoeken', 'pfh-widgets' ) . '">';
 			$this->render_action_icon( 'searchIcon', 'search' );
 			echo '</button>';
 		}
@@ -1747,7 +1747,7 @@ class PFH_Element_Header extends \Bricks\Element {
 				echo $badge; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above with esc_html().
 				echo '</a>';
 			} else {
-				echo '<button type="button" class="pfh-actions__btn pfh-actions__btn--cart" data-pfh-open="cart" aria-expanded="false" aria-controls="pfh-cart-' . esc_attr( $this->uid() ) . '" aria-label="' . esc_attr__( 'Winkelwagen', 'pfh-widgets' ) . '">';
+				echo '<button type="button" class="pfh-actions__btn pfh-actions__btn--cart" data-pfh-open="cart" aria-expanded="false" aria-controls="pfh-cart-' . esc_attr( $this->pfh_uid() ) . '" aria-label="' . esc_attr__( 'Winkelwagen', 'pfh-widgets' ) . '">';
 				$this->render_action_icon( 'cartIcon', 'cart' );
 				echo $badge; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above with esc_html().
 				echo '</button>';
@@ -1811,7 +1811,7 @@ class PFH_Element_Header extends \Bricks\Element {
 	 * @param string $vars Inline CSS variables (repeated so styles survive the move to <body>).
 	 */
 	private function render_portal( $vars ) {
-		echo '<div class="pfh-portal pfh-scope" data-pfh-portal="' . esc_attr( $this->uid() ) . '" style="' . esc_attr( $vars ) . '">';
+		echo '<div class="pfh-portal pfh-scope" data-pfh-portal="' . esc_attr( $this->pfh_uid() ) . '" style="' . esc_attr( $vars ) . '">';
 
 		echo '<div class="pfh-scrim" data-pfh-scrim hidden></div>';
 
@@ -1828,7 +1828,7 @@ class PFH_Element_Header extends \Bricks\Element {
 		}
 
 		$post_type = (string) $this->get( 'searchPostType', 'product' );
-		$id        = 'pfh-search-' . $this->uid();
+		$id        = 'pfh-search-' . $this->pfh_uid();
 		?>
 		<div class="pfh-search" id="<?php echo esc_attr( $id ); ?>" data-pfh-panel="search" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Zoeken', 'pfh-widgets' ); ?>" hidden>
 			<div class="pfh-search__backdrop" data-pfh-close></div>
@@ -1872,7 +1872,7 @@ class PFH_Element_Header extends \Bricks\Element {
 		}
 
 		$labels = $this->cart_labels();
-		$id     = 'pfh-cart-' . $this->uid();
+		$id     = 'pfh-cart-' . $this->pfh_uid();
 		?>
 		<div class="pfh-drawer pfh-drawer--right" id="<?php echo esc_attr( $id ); ?>" data-pfh-panel="cart" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $this->get( 'cartTitle', 'Winkelwagen' ) ); ?>" hidden>
 			<div class="pfh-drawer__backdrop" data-pfh-close></div>
@@ -1901,7 +1901,7 @@ class PFH_Element_Header extends \Bricks\Element {
 
 	private function render_mobile_drawer() {
 		$items = $this->nav_items();
-		$id    = 'pfh-mobile-' . $this->uid();
+		$id    = 'pfh-mobile-' . $this->pfh_uid();
 		?>
 		<div class="pfh-drawer pfh-drawer--left pfh-mobile" id="<?php echo esc_attr( $id ); ?>" data-pfh-panel="mobile" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $this->get( 'mobileTitle', 'Menu' ) ); ?>" hidden>
 			<div class="pfh-drawer__backdrop" data-pfh-close></div>
@@ -1994,11 +1994,11 @@ class PFH_Element_Header extends \Bricks\Element {
 	 * @return array<int, array>
 	 */
 	private function nav_items() {
-		if ( null !== $this->items ) {
-			return $this->items;
+		if ( null !== $this->pfh_items ) {
+			return $this->pfh_items;
 		}
 
-		$this->items   = [];
+		$this->pfh_items   = [];
 		$raw     = (array) $this->get( 'navItems', [] );
 		$current = $this->is_on( 'navHighlightCurrent' ) ? untrailingslashit( $this->current_url() ) : '';
 
@@ -2013,10 +2013,10 @@ class PFH_Element_Header extends \Bricks\Element {
 			$row['link']      = $link;
 			$row['isCurrent'] = $current && '#' !== $link['href'] && untrailingslashit( $link['href'] ) === $current;
 
-			$this->items[] = $row;
+			$this->pfh_items[] = $row;
 		}
 
-		return $this->items;
+		return $this->pfh_items;
 	}
 
 	/**

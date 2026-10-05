@@ -116,14 +116,14 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 *
 	 * @var array|null
 	 */
-	private $own = null;
+	private $pfh_own = null;
 
 	/**
 	 * What the category's chosen product offers: price, saving, link, picture.
 	 *
 	 * @var array|null
 	 */
-	private $offer = null;
+	private $pfh_offer = null;
 
 	/**
 	 * True when the product was picked from the category being viewed,
@@ -131,14 +131,14 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 *
 	 * @var bool
 	 */
-	private $auto = false;
+	private $pfh_auto = false;
 
 	/**
 	 * The picture being drawn, worked out once per render.
 	 *
 	 * @var array{url:string, alt:string, id:int}|null
 	 */
-	private $picture = null;
+	private $pfh_picture = null;
 
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-highlight';
@@ -543,9 +543,9 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			return;
 		}
 
-		$this->own   = null;
-		$this->offer = null;
-		$this->auto  = false;
+		$this->pfh_own   = null;
+		$this->pfh_offer = null;
+		$this->pfh_auto  = false;
 
 		if ( $this->flag( 'fromCategory' ) && class_exists( 'PFH_Widgets_Collection' ) ) {
 			$own = PFH_Widgets_Collection::section( 'bundle' );
@@ -554,8 +554,8 @@ class PFH_Element_Highlight extends \Bricks\Element {
 				return;
 			}
 
-			$this->own   = $own;
-			$this->offer = $own ? PFH_Widgets_Collection::offer( (int) $own['product'], (string) $own['saving'] ) : null;
+			$this->pfh_own   = $own;
+			$this->pfh_offer = $own ? PFH_Widgets_Collection::offer( (int) $own['product'], (string) $own['saving'] ) : null;
 
 			/*
 			 * The typed copy sells Gia Giamas tasting packs; on the candles
@@ -563,22 +563,22 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			 * (feedback, 2026-09-28). A category that chose nothing shows
 			 * its own best seller instead, or no banner at all.
 			 */
-			if ( ! $this->offer && ! $this->typed_copy_fits() ) {
+			if ( ! $this->pfh_offer && ! $this->typed_copy_fits() ) {
 				$pick = PFH_Widgets_Collection::best_seller( PFH_Widgets_Collection::term() );
 
-				$this->offer = $pick ? PFH_Widgets_Collection::offer( $pick, $own && '' !== (string) $own['saving'] ? (string) $own['saving'] : PFH_Widgets_Collection::SAVING ) : null;
+				$this->pfh_offer = $pick ? PFH_Widgets_Collection::offer( $pick, $own && '' !== (string) $own['saving'] ? (string) $own['saving'] : PFH_Widgets_Collection::SAVING ) : null;
 
-				if ( ! $this->offer ) {
+				if ( ! $this->pfh_offer ) {
 					return;
 				}
 
-				$this->auto = true;
+				$this->pfh_auto = true;
 			}
 		}
 
-		$this->picture = $this->image();
+		$this->pfh_picture = $this->image();
 
-		$fit = $this->fit( $this->picture );
+		$fit = $this->fit( $this->pfh_picture );
 
 		$classes = [
 			'pfh-hl',
@@ -593,7 +593,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		 * label came out banner-green (feedback, 2026-09-28). A cut-out has no
 		 * white box to remove, so it is drawn as it is.
 		 */
-		if ( 'contain' === $fit && $this->flag( 'imageMultiply' ) && ! $this->is_cutout( $this->picture ) ) {
+		if ( 'contain' === $fit && $this->flag( 'imageMultiply' ) && ! $this->is_cutout( $this->pfh_picture ) ) {
 			$classes[] = 'pfh-hl--multiply';
 		}
 
@@ -792,7 +792,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	}
 
 	private function render_media() {
-		$image = $this->picture ? $this->picture : $this->image();
+		$image = $this->pfh_picture ? $this->pfh_picture : $this->image();
 
 		printf(
 			'<div class="pfh-hl__media"><img class="pfh-hl__img" src="%s" alt="%s" loading="lazy" decoding="async" /></div>',
@@ -822,22 +822,22 @@ class PFH_Element_Highlight extends \Bricks\Element {
 		 */
 		$from_offer = [ 'price' => 'now', 'priceWas' => 'was', 'saving' => 'saving' ];
 
-		if ( $this->offer && isset( $from_offer[ $key ] ) ) {
-			return (string) $this->offer[ $from_offer[ $key ] ];
+		if ( $this->pfh_offer && isset( $from_offer[ $key ] ) ) {
+			return (string) $this->pfh_offer[ $from_offer[ $key ] ];
 		}
 
 		// Words the category filled in replace the typed ones.
 		$from_category = [ 'eyebrow' => 'eyebrow', 'titleTop' => 'title_top', 'titleBottom' => 'title_bottom', 'text' => 'text' ];
 
-		if ( $this->own && isset( $from_category[ $key ] ) && '' !== trim( (string) $this->own[ $from_category[ $key ] ] ) ) {
-			return trim( (string) $this->own[ $from_category[ $key ] ] );
+		if ( $this->pfh_own && isset( $from_category[ $key ] ) && '' !== trim( (string) $this->pfh_own[ $from_category[ $key ] ] ) ) {
+			return trim( (string) $this->pfh_own[ $from_category[ $key ] ] );
 		}
 
 		// A product picked for the category speaks for itself: its name and
 		// its own short description, not copy written about another one.
-		if ( $this->auto ) {
+		if ( $this->pfh_auto ) {
 			if ( 'titleTop' === $key ) {
-				return (string) $this->offer['name'];
+				return (string) $this->pfh_offer['name'];
 			}
 
 			if ( 'titleBottom' === $key ) {
@@ -845,7 +845,7 @@ class PFH_Element_Highlight extends \Bricks\Element {
 			}
 
 			if ( 'text' === $key ) {
-				return PFH_Widgets_Collection::pitch( (int) $this->offer['id'] );
+				return PFH_Widgets_Collection::pitch( (int) $this->pfh_offer['id'] );
 			}
 		}
 
@@ -929,16 +929,16 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 * @return array
 	 */
 	private function rows( $key ) {
-		if ( 'points' === $key && $this->auto && ( ! $this->own || empty( $this->own['points'] ) ) ) {
+		if ( 'points' === $key && $this->pfh_auto && ( ! $this->pfh_own || empty( $this->pfh_own['points'] ) ) ) {
 			return [];
 		}
 
-		if ( 'points' === $key && $this->own && ! empty( $this->own['points'] ) ) {
+		if ( 'points' === $key && $this->pfh_own && ! empty( $this->pfh_own['points'] ) ) {
 			return array_map(
 				static function ( $point ) {
 					return [ 'text' => $point ];
 				},
-				(array) $this->own['points']
+				(array) $this->pfh_own['points']
 			);
 		}
 
@@ -956,12 +956,12 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 */
 	private function link() {
 		// The category's own link, else its product, else the typed one.
-		if ( $this->own && '' !== (string) $this->own['url'] ) {
-			return [ 'href' => esc_url_raw( (string) $this->own['url'] ), 'target' => '', 'rel' => '' ];
+		if ( $this->pfh_own && '' !== (string) $this->pfh_own['url'] ) {
+			return [ 'href' => esc_url_raw( (string) $this->pfh_own['url'] ), 'target' => '', 'rel' => '' ];
 		}
 
-		if ( $this->offer && '' !== $this->offer['url'] ) {
-			return [ 'href' => $this->offer['url'], 'target' => '', 'rel' => '' ];
+		if ( $this->pfh_offer && '' !== $this->pfh_offer['url'] ) {
+			return [ 'href' => $this->pfh_offer['url'], 'target' => '', 'rel' => '' ];
 		}
 
 		$href = esc_url_raw( $this->text( 'url' ) );
@@ -984,25 +984,25 @@ class PFH_Element_Highlight extends \Bricks\Element {
 	 */
 	private function image() {
 		// The category's own picture, else its product's cut-out.
-		if ( $this->own && ! empty( $this->own['image'] ) ) {
-			$url = (string) wp_get_attachment_image_url( (int) $this->own['image'], 'large' );
+		if ( $this->pfh_own && ! empty( $this->pfh_own['image'] ) ) {
+			$url = (string) wp_get_attachment_image_url( (int) $this->pfh_own['image'], 'large' );
 
 			if ( '' !== $url ) {
-				$alt = trim( (string) get_post_meta( (int) $this->own['image'], '_wp_attachment_image_alt', true ) );
+				$alt = trim( (string) get_post_meta( (int) $this->pfh_own['image'], '_wp_attachment_image_alt', true ) );
 
 				return [
 					'url' => $url,
-					'alt' => '' !== $alt ? $alt : ( $this->offer ? $this->offer['name'] : '' ),
-					'id'  => (int) $this->own['image'],
+					'alt' => '' !== $alt ? $alt : ( $this->pfh_offer ? $this->pfh_offer['name'] : '' ),
+					'id'  => (int) $this->pfh_own['image'],
 				];
 			}
 		}
 
-		if ( $this->offer && '' !== $this->offer['image'] ) {
+		if ( $this->pfh_offer && '' !== $this->pfh_offer['image'] ) {
 			return [
-				'url' => $this->offer['image'],
-				'alt' => $this->offer['name'],
-				'id'  => isset( $this->offer['image_id'] ) ? (int) $this->offer['image_id'] : 0,
+				'url' => $this->pfh_offer['image'],
+				'alt' => $this->pfh_offer['name'],
+				'id'  => isset( $this->pfh_offer['image_id'] ) ? (int) $this->pfh_offer['image_id'] : 0,
 			];
 		}
 

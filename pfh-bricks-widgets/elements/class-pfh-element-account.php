@@ -40,10 +40,10 @@ class PFH_Element_Account extends \Bricks\Element {
 	 *
 	 * @var array{0: string, 1: string}
 	 */
-	private $endpoint = [ '', '' ];
+	private $pfh_endpoint = [ '', '' ];
 
 	/** @var string */
-	private $active = 'dashboard';
+	private $pfh_active = 'dashboard';
 
 	public function get_label() {
 		return esc_html__( 'PFH My Account', 'pfh-widgets' );
@@ -216,7 +216,7 @@ class PFH_Element_Account extends \Bricks\Element {
 		echo '<section ' . $this->render_attributes( '_root' ) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Bricks escapes its own attributes.
 		echo '<div class="pfh-acc__inner">';
 
-		$this->endpoint = self::current_endpoint();
+		$this->pfh_endpoint = self::current_endpoint();
 
 		if ( is_user_logged_in() ) {
 			$this->render_account();
@@ -255,7 +255,7 @@ class PFH_Element_Account extends \Bricks\Element {
 		 * checks and emails apply. A new account with a generated password
 		 * also sets it here.
 		 */
-		if ( 'lost-password' === $this->endpoint[0] && class_exists( 'WC_Shortcode_My_Account' ) ) {
+		if ( 'lost-password' === $this->pfh_endpoint[0] && class_exists( 'WC_Shortcode_My_Account' ) ) {
 			echo '<div class="pfh-acc__woo-form">';
 			WC_Shortcode_My_Account::lost_password();
 			echo '</div>';
@@ -279,13 +279,13 @@ class PFH_Element_Account extends \Bricks\Element {
 
 			printf(
 				'<button type="button" class="pfh-acc__seg-btn" role="tab" id="pfh-seg-login-%1$s" aria-controls="pfh-form-login-%1$s" aria-selected="true" data-pfh-acc-form="login">%2$s</button>',
-				esc_attr( $this->uid() ),
+				esc_attr( $this->pfh_uid() ),
 				esc_html__( 'Inloggen', 'pfh-widgets' )
 			);
 
 			printf(
 				'<button type="button" class="pfh-acc__seg-btn" role="tab" id="pfh-seg-register-%1$s" aria-controls="pfh-form-register-%1$s" aria-selected="false" tabindex="-1" data-pfh-acc-form="register">%2$s</button>',
-				esc_attr( $this->uid() ),
+				esc_attr( $this->pfh_uid() ),
 				esc_html__( 'Registreren', 'pfh-widgets' )
 			);
 
@@ -376,12 +376,12 @@ class PFH_Element_Account extends \Bricks\Element {
 	private function render_login_form( $tabbed ) {
 		printf(
 			'<form class="pfh-acc__form" id="pfh-form-login-%1$s" method="post" %2$s>',
-			esc_attr( $this->uid() ),
-			$tabbed ? 'role="tabpanel" aria-labelledby="pfh-seg-login-' . esc_attr( $this->uid() ) . '"' : ''
+			esc_attr( $this->pfh_uid() ),
+			$tabbed ? 'role="tabpanel" aria-labelledby="pfh-seg-login-' . esc_attr( $this->pfh_uid() ) . '"' : ''
 		);
 
-		$this->field( 'username-' . $this->uid(), __( 'E-mailadres', 'pfh-widgets' ), 'text', 'username', [ 'autocomplete' => 'username', 'placeholder' => 'naam@voorbeeld.nl', 'required' => true ] );
-		$this->password_field( 'password-' . $this->uid(), __( 'Wachtwoord', 'pfh-widgets' ), 'password', 'current-password' );
+		$this->field( 'username-' . $this->pfh_uid(), __( 'E-mailadres', 'pfh-widgets' ), 'text', 'username', [ 'autocomplete' => 'username', 'placeholder' => 'naam@voorbeeld.nl', 'required' => true ] );
+		$this->password_field( 'password-' . $this->pfh_uid(), __( 'Wachtwoord', 'pfh-widgets' ), 'password', 'current-password' );
 
 		printf(
 			'<div class="pfh-acc__form-foot"><label class="pfh-acc__remember"><input type="checkbox" name="rememberme" value="forever" /> %s</label><a class="pfh-acc__link" href="%s">%s</a></div>',
@@ -411,21 +411,21 @@ class PFH_Element_Account extends \Bricks\Element {
 	private function render_register_form() {
 		printf(
 			'<form class="pfh-acc__form" id="pfh-form-register-%1$s" method="post" role="tabpanel" aria-labelledby="pfh-seg-register-%1$s" hidden>',
-			esc_attr( $this->uid() )
+			esc_attr( $this->pfh_uid() )
 		);
 
 		if ( $this->switched_on( 'showNames', true ) ) {
 			echo '<div class="pfh-acc__row">';
-			$this->field( 'first-' . $this->uid(), __( 'Voornaam', 'pfh-widgets' ), 'text', 'pfh_first_name', [ 'autocomplete' => 'given-name' ] );
-			$this->field( 'last-' . $this->uid(), __( 'Achternaam', 'pfh-widgets' ), 'text', 'pfh_last_name', [ 'autocomplete' => 'family-name' ] );
+			$this->field( 'first-' . $this->pfh_uid(), __( 'Voornaam', 'pfh-widgets' ), 'text', 'pfh_first_name', [ 'autocomplete' => 'given-name' ] );
+			$this->field( 'last-' . $this->pfh_uid(), __( 'Achternaam', 'pfh-widgets' ), 'text', 'pfh_last_name', [ 'autocomplete' => 'family-name' ] );
 			echo '</div>';
 		}
 
-		$this->field( 'email-' . $this->uid(), __( 'E-mailadres', 'pfh-widgets' ), 'email', 'email', [ 'autocomplete' => 'email', 'placeholder' => 'naam@voorbeeld.nl', 'required' => true ] );
+		$this->field( 'email-' . $this->pfh_uid(), __( 'E-mailadres', 'pfh-widgets' ), 'email', 'email', [ 'autocomplete' => 'email', 'placeholder' => 'naam@voorbeeld.nl', 'required' => true ] );
 
 		// A shop that generates its own passwords asks for none.
 		if ( 'no' === get_option( 'woocommerce_registration_generate_password' ) ) {
-			$this->password_field( 'newpass-' . $this->uid(), __( 'Wachtwoord', 'pfh-widgets' ), 'password', 'new-password', __( 'Minimaal 8 tekens.', 'pfh-widgets' ) );
+			$this->password_field( 'newpass-' . $this->pfh_uid(), __( 'Wachtwoord', 'pfh-widgets' ), 'password', 'new-password', __( 'Minimaal 8 tekens.', 'pfh-widgets' ) );
 		}
 
 		/**
@@ -461,8 +461,8 @@ class PFH_Element_Account extends \Bricks\Element {
 
 	private function render_account() {
 		$user         = wp_get_current_user();
-		$this->active = $this->pane_for( $this->endpoint[0] );
-		$page         = 'orders' === $this->endpoint[0] ? max( 1, absint( $this->endpoint[1] ) ) : 1;
+		$this->pfh_active = $this->pane_for( $this->pfh_endpoint[0] );
+		$page         = 'orders' === $this->pfh_endpoint[0] ? max( 1, absint( $this->pfh_endpoint[1] ) ) : 1;
 		$listing      = $this->orders( $page );
 		$orders       = $listing['orders'];
 
@@ -538,8 +538,8 @@ class PFH_Element_Account extends \Bricks\Element {
 			$tabs[ 'ep-' . $endpoint ] = [ 'star-line', $label, null ];
 		}
 
-		if ( ! isset( $tabs[ $this->active ] ) ) {
-			$this->active = 'dashboard';
+		if ( ! isset( $tabs[ $this->pfh_active ] ) ) {
+			$this->pfh_active = 'dashboard';
 		}
 
 		printf(
@@ -548,12 +548,12 @@ class PFH_Element_Account extends \Bricks\Element {
 		);
 
 		foreach ( $tabs as $key => $tab ) {
-			$on = $key === $this->active;
+			$on = $key === $this->pfh_active;
 
 			printf(
 				'<button type="button" class="pfh-acc__tab" role="tab" id="pfh-tab-%1$s-%2$s" aria-controls="pfh-pane-%1$s-%2$s" aria-selected="%3$s" tabindex="%4$d" data-pfh-acc-tab="%1$s">%5$s<span>%6$s</span>%7$s</button>',
 				esc_attr( $key ),
-				esc_attr( $this->uid() ),
+				esc_attr( $this->pfh_uid() ),
 				$on ? 'true' : 'false',
 				$on ? 0 : -1,
 				PFH_Widgets_Icons::get( $tab[0] ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
@@ -650,12 +650,12 @@ class PFH_Element_Account extends \Bricks\Element {
 	 * @param bool   $selected Whether it opens.
 	 */
 	private function open_pane( $key, $selected = null ) {
-		$selected = null === $selected ? $key === $this->active : $selected;
+		$selected = null === $selected ? $key === $this->pfh_active : $selected;
 
 		printf(
 			'<section class="pfh-acc__pane" id="pfh-pane-%1$s-%2$s" role="tabpanel" aria-labelledby="pfh-tab-%1$s-%2$s" tabindex="0"%3$s>',
 			esc_attr( $key ),
-			esc_attr( $this->uid() ),
+			esc_attr( $this->pfh_uid() ),
 			$selected ? '' : ' hidden'
 		);
 	}
@@ -742,8 +742,8 @@ class PFH_Element_Account extends \Bricks\Element {
 		 */
 		$viewing = null;
 
-		if ( 'view-order' === $this->endpoint[0] ) {
-			$id    = absint( $this->endpoint[1] );
+		if ( 'view-order' === $this->pfh_endpoint[0] ) {
+			$id    = absint( $this->pfh_endpoint[1] );
 			$found = $id ? wc_get_order( $id ) : false;
 
 			if ( $found && current_user_can( 'view_order', $id ) ) {
@@ -819,7 +819,7 @@ class PFH_Element_Account extends \Bricks\Element {
 			'<button type="button" class="pfh-acc__order-head" aria-expanded="%s" aria-controls="pfh-order-%d-%s">',
 			$open ? 'true' : 'false',
 			$id,
-			esc_attr( $this->uid() )
+			esc_attr( $this->pfh_uid() )
 		);
 
 		printf(
@@ -850,7 +850,7 @@ class PFH_Element_Account extends \Bricks\Element {
 		printf(
 			'<div class="pfh-acc__order-body" id="pfh-order-%d-%s"%s>',
 			$id,
-			esc_attr( $this->uid() ),
+			esc_attr( $this->pfh_uid() ),
 			$open ? '' : ' hidden'
 		);
 
@@ -1010,14 +1010,14 @@ class PFH_Element_Account extends \Bricks\Element {
 		 * so its fields, its country rules and its save all apply. After
 		 * saving it comes back to the addresses with "Adres gewijzigd".
 		 */
-		if ( 'edit-address' === $this->endpoint[0] && '' !== $this->endpoint[1] ) {
+		if ( 'edit-address' === $this->pfh_endpoint[0] && '' !== $this->pfh_endpoint[1] ) {
 			echo '<div class="pfh-acc__card pfh-acc__block pfh-acc__woo-form">';
 			printf(
 				'<p class="pfh-acc__hint"><a class="pfh-acc__link" href="%s">%s</a></p>',
 				esc_url( wc_get_endpoint_url( 'edit-address', '', wc_get_page_permalink( 'myaccount' ) ) ),
 				esc_html__( 'Terug naar je adressen', 'pfh-widgets' )
 			);
-			do_action( 'woocommerce_account_edit-address_endpoint', $this->endpoint[1] );
+			do_action( 'woocommerce_account_edit-address_endpoint', $this->pfh_endpoint[1] );
 			echo '</div></section>';
 
 			return;
@@ -1070,22 +1070,22 @@ class PFH_Element_Account extends \Bricks\Element {
 		);
 
 		echo '<div class="pfh-acc__row">';
-		$this->field( 'fn-' . $this->uid(), __( 'Voornaam', 'pfh-widgets' ), 'text', 'account_first_name', [ 'value' => $user->first_name, 'autocomplete' => 'given-name' ] );
-		$this->field( 'ln-' . $this->uid(), __( 'Achternaam', 'pfh-widgets' ), 'text', 'account_last_name', [ 'value' => $user->last_name, 'autocomplete' => 'family-name' ] );
+		$this->field( 'fn-' . $this->pfh_uid(), __( 'Voornaam', 'pfh-widgets' ), 'text', 'account_first_name', [ 'value' => $user->first_name, 'autocomplete' => 'given-name' ] );
+		$this->field( 'ln-' . $this->pfh_uid(), __( 'Achternaam', 'pfh-widgets' ), 'text', 'account_last_name', [ 'value' => $user->last_name, 'autocomplete' => 'family-name' ] );
 		echo '</div>';
 
-		$this->field( 'em-' . $this->uid(), __( 'E-mailadres', 'pfh-widgets' ), 'email', 'account_email', [ 'value' => $user->user_email, 'autocomplete' => 'email', 'required' => true ] );
+		$this->field( 'em-' . $this->pfh_uid(), __( 'E-mailadres', 'pfh-widgets' ), 'email', 'account_email', [ 'value' => $user->user_email, 'autocomplete' => 'email', 'required' => true ] );
 
 		$this->password_field(
-			'cp-' . $this->uid(),
+			'cp-' . $this->pfh_uid(),
 			__( 'Huidig wachtwoord', 'pfh-widgets' ),
 			'password_current',
 			'current-password',
 			__( 'Alleen nodig als je je wachtwoord wijzigt.', 'pfh-widgets' )
 		);
 
-		$this->password_field( 'np-' . $this->uid(), __( 'Nieuw wachtwoord', 'pfh-widgets' ), 'password_1', 'new-password' );
-		$this->password_field( 'np2-' . $this->uid(), __( 'Herhaal het nieuwe wachtwoord', 'pfh-widgets' ), 'password_2', 'new-password' );
+		$this->password_field( 'np-' . $this->pfh_uid(), __( 'Nieuw wachtwoord', 'pfh-widgets' ), 'password_1', 'new-password' );
+		$this->password_field( 'np2-' . $this->pfh_uid(), __( 'Herhaal het nieuwe wachtwoord', 'pfh-widgets' ), 'password_2', 'new-password' );
 
 		/*
 		 * WooCommerce will not save the details without a display name, and
@@ -1308,7 +1308,7 @@ class PFH_Element_Account extends \Bricks\Element {
 		printf( '<h2 class="pfh-acc__block-title">%s</h2>', esc_html( wp_strip_all_tags( (string) $items[ $endpoint ] ) ) );
 
 		// Adding a card is its own WooCommerce page, shown in the same pane.
-		$which = 'payments' === $pane && 'add-payment-method' === $this->endpoint[0] ? 'add-payment-method' : $endpoint;
+		$which = 'payments' === $pane && 'add-payment-method' === $this->pfh_endpoint[0] ? 'add-payment-method' : $endpoint;
 
 		do_action( 'woocommerce_account_' . $which . '_endpoint', '' );
 
@@ -1320,7 +1320,7 @@ class PFH_Element_Account extends \Bricks\Element {
 	 *
 	 * @return string
 	 */
-	private function uid() {
+	private function pfh_uid() {
 		return ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : 'acc';
 	}
 

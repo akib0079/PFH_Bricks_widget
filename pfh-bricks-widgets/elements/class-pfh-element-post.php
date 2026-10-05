@@ -23,7 +23,7 @@ class PFH_Element_Post extends \Bricks\Element {
 	use PFH_Element_Defaults;
 
 	/** @var string|null Stable id for controls and aria relationships. */
-	private $uid = null;
+	private $pfh_uid = null;
 
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-post';
@@ -339,12 +339,12 @@ class PFH_Element_Post extends \Bricks\Element {
 	 *
 	 * @return string
 	 */
-	private function uid() {
-		if ( null === $this->uid ) {
-			$this->uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfh-post-' );
+	private function pfh_uid() {
+		if ( null === $this->pfh_uid ) {
+			$this->pfh_uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfh-post-' );
 		}
 
-		return $this->uid;
+		return $this->pfh_uid;
 	}
 
 	/* ---------------------------------------------------------------------
@@ -603,7 +603,7 @@ class PFH_Element_Post extends \Bricks\Element {
 		}
 
 		$title      = PFH_Widgets_Helpers::dd( (string) $this->setting( 'productsTitle', '' ) );
-		$track_id   = 'pfh-post-products-' . $this->uid();
+		$track_id   = 'pfh-post-products-' . $this->pfh_uid();
 		$heading_id = $track_id . '-title';
 
 		echo '<section class="pfh-post__products" aria-labelledby="' . esc_attr( $heading_id ) . '">';
@@ -646,7 +646,7 @@ class PFH_Element_Post extends \Bricks\Element {
 		}
 
 		$title      = PFH_Widgets_Helpers::dd( (string) $this->setting( 'promisesTitle', '' ) );
-		$heading_id = 'pfh-post-promises-' . $this->uid();
+		$heading_id = 'pfh-post-promises-' . $this->pfh_uid();
 
 		echo '<section class="pfh-post__promises" aria-labelledby="' . esc_attr( $heading_id ) . '">';
 		echo '<h2 id="' . esc_attr( $heading_id ) . '">' . esc_html( $title ) . '</h2><ul>';
@@ -672,7 +672,7 @@ class PFH_Element_Post extends \Bricks\Element {
 		$image         = $image ? $image : $default_image;
 		$shop          = function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'shop' ) : '';
 		$link          = PFH_Widgets_Helpers::link( $this->setting( 'ctaLink' ), $shop ? $shop : home_url( '/shop/' ) );
-		$heading_id    = 'pfh-post-cta-' . $this->uid();
+		$heading_id    = 'pfh-post-cta-' . $this->pfh_uid();
 		$style         = '--pfh-po-cta-image:url("' . esc_url_raw( $image ) . '")';
 
 		echo '<section class="pfh-post__cta" aria-labelledby="' . esc_attr( $heading_id ) . '" style="' . esc_attr( $style ) . '">';

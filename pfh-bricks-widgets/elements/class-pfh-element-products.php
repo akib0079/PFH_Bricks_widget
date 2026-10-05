@@ -25,7 +25,7 @@ class PFH_Element_Products extends \Bricks\Element {
 	 *
 	 * @var mixed
 	 */
-	private $uid = null;
+	private $pfh_uid = null;
 
 	use PFH_Product_Card_Trait;
 
@@ -572,12 +572,12 @@ class PFH_Element_Products extends \Bricks\Element {
 		return $this->switched_on( $key, $default );
 	}
 
-	private function uid() {
-		if ( null === $this->uid ) {
-			$this->uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfhp' );
+	private function pfh_uid() {
+		if ( null === $this->pfh_uid ) {
+			$this->pfh_uid = ! empty( $this->element['id'] ) ? sanitize_html_class( $this->element['id'] ) : uniqid( 'pfhp' );
 		}
 
-		return $this->uid;
+		return $this->pfh_uid;
 	}
 
 	/* ---------------------------------------------------------------------
@@ -696,7 +696,7 @@ class PFH_Element_Products extends \Bricks\Element {
 					data-pfh-bar-thumb
 					role="scrollbar"
 					tabindex="0"
-					aria-controls="pfh-viewport-<?php echo esc_attr( $this->uid() ); ?>"
+					aria-controls="pfh-viewport-<?php echo esc_attr( $this->pfh_uid() ); ?>"
 					aria-orientation="horizontal"
 					aria-label="<?php esc_attr_e( 'Schuif door de producten', 'pfh-widgets' ); ?>"
 					aria-valuemin="0"
@@ -789,7 +789,7 @@ class PFH_Element_Products extends \Bricks\Element {
 
 	private function js_config() {
 		return [
-			'uid'   => $this->uid(),
+			'uid'   => $this->pfh_uid(),
 			'drag'  => $this->is_on( 'dragEnable' ),
 			'wheel' => false,
 			'bar'   => $this->is_on( 'barEnable' ),
