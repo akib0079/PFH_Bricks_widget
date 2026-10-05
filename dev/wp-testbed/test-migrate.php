@@ -26,6 +26,7 @@ if ( ! defined( 'BRICKS_VERSION' ) ) {
 
 register_post_type( 'bricks_template', [ 'public' => false ] );
 register_post_type( 'bricks_fonts', [ 'public' => false ] );
+register_post_type( 'wfob_bump', [ 'public' => false ] );
 
 wp_set_current_user( 1 );
 require_once ABSPATH . 'wp-admin/includes/template.php';
@@ -122,6 +123,8 @@ $vv = $vvar->save();
 foreach ( [ $vpid, $vv ] as $id ) { mig_backdate( $id ); }
 $blog_old = wp_insert_post( [ 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Mig blog oud', 'post_name' => 'mig-blog-oud', 'post_content' => 'Blog oud' ] );
 mig_backdate( $blog_old );
+$bump = wp_insert_post( [ 'post_type' => 'wfob_bump', 'post_status' => 'publish', 'post_title' => 'Mig bump', 'post_name' => 'mig-bump' ] );
+mig_backdate( $bump );
 
 // The copy was taken here: everything in the testbed so far is older.
 $baseline = '2029-01-01 00:00:00';
@@ -229,6 +232,8 @@ wp_update_term( $mand, $ptax, [ 'name' => "\u{1F34A} Mandarijn" ] );
 update_post_meta( $vv, '_variation_description', 'Variatie nieuw' );
 update_post_meta( $vv, '_thumbnail_id', $img_new );
 wp_update_post( [ 'ID' => $blog_old, 'post_content' => 'Blog nieuw' ] );
+update_post_meta( $bump, '_wfob_selected_products', [ 'olie' => '750 ml' ] );
+update_post_meta( $bump, '_edit_lock', '123:1' );
 $blog_new = wp_insert_post( [ 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Mig blog nieuw', 'post_name' => 'mig-blog-nieuw', 'post_content' => 'Alleen op staging', 'post_date' => '2030-01-02 10:00:00' ] );
 update_post_meta( $blog_new, '_thumbnail_id', $img_new );
 
@@ -292,6 +297,7 @@ update_post_meta( $vv, '_variation_description', 'Variatie oud' );
 delete_post_meta( $vv, '_thumbnail_id' );
 wp_update_post( [ 'ID' => $blog_old, 'post_content' => 'Blog oud' ] );
 wp_delete_post( $blog_new, true );
+update_post_meta( $bump, '_wfob_selected_products', [ 'olie' => '500 ml' ] );
 
 wp_delete_attachment( $img_new, true );
 wp_delete_attachment( $font_att, true );
@@ -471,6 +477,7 @@ ok( '  its tag, made here again', has_term( 'mig-tag', 'product_tag', $a ) );
 ok( '  the flavour name with its emoji', false !== strpos( html_entity_decode( get_term( $mand, $ptax )->name ), "\u{1F34A}" ) );
 ok( '  the variation\'s text and photo', 'Variatie nieuw' === get_post_meta( $vv, '_variation_description', true ) && $new_img === (int) get_post_meta( $vv, '_thumbnail_id', true ) );
 ok( 'a blog post edited there gets its text', 'Blog nieuw' === get_post_field( 'post_content', $blog_old ) );
+ok( 'an order bump gets its product and texts', [ 'olie' => '750 ml' ] === get_post_meta( $bump, '_wfob_selected_products', true ) );
 $made_blog = get_page_by_path( 'mig-blog-nieuw', OBJECT, 'post' );
 ok( 'a blog post written there is made here, with its image', $made_blog && 'Alleen op staging' === $made_blog->post_content && $new_img === (int) get_post_meta( $made_blog->ID, '_thumbnail_id', true ) );
 ok( '  and leaves this shop\'s stock and Facebook id alone', $live_stock === get_post_meta( $a, '_stock', true ) && '99' !== $live_stock && 'LIVE-FB' === get_post_meta( $a, 'fb_product_item_id', true ) );
@@ -504,6 +511,7 @@ clean_post_cache( $a );
 ok( 'the product\'s text, gallery and tags are as they were', 'Oude tekst' === get_post( $a )->post_content && 'Kort oud' === get_post( $a )->post_excerpt && '' === get_post_meta( $a, '_product_image_gallery', true ) && ! has_term( '', 'product_tag', $a ) );
 ok( '  the flavour name and the variation too', 'Mandarijn' === get_term( $mand, $ptax )->name && 'Variatie oud' === get_post_meta( $vv, '_variation_description', true ) && '' === get_post_meta( $vv, '_thumbnail_id', true ) );
 ok( '  the tag made for it is gone again', ! get_term_by( 'slug', 'mig-tag', 'product_tag' ) );
+ok( 'the order bump is as it was', [ 'olie' => '500 ml' ] === get_post_meta( $bump, '_wfob_selected_products', true ) );
 ok( 'the blog post has its old text, and the new one is gone', 'Blog oud' === get_post_field( 'post_content', $blog_old ) && ! get_page_by_path( 'mig-blog-nieuw', OBJECT, 'post' ) );
 ok( 'the old menu has its name and address back', 'Hoofdmenu live' === get_term( $live_menu, 'nav_menu' )->name && 'mig-main' === get_term( $live_menu, 'nav_menu' )->slug );
 
@@ -558,6 +566,7 @@ ok( 'the code\'s own default pictures are found for the export', count( $E::code
 
 // ── Tidy up ───────────────────────────────────────────────────────────────
 wp_delete_post( $blog_old, true );
+wp_delete_post( $bump, true );
 foreach ( [ $vv, $vpid ] as $x ) { $p = wc_get_product( $x ); if ( $p ) { $p->delete( true ); } }
 foreach ( (array) get_terms( [ 'taxonomy' => $ptax, 'hide_empty' => false ] ) as $x ) { if ( ! is_wp_error( $x ) ) { wp_delete_term( $x->term_id, $ptax ); } }
 wc_delete_attribute( $attr_id );

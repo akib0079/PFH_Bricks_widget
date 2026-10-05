@@ -262,9 +262,9 @@ class PFH_Widgets_Migrate_Export {
 		$ids = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID WHERE m.meta_key IN ($in) AND m.meta_value NOT IN ('', 'a:0:{}') AND p.post_status IN ('publish', 'private') AND p.post_type NOT IN ('revision', 'attachment', 'nav_menu_item') ORDER BY p.ID", $keys ) );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		// Templates and fonts, and the FunnelKit checkout and thank-you pages,
-		// whose fields and texts live in their own meta whatever draws them.
-		$templates = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ('bricks_template', 'bricks_fonts', 'wfacp_checkout', 'wffn_ty') AND post_status IN ('publish', 'private') ORDER BY ID" );
+		// Templates and fonts, and the FunnelKit checkout, thank-you pages and
+		// order bumps, whose fields and texts live in their own meta.
+		$templates = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ('bricks_template', 'bricks_fonts', 'wfacp_checkout', 'wffn_ty', 'wfob_bump') AND post_status IN ('publish', 'private') ORDER BY ID" );
 
 		$ids = array_values( array_unique( array_map( 'intval', array_merge( $templates, $ids ) ) ) );
 		$out = [];
@@ -370,6 +370,11 @@ class PFH_Widgets_Migrate_Export {
 
 		if ( 'wffn_ty' === $type ) {
 			return 0 === strpos( $key, '_wfty_' ) && ! preg_match( '/stat|view|count|revenue|conversion/i', $key );
+		}
+
+		// An order bump keeps its product, texts and look in its own meta.
+		if ( 'wfob_bump' === $type ) {
+			return ! preg_match( '/^_(edit_lock|edit_last|wp_old_slug|wp_old_date)$|stat|view|count|revenue|conversion/i', $key );
 		}
 
 		return false;
