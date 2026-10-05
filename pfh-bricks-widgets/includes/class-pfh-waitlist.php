@@ -808,13 +808,14 @@ class PFH_Widgets_Waitlist extends PFH_Settings_Module {
 	 * date added, mailed (1/0).
 	 *
 	 * @param array $rows Rows.
-	 * @return array{added: int, skipped: int}
+	 * @return array{added: int, skipped: int, updated: int}
 	 */
 	public static function import_rows( array $rows ) {
 		global $wpdb;
 
 		$added   = 0;
 		$skipped = 0;
+		$updated = 0;
 
 		foreach ( $rows as $row ) {
 			$row    = array_values( (array) $row );
@@ -832,6 +833,17 @@ class PFH_Widgets_Waitlist extends PFH_Settings_Module {
 			$seen = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . self::table() . ' WHERE legacy_id = %s', $legacy ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- table name.
 
 			if ( $seen ) {
+				// Brought over before, but not known then to have been mailed:
+				// marked now, so it is not mailed a second time.
+				if ( $mailed ) {
+					$marked = $wpdb->query( $wpdb->prepare( 'UPDATE ' . self::table() . ' SET notified_at = %s WHERE legacy_id = %s AND notified_at IS NULL', $date, $legacy ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- table name.
+
+					if ( $marked ) {
+						$updated++;
+						continue;
+					}
+				}
+
 				$skipped++;
 				continue;
 			}
@@ -866,7 +878,7 @@ class PFH_Widgets_Waitlist extends PFH_Settings_Module {
 			$added++;
 		}
 
-		return [ 'added' => $added, 'skipped' => $skipped ];
+		return [ 'added' => $added, 'skipped' => $skipped, 'updated' => $updated ];
 	}
 
 	/**
@@ -903,13 +915,24 @@ class PFH_Widgets_Waitlist extends PFH_Settings_Module {
 			'email'   => $pick( [ 'email', 'user_email', 'customer_email', 'mail' ] ),
 			'product' => $pick( [ 'product_id', 'product', 'post_id', 'variation_id' ] ),
 			'date'    => $pick( [ 'created_at', 'date_added', 'date_created', 'date', 'created', 'time', 'added' ] ),
-			'mailed'  => $pick( [ 'notified', 'is_notified', 'mailed', 'sent', 'email_sent', 'notified_at', 'status' ] ),
+			'mailed'  => $pick( [ 'notified', 'is_notified', 'notification_sent', 'notify_sent', 'mailed', 'is_mailed', 'mail_sent', 'email_sent', 'sent', 'is_sent', 'notified_at', 'notified_date', 'notification_date', 'sent_at', 'mailed_at', 'status' ] ),
 		];
+
+		// Failing a known name, the first column that speaks of sending.
+		if ( '' === $columns['mailed'] ) {
+			foreach ( $names as $name ) {
+				if ( $name !== $columns['email'] && preg_match( '/notif|sent|mailed|status/', $name ) ) {
+					$columns['mailed'] = $name;
+					break;
+				}
+			}
+		}
 
 		$info = [
 			'table'   => $table,
 			'rows'    => (int) $wpdb->get_var( 'SELECT COUNT(*) FROM `' . esc_sql( $table ) . '`' ), // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- table name.
 			'columns' => $columns,
+			'names'   => $names,
 			'problem' => '',
 		];
 
@@ -952,7 +975,7 @@ class PFH_Widgets_Waitlist extends PFH_Settings_Module {
 			$mailed = strtolower( trim( (string) $row[4] ) );
 
 			// A date in a "notified_at" column, or a flag, or a status word.
-			$row[4] = '' !== $mailed && ! in_array( $mailed, [ '0', '0000-00-00 00:00:00', 'pending', 'waiting', 'new', 'subscribed', 'active', 'no' ], true );
+			$row[4] = '' !== $mailed && ! in_array( $mailed, [ '0', '0000-00-00 00:00:00', 'pending', 'waiting', 'new', 'subscribed', 'active', 'no', 'false', 'null', 'open' ], true );
 
 			if ( is_numeric( $row[3] ) && (int) $row[3] > 100000000 ) {
 				$row[3] = wp_date( 'Y-m-d H:i:s', (int) $row[3] );

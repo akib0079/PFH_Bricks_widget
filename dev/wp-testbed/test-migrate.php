@@ -535,6 +535,14 @@ ok( 'its sign-ups are taken over', is_array( $r1 ) && 2 === $r1['added'] && 1 ==
 ok( '  the one already mailed is marked so', 1 === (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$W::table()} WHERE email = 'mig2@example.test' AND notified_at IS NOT NULL" ) );
 $r2 = $W::import_from_table();
 ok( 'taking over again adds nothing', is_array( $r2 ) && 0 === $r2['added'], wp_json_encode( $r2 ) );
+// An earlier takeover that did not know which were mailed: put right.
+$wpdb->query( "UPDATE {$W::table()} SET notified_at = NULL WHERE email = 'mig2@example.test'" );
+$r3 = $W::import_from_table();
+ok( '  but marks one it took over unknowing as already mailed', is_array( $r3 ) && 0 === $r3['added'] && 1 === $r3['updated'] && 1 === (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$W::table()} WHERE email = 'mig2@example.test' AND notified_at IS NOT NULL" ), wp_json_encode( $r3 ) );
+$wpdb->query( "DROP TABLE IF EXISTS {$legacy}" );
+$wpdb->query( "CREATE TABLE {$legacy} ( id bigint(20) unsigned NOT NULL AUTO_INCREMENT, product_id bigint(20) NOT NULL, email varchar(190) NOT NULL, created_at datetime NULL, notification_sent varchar(10) NOT NULL DEFAULT 'no', PRIMARY KEY (id) )" );
+$info2 = $W::legacy_table_info();
+ok( 'a "mailed" column under another name is found too', 'notification_sent' === $info2['columns']['mailed'] && in_array( 'notification_sent', $info2['names'], true ), wp_json_encode( $info2['columns'] ) );
 $html = $render();
 ok( 'the screen offers it', false !== strpos( $html, 'pfh_migrate_waitlist' ) );
 $wpdb->query( "DELETE FROM {$W::table()} WHERE email LIKE 'mig%@example.test'" );

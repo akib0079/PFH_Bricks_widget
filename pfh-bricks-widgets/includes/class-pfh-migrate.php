@@ -197,7 +197,7 @@ class PFH_Widgets_Migrate {
 		self::back(
 			is_wp_error( $result )
 				? [ 'pfh_msg' => 'waitlist_failed' ]
-				: [ 'pfh_msg' => 'waitlist', 'added' => (int) $result['added'], 'skipped' => (int) $result['skipped'] ]
+				: [ 'pfh_msg' => 'waitlist', 'added' => (int) $result['added'], 'skipped' => (int) $result['skipped'], 'updated' => (int) ( $result['updated'] ?? 0 ) ]
 		);
 	}
 
@@ -421,10 +421,11 @@ class PFH_Widgets_Migrate {
 			// phpcs:disable WordPress.Security.NonceVerification.Recommended
 			$added   = isset( $_GET['added'] ) ? absint( $_GET['added'] ) : 0;
 			$skipped = isset( $_GET['skipped'] ) ? absint( $_GET['skipped'] ) : 0;
+			$updated = isset( $_GET['updated'] ) ? absint( $_GET['updated'] ) : 0;
 			// phpcs:enable
 
-			/* translators: 1: added, 2: skipped. */
-			$messages['waitlist'] = [ 'success', sprintf( __( 'Waitlist taken over: %1$d added, %2$d already here or not usable.', 'pfh-widgets' ), $added, $skipped ) ];
+			/* translators: 1: added, 2: marked as mailed, 3: skipped. */
+			$messages['waitlist'] = [ 'success', sprintf( __( 'Waitlist taken over: %1$d added, %2$d marked as already mailed, %3$d already here or not usable.', 'pfh-widgets' ), $added, $updated, $skipped ) ];
 		}
 
 		if ( isset( $messages[ $msg ] ) ) {
@@ -822,6 +823,13 @@ class PFH_Widgets_Migrate {
 					(int) $found['rows'],
 					'<code>' . esc_html( $found['table'] ) . '</code>'
 				);
+				?>
+			</p>
+			<p class="description">
+				<?php
+				$c = $found['columns'];
+				/* translators: 1-5: column names, 6: all columns. */
+				printf( esc_html__( 'Read as: number %1$s, address %2$s, product %3$s, date %4$s, mailed %5$s. All columns: %6$s.', 'pfh-widgets' ), esc_html( $c['id'] ? $c['id'] : '—' ), esc_html( $c['email'] ? $c['email'] : '—' ), esc_html( $c['product'] ? $c['product'] : '—' ), esc_html( $c['date'] ? $c['date'] : '—' ), esc_html( $c['mailed'] ? $c['mailed'] : '—' ), esc_html( implode( ', ', (array) ( $found['names'] ?? [] ) ) ) );
 				?>
 			</p>
 			<?php if ( ! empty( $found['problem'] ) ) : ?>
