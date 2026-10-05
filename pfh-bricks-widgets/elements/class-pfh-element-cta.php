@@ -24,7 +24,7 @@ class PFH_Element_Cta extends \Bricks\Element {
 	public $icon         = 'ti-announcement';
 	public $css_selector = '.pfh-cta';
 
-	const BASE = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/';
+	const BASE = '/wp-content/uploads/2026/09/';
 
 	/** The card's mint gradient, exported at 1920 x 725 — the card's own ratio. */
 	const BG_URL = self::BASE . 'Frame-469978-1.jpg';

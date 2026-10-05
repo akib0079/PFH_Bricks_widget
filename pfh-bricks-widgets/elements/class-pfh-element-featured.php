@@ -20,7 +20,7 @@ class PFH_Element_Featured extends \Bricks\Element {
 	public $icon         = 'ti-layout-media-right-alt';
 	public $css_selector = '.pfh-feat';
 
-	const BASE      = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/';
+	const BASE      = '/wp-content/uploads/2026/09/';
 	const BG_URL    = self::BASE . 'Group-1000001535-1.jpg';
 	const BEE_URL   = self::BASE . 'fi_9421578.svg';
 	const MEDIA_URL = self::BASE . 'Mask-group-1.png';

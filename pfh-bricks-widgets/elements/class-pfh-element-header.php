@@ -45,11 +45,11 @@ class PFH_Element_Header extends \Bricks\Element {
 	/**
 	 * Default asset URLs supplied by the client.
 	 */
-	const LOGO_URL    = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Group-1-logomain.jpg';
-	const SEARCH_URL  = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/search-line.svg';
-	const CART_URL    = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/fi_4903482.svg';
-	const ACCOUNT_URL = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/fi_12500060.svg';
-	const MEGA_BG_URL = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Frame-470015-scaled.jpg';
+	const LOGO_URL    = '/wp-content/uploads/2026/09/Group-1-logomain.jpg';
+	const SEARCH_URL  = '/wp-content/uploads/2026/09/search-line.svg';
+	const CART_URL    = '/wp-content/uploads/2026/09/fi_4903482.svg';
+	const ACCOUNT_URL = '/wp-content/uploads/2026/09/fi_12500060.svg';
+	const MEGA_BG_URL = '/wp-content/uploads/2026/09/Frame-470015-scaled.jpg';
 
 	public function get_label() {
 		return esc_html__( 'PFH Header', 'pfh-widgets' );

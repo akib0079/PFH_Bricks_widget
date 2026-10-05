@@ -45,18 +45,18 @@ class PFH_Element_Hero extends \Bricks\Element {
 	/**
 	 * Default asset URLs supplied by the client.
 	 */
-	const PRODUCT_URL = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Group-1-1.png';
-	const LEMON_URL   = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/pngwing.com-32-1.png';
+	const PRODUCT_URL = '/wp-content/uploads/2026/09/Group-1-1.png';
+	const LEMON_URL   = '/wp-content/uploads/2026/09/pngwing.com-32-1.png';
 	/*
 	 * The supplied cut-out is matted onto white, which fringes against the
 	 * hero's warm ground. This is the same artwork with the matte recovered
 	 * and the halo softened; see assets/img/.
 	 */
 	/* Resolved at call time, because it is served from the project repo. */
-	const BG_URL      = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Frame-469999-1.jpg';
-	const AVATAR_URL  = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Frame-16.png';
-	const STARS_URL   = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Frame-17.svg';
-	const ARROW_URL   = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Vector-1.svg';
+	const BG_URL      = '/wp-content/uploads/2026/09/Frame-469999-1.jpg';
+	const AVATAR_URL  = '/wp-content/uploads/2026/09/Frame-16.png';
+	const STARS_URL   = '/wp-content/uploads/2026/09/Frame-17.svg';
+	const ARROW_URL   = '/wp-content/uploads/2026/09/Vector-1.svg';
 
 	public function get_label() {
 		return esc_html__( 'PFH Hero Slider', 'pfh-widgets' );

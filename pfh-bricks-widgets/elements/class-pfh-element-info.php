@@ -24,7 +24,7 @@ class PFH_Element_Info extends \Bricks\Element {
 	public $icon         = 'ti-layout-media-left-alt';
 	public $css_selector = '.pfh-info';
 
-	const BASE      = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/';
+	const BASE      = '/wp-content/uploads/2026/09/';
 	const BG_URL    = self::BASE . 'Frame-469975-1-1.jpg';
 	const ONE_URL   = self::BASE . 'Frame-469976.jpg';
 	const TWO_URL   = self::BASE . 'Frame-469976-1.jpg';

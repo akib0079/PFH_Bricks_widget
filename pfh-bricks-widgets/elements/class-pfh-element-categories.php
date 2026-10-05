@@ -44,7 +44,7 @@ class PFH_Element_Categories extends \Bricks\Element {
 	public $css_selector = '.pfh-cats';
 	public $scripts      = [ 'pfhSliderInit' ];
 
-	const CARD_BASE = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/';
+	const CARD_BASE = '/wp-content/uploads/2026/09/';
 
 	public function get_label() {
 		return esc_html__( 'PFH Category Slider', 'pfh-widgets' );

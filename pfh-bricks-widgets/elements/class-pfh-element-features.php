@@ -23,7 +23,7 @@ class PFH_Element_Features extends \Bricks\Element {
 	public $icon         = 'ti-layout-grid2';
 	public $css_selector = '.pfh-hf';
 
-	const BASE = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/';
+	const BASE = '/wp-content/uploads/2026/09/';
 
 	/** Pre-composed card grounds — the decoration is baked into the artwork. */
 	const CARD_HONEY = self::BASE . 'Frame-29.jpg';

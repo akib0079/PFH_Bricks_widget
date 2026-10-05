@@ -20,7 +20,7 @@ class PFH_Element_Rating extends \Bricks\Element {
 	public $icon         = 'ti-star';
 	public $css_selector = '.pfh-rating';
 
-	const LOGO_URL = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Frame-470024.svg';
+	const LOGO_URL = '/wp-content/uploads/2026/09/Frame-470024.svg';
 
 	public function get_label() {
 		return esc_html__( 'PFH Rating Badge', 'pfh-widgets' );

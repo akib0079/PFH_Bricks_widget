@@ -143,3 +143,31 @@
 	gap: 8px;
 	flex-wrap: wrap;
 }
+
+/* Verhuizen: its own message boxes — plugins that tidy away WordPress
+   notices would hide the check's warnings with them. */
+
+.pfh-migrate__box {
+	margin: 12px 0;
+	padding: 8px 12px;
+	border-left: 4px solid #72aee6;
+	background: #fff;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.pfh-migrate__box p,
+.pfh-migrate__box ul {
+	margin: .5em 0;
+}
+
+.pfh-migrate__box ul {
+	list-style: disc;
+	padding-left: 1.5em;
+}
+
+.pfh-migrate__box--success { border-left-color: #00a32a; }
+.pfh-migrate__box--warning { border-left-color: #dba617; background: #fcf9e8; }
+.pfh-migrate__box--error { border-left-color: #d63638; background: #fcf0f1; }
+
+.pfh-migrate__log--error { color: #d63638; }
+.pfh-migrate__log--warning { color: #996800; }

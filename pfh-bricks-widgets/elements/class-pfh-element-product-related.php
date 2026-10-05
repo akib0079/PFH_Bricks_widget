@@ -32,7 +32,7 @@ if ( ! class_exists( 'PFH_Element_Products' ) && defined( 'PFH_WIDGETS_DIR' ) ) 
 class PFH_Element_Product_Related extends PFH_Element_Products {
 
 	/** The band this row sits on when nothing else is chosen. */
-	const BACKGROUND = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Group-1000001553.webp';
+	const BACKGROUND = '/wp-content/uploads/2026/09/Group-1000001553.webp';
 
 	public $name = 'pfh-product-related';
 	public $icon = 'ti-layout-grid3';

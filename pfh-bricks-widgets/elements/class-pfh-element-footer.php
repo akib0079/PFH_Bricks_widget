@@ -34,10 +34,10 @@ class PFH_Element_Footer extends \Bricks\Element {
 	/**
 	 * Default asset URLs supplied by the client.
 	 */
-	const LOGO_URL      = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Group-20640.jpg';
-	const REVIEWS_URL   = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/image-144.svg';
-	const FACEBOOK_URL  = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/facebook-circle-fill.svg';
-	const INSTAGRAM_URL = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/instagram-line.svg';
+	const LOGO_URL      = '/wp-content/uploads/2026/09/Group-20640.jpg';
+	const REVIEWS_URL   = '/wp-content/uploads/2026/09/image-144.svg';
+	const FACEBOOK_URL  = '/wp-content/uploads/2026/09/facebook-circle-fill.svg';
+	const INSTAGRAM_URL = '/wp-content/uploads/2026/09/instagram-line.svg';
 
 	public function get_label() {
 		return esc_html__( 'PFH Footer', 'pfh-widgets' );

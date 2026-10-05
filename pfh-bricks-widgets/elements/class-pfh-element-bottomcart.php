@@ -37,7 +37,7 @@ class PFH_Element_Bottomcart extends \Bricks\Element {
 	const VARIATION_LIMIT = 60;
 
 	/** The artwork behind the card. */
-	const BACKGROUND = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/Frame-470150-1-scaled.jpg';
+	const BACKGROUND = '/wp-content/uploads/2026/09/Frame-470150-1-scaled.jpg';
 
 	public $category     = 'products-for-home';
 	public $name         = 'pfh-bottomcart';

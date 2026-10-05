@@ -68,6 +68,26 @@ class PFH_Widgets_Product_Fields {
 	 *
 	 * @return array
 	 */
+	/**
+	 * The repeaters' image columns, by meta key — what a design export has
+	 * to renumber when it moves a product's fields to another site.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function media_columns() {
+		$out = [];
+
+		foreach ( self::repeaters() as $key => $spec ) {
+			foreach ( (array) ( $spec['columns'] ?? [] ) as $name => $column ) {
+				if ( 'media' === ( $column['type'] ?? '' ) ) {
+					$out[ $key ][] = $name;
+				}
+			}
+		}
+
+		return $out;
+	}
+
 	private static function repeaters() {
 		return [
 			self::HIGHLIGHTS => [

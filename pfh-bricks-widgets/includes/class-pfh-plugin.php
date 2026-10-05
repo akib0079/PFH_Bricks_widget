@@ -289,6 +289,7 @@ class PFH_Widgets_Plugin {
 	public static function boot_services() {
 		PFH_Widgets_Settings::init();
 		PFH_Widgets_Diagnose::boot();
+		PFH_Widgets_Migrate::boot();
 		PFH_Widgets_Save_Guard::init();
 		PFH_Widgets_Product_Fields::init();
 		PFH_Widgets_Attribute_Emoji::init();

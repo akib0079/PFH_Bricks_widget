@@ -870,6 +870,103 @@ class PFH_Widgets_Waitlist extends PFH_Settings_Module {
 	}
 
 	/**
+	 * The old theme's own waitlist table, when this database still has it —
+	 * as the live shop will, once the design has moved onto it.
+	 *
+	 * XStore's columns are read rather than assumed: which one holds the
+	 * address, the product, the date and whether it was mailed.
+	 *
+	 * @return array|null {table, rows, columns, problem}
+	 */
+	public static function legacy_table_info() {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'xstore_waitlist';
+
+		if ( $table !== $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			return null;
+		}
+
+		$names = array_map( 'strtolower', (array) $wpdb->get_col( 'SHOW COLUMNS FROM ' . esc_sql( $table ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- table name.
+		$pick  = static function ( array $wanted ) use ( $names ) {
+			foreach ( $wanted as $name ) {
+				if ( in_array( $name, $names, true ) ) {
+					return $name;
+				}
+			}
+
+			return '';
+		};
+
+		$columns = [
+			'id'      => $pick( [ 'id', 'waitlist_id' ] ),
+			'email'   => $pick( [ 'email', 'user_email', 'customer_email', 'mail' ] ),
+			'product' => $pick( [ 'product_id', 'product', 'post_id', 'variation_id' ] ),
+			'date'    => $pick( [ 'created_at', 'date_added', 'date_created', 'date', 'created', 'time', 'added' ] ),
+			'mailed'  => $pick( [ 'notified', 'is_notified', 'mailed', 'sent', 'email_sent', 'notified_at', 'status' ] ),
+		];
+
+		$info = [
+			'table'   => $table,
+			'rows'    => (int) $wpdb->get_var( 'SELECT COUNT(*) FROM `' . esc_sql( $table ) . '`' ), // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- table name.
+			'columns' => $columns,
+			'problem' => '',
+		];
+
+		if ( ! $columns['id'] || ! $columns['email'] || ! $columns['product'] ) {
+			/* translators: %s: the columns found. */
+			$info['problem'] = sprintf( __( 'The table\'s columns are not the ones expected (%s). Bring the list over from Products For Home → Wachtlijst instead.', 'pfh-widgets' ), implode( ', ', $names ) );
+		}
+
+		return $info;
+	}
+
+	/**
+	 * Take over the old theme's waitlist from this database's own table, in
+	 * the same rows the remote import takes — so a sign-up brought over either
+	 * way is never brought over twice.
+	 *
+	 * @return array{added:int, skipped:int}|WP_Error
+	 */
+	public static function import_from_table() {
+		global $wpdb;
+
+		$info = self::legacy_table_info();
+
+		if ( ! $info || '' !== $info['problem'] ) {
+			return new WP_Error( 'pfh_waitlist_legacy', $info['problem'] ?? __( 'There is no old waitlist here.', 'pfh-widgets' ) );
+		}
+
+		self::maybe_install();
+
+		$c      = $info['columns'];
+		$select = [];
+
+		foreach ( [ 'id', 'email', 'product', 'date', 'mailed' ] as $key ) {
+			$select[] = $c[ $key ] ? '`' . esc_sql( $c[ $key ] ) . '`' : "''";
+		}
+
+		$rows = $wpdb->get_results( 'SELECT ' . implode( ', ', $select ) . ' FROM `' . esc_sql( $info['table'] ) . '` ORDER BY 1', ARRAY_N ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- names read from the table itself.
+
+		foreach ( $rows as &$row ) {
+			$mailed = strtolower( trim( (string) $row[4] ) );
+
+			// A date in a "notified_at" column, or a flag, or a status word.
+			$row[4] = '' !== $mailed && ! in_array( $mailed, [ '0', '0000-00-00 00:00:00', 'pending', 'waiting', 'new', 'subscribed', 'active', 'no' ], true );
+
+			if ( is_numeric( $row[3] ) && (int) $row[3] > 100000000 ) {
+				$row[3] = wp_date( 'Y-m-d H:i:s', (int) $row[3] );
+			}
+		}
+		unset( $row );
+
+		$result = self::import_rows( $rows );
+		update_option( 'pfh_waitlist_last_import', [ 'at' => current_time( 'mysql' ) ] + $result, false );
+
+		return $result;
+	}
+
+	/**
 	 * The live dashboard posts its list here, once, with the key.
 	 */
 	public static function ajax_remote_import() {

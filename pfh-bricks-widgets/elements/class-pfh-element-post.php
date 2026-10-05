@@ -236,7 +236,7 @@ class PFH_Element_Post extends \Bricks\Element {
 			'label'   => esc_html__( 'Background image', 'pfh-widgets' ),
 			'type'    => 'image',
 			'default' => [
-				'url' => 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/generated-image-6-1024x1024.webp',
+				'url' => '/wp-content/uploads/2026/09/generated-image-6-1024x1024.webp',
 			],
 		];
 		$this->controls['ctaOverlayTop'] = $this->colour( 'cta', esc_html__( 'Overlay at top', 'pfh-widgets' ), 'rgba(34,48,28,.94)' );
@@ -667,7 +667,7 @@ class PFH_Element_Post extends \Bricks\Element {
 			return;
 		}
 
-		$default_image = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/generated-image-6-1024x1024.webp';
+		$default_image = '/wp-content/uploads/2026/09/generated-image-6-1024x1024.webp';
 		$image         = PFH_Widgets_Helpers::image_url( $this->setting( 'ctaImage' ), 'large' );
 		$image         = $image ? $image : $default_image;
 		$shop          = function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'shop' ) : '';

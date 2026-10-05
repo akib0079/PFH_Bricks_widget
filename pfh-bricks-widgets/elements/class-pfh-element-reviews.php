@@ -24,7 +24,7 @@ class PFH_Element_Reviews extends \Bricks\Element {
 	public $icon         = 'ti-comments';
 	public $css_selector = '.pfh-rev';
 
-	const BASE     = 'https://m01a032ada4d2735fbc629e14eb62edd.kinsta.cloud/wp-content/uploads/2026/09/';
+	const BASE     = '/wp-content/uploads/2026/09/';
 	const LOGO_URL = self::BASE . 'Frame-470024.svg';
 	const ARROW_URL = self::BASE . 'Vector-2.svg';
 
