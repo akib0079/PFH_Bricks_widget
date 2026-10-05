@@ -25,6 +25,10 @@
  * kept: where the database is utf8 rather than utf8mb4, WordPress refuses to
  * write a value holding one — silently, and the whole value with it.
  *
+ * The long text under the products is the exception: it is a page of copy,
+ * edited in its own editor, kept in its own term meta value and offered to
+ * Bricks as a dynamic data tag.
+ *
  * @package PFH_Widgets
  */
 
@@ -47,10 +51,259 @@ class PFH_Widgets_Collection {
 	/** How many figures the strip holds. */
 	const FIGURES = 4;
 
+	/**
+	 * The category's long text, shown under its products. Its own field:
+	 * the WordPress description stays the short intro at the top, and the
+	 * XStore field it was first written in is left exactly as it is.
+	 */
+	const LONG = '_pfh_long_description';
+
+	/** XStore's "second description", where the old shop kept that text. */
+	const LEGACY_LONG = '_et_second_description';
+
+	/** Set once the old texts have been copied into LONG. */
+	const ADOPTED = 'pfh_long_description_adopted';
+
+	/** The Bricks dynamic data tag that prints LONG. */
+	const TAG = 'pfh_long_description';
+
 	public static function init() {
+		add_action( 'init', [ __CLASS__, 'register_long' ] );
+		add_action( 'product_cat_edit_form_fields', [ __CLASS__, 'long_field' ], 29 );
 		add_action( 'product_cat_edit_form_fields', [ __CLASS__, 'fields' ], 30 );
 		add_action( 'edited_product_cat', [ __CLASS__, 'save' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'assets' ] );
+		add_action( 'admin_init', [ __CLASS__, 'adopt_legacy_long' ] );
+
+		add_filter( 'bricks/dynamic_tags_list', [ __CLASS__, 'tag_list' ] );
+		add_filter( 'bricks/dynamic_data/render_tag', [ __CLASS__, 'render_tag' ], 20, 3 );
+		add_filter( 'bricks/dynamic_data/render_content', [ __CLASS__, 'render_content' ], 20, 3 );
+		add_filter( 'bricks/frontend/render_data', [ __CLASS__, 'render_content' ], 20, 2 );
+	}
+
+	/* ---------------------------------------------------------------------
+	 * The long description
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * Known to WordPress, and so to the REST API: anyone may read it — it is
+	 * the text on the category page — and only someone who manages
+	 * categories may change it.
+	 */
+	public static function register_long() {
+		register_term_meta(
+			'product_cat',
+			self::LONG,
+			[
+				'type'              => 'string',
+				'single'            => true,
+				'default'           => '',
+				'show_in_rest'      => true,
+				'sanitize_callback' => [ __CLASS__, 'clean_long' ],
+				'auth_callback'     => static function () {
+					return current_user_can( 'manage_product_terms' );
+				},
+			]
+		);
+	}
+
+	/**
+	 * A category's long text as stored.
+	 *
+	 * @param WP_Term|int|null $term Category; the one being viewed when empty.
+	 * @return string
+	 */
+	public static function long_description( $term = null ) {
+		$term_id = $term instanceof WP_Term ? $term->term_id : (int) $term;
+
+		if ( ! $term_id ) {
+			$current = self::term();
+			$term_id = $current ? $current->term_id : 0;
+		}
+
+		return $term_id ? trim( (string) get_term_meta( $term_id, self::LONG, true ) ) : '';
+	}
+
+	/**
+	 * A category's long text, ready to print.
+	 *
+	 * @param WP_Term|int|null $term Category; the one being viewed when empty.
+	 * @return string
+	 */
+	public static function long_html( $term = null ) {
+		$raw = self::long_description( $term );
+
+		return '' === $raw ? '' : do_shortcode( wpautop( $raw ) );
+	}
+
+	/**
+	 * What may be kept: the markup a post may hold. Characters outside the
+	 * Basic Multilingual Plane go only where the column cannot store them.
+	 *
+	 * @param mixed $value Submitted text.
+	 * @return string
+	 */
+	public static function clean_long( $value ) {
+		$html = trim( wp_kses_post( is_scalar( $value ) ? (string) $value : '' ) );
+
+		global $wpdb;
+
+		$charset = $wpdb && method_exists( $wpdb, 'get_col_charset' ) ? $wpdb->get_col_charset( $wpdb->termmeta, 'meta_value' ) : 'utf8mb4';
+
+		return 'utf8mb4' === $charset ? $html : self::strip4( $html );
+	}
+
+	/**
+	 * The editor, on the category's own screen, above the collection panel.
+	 *
+	 * @param WP_Term $term Category being edited.
+	 */
+	public static function long_field( $term ) {
+		?>
+		<tr class="form-field pfh-col-long">
+			<th scope="row"><label for="pfh_long_description"><?php esc_html_e( 'Long description', 'pfh-widgets' ); ?></label></th>
+			<td>
+				<?php
+				wp_editor(
+					self::long_description( $term ),
+					'pfh_long_description',
+					[
+						'textarea_name' => 'pfh_long_description',
+						'textarea_rows' => 14,
+						'media_buttons' => true,
+					]
+				);
+				?>
+				<p class="description">
+					<?php
+					printf(
+						/* translators: %s: dynamic data tag. */
+						esc_html__( 'The longer text under this category\'s products, in the Collection Description section. In Bricks it is also the dynamic tag %s. Leave it empty to show the section\'s own text instead.', 'pfh-widgets' ),
+						'<code>{' . esc_html( self::TAG ) . '}</code>'
+					);
+					?>
+				</p>
+			</td>
+		</tr>
+		<?php
+	}
+
+	/**
+	 * Copy each category's old long text into LONG, once. Only empty fields
+	 * are filled, nothing is overwritten, and the old field stays as it is.
+	 */
+	public static function adopt_legacy_long() {
+		if ( get_option( self::ADOPTED ) || ! current_user_can( 'manage_product_terms' ) ) {
+			return;
+		}
+
+		// The option is the lock: a second request at the same moment finds it.
+		if ( ! add_option( self::ADOPTED, [ 'started' => gmdate( 'c' ) ], '', false ) ) {
+			return;
+		}
+
+		$ids = get_terms(
+			[
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+				'meta_key'   => self::LEGACY_LONG, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- once.
+			]
+		);
+
+		$copied = [];
+		$kept   = [];
+
+		foreach ( is_array( $ids ) ? $ids : [] as $term_id ) {
+			$old = (string) get_term_meta( $term_id, self::LEGACY_LONG, true );
+
+			if ( '' === trim( $old ) ) {
+				continue;
+			}
+
+			if ( '' !== self::long_description( $term_id ) ) {
+				$kept[] = (int) $term_id;
+				continue;
+			}
+
+			update_term_meta( $term_id, self::LONG, $old );
+			$copied[] = (int) $term_id;
+		}
+
+		update_option(
+			self::ADOPTED,
+			[
+				'done'   => gmdate( 'c' ),
+				'copied' => $copied,
+				'kept'   => $kept,
+			],
+			false
+		);
+	}
+
+	/* ---------------------------------------------------------------------
+	 * The dynamic data tag
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * @param array $tags Tags Bricks offers.
+	 * @return array
+	 */
+	public static function tag_list( $tags ) {
+		$tags   = is_array( $tags ) ? $tags : [];
+		$tags[] = [
+			'name'  => '{' . self::TAG . '}',
+			'label' => __( 'Category long description', 'pfh-widgets' ),
+			'group' => 'Products For Home',
+		];
+
+		return $tags;
+	}
+
+	/**
+	 * @param mixed  $tag     Tag being rendered.
+	 * @param mixed  $post    Post in context.
+	 * @param string $context Where it goes.
+	 * @return mixed
+	 */
+	public static function render_tag( $tag, $post = null, $context = 'text' ) {
+		if ( ! is_string( $tag ) || str_replace( [ '{', '}' ], '', $tag ) !== self::TAG ) {
+			return $tag;
+		}
+
+		return self::long_html( self::tag_term() );
+	}
+
+	/**
+	 * @param mixed  $content Text holding tags.
+	 * @param mixed  $post    Post in context.
+	 * @param string $context Where it goes.
+	 * @return mixed
+	 */
+	public static function render_content( $content, $post = null, $context = 'text' ) {
+		if ( ! is_string( $content ) || false === strpos( $content, '{' . self::TAG . '}' ) ) {
+			return $content;
+		}
+
+		return str_replace( '{' . self::TAG . '}', self::long_html( self::tag_term() ), $content );
+	}
+
+	/**
+	 * The category a tag speaks for: the one a Bricks term loop is on, or
+	 * the one being viewed.
+	 *
+	 * @return WP_Term|null
+	 */
+	private static function tag_term() {
+		if ( class_exists( '\Bricks\Query' ) && method_exists( '\Bricks\Query', 'is_looping' ) && \Bricks\Query::is_looping() && method_exists( '\Bricks\Query', 'get_loop_object' ) ) {
+			$object = \Bricks\Query::get_loop_object();
+
+			if ( $object instanceof WP_Term && 'product_cat' === $object->taxonomy ) {
+				return $object;
+			}
+		}
+
+		return self::term();
 	}
 
 	/* ---------------------------------------------------------------------
@@ -928,6 +1181,17 @@ class PFH_Widgets_Collection {
 
 		// The automatic header picture is worked out again on the next view.
 		delete_transient( self::HEADER_CACHE . (int) $term_id );
+
+		// The long text has its own field. Only a form that showed it can empty it.
+		if ( isset( $_POST['pfh_long_description'] ) ) {
+			$long = self::clean_long( wp_unslash( $_POST['pfh_long_description'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- clean_long() sanitises.
+
+			if ( '' === $long ) {
+				delete_term_meta( $term_id, self::LONG );
+			} else {
+				update_term_meta( $term_id, self::LONG, $long );
+			}
+		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every field is sanitised in clean().
 		$raw   = isset( $_POST['pfh_collection'] ) && is_array( $_POST['pfh_collection'] ) ? wp_unslash( $_POST['pfh_collection'] ) : [];

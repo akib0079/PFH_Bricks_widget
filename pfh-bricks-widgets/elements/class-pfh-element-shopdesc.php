@@ -122,6 +122,7 @@ class PFH_Element_Shopdesc extends \Bricks\Element {
 			'type'    => 'select',
 			'options' => [
 				'auto'   => esc_html__( 'The category description', 'pfh-widgets' ),
+				'long'   => esc_html__( 'The category\'s long description', 'pfh-widgets' ),
 				'manual' => esc_html__( 'The text below', 'pfh-widgets' ),
 			],
 			'default' => 'auto',
@@ -133,7 +134,7 @@ class PFH_Element_Shopdesc extends \Bricks\Element {
 			'label'       => esc_html__( 'Text', 'pfh-widgets' ),
 			'type'        => 'editor',
 			'default'     => '',
-			'description' => esc_html__( 'Used when there is no category description, and in the builder.', 'pfh-widgets' ),
+			'description' => esc_html__( 'Used when the chosen category text is empty, and in the builder. The long description is also the dynamic tag {pfh_long_description}.', 'pfh-widgets' ),
 		];
 
 		$this->controls['textSize'] = [
@@ -370,11 +371,21 @@ class PFH_Element_Shopdesc extends \Bricks\Element {
 	 * @return string
 	 */
 	private function body_html() {
-		if ( 'auto' === (string) $this->get( 'source', 'auto' ) && is_tax( 'product_cat' ) ) {
+		$source = (string) $this->get( 'source', 'auto' );
+
+		if ( 'auto' === $source && is_tax( 'product_cat' ) ) {
 			$term = get_queried_object();
 
 			if ( $term && ! is_wp_error( $term ) && '' !== trim( (string) $term->description ) ) {
 				return wpautop( (string) $term->description );
+			}
+		}
+
+		if ( 'long' === $source && class_exists( 'PFH_Widgets_Collection' ) ) {
+			$long = PFH_Widgets_Collection::long_html();
+
+			if ( '' !== trim( wp_strip_all_tags( $long ) ) ) {
+				return $long;
 			}
 		}
 
