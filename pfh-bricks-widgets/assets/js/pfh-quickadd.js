@@ -297,6 +297,28 @@
 			'<div class="pfh-qa__price" data-pfh-qa-price>' + ( data.price || '' ) + '</div>' +
 			'</div></div>';
 
+		/*
+		 * A variable product with nothing to choose — no attributes, or one
+		 * without a single option — is one whose choices the shop cannot see.
+		 * Offering the button anyway put a bundle with every flavour empty in
+		 * the cart; the product page is where it can be chosen properly.
+		 */
+		var choosable = data.attributes && data.attributes.length && data.attributes.every( function ( attr ) {
+			return attr.options && attr.options.length;
+		} );
+
+		if ( ! choosable ) {
+			html +=
+				'<p class="pfh-qa__note">Kies je opties op de productpagina.</p>' +
+				'<div class="pfh-qa__actions">' +
+				'<a class="pfh-qa__submit pfh-qa__submit--link" href="' + escapeHtml( data.permalink || '#' ) + '">Bekijk product</a>' +
+				'</div>';
+
+			Modal.open( html );
+
+			return;
+		}
+
 		html += '<div class="pfh-qa__fields">';
 
 		data.attributes.forEach( function ( attr, i ) {
@@ -379,6 +401,15 @@
 					return ! want || want === chosen[ name ];
 				} );
 			} )[ 0 ] || null;
+
+			// Every "any" on the variation needs an answer here; one the
+			// chooser has no field for would reach the cart empty.
+			if ( match && ! Object.keys( match.attributes || {} ).every( function ( name ) {
+				return match.attributes[ name ] || chosen[ name ];
+			} ) ) {
+				match = null;
+				complete = false;
+			}
 		}
 
 		body.pfhChoice = match;

@@ -301,6 +301,15 @@
 	transform: translateY(-1px);
 }
 
+/* The same button as a link, for a product to choose on its own page. */
+a.pfh-qa__submit--link,
+a.pfh-qa__submit--link:hover,
+a.pfh-qa__submit--link:focus {
+	box-sizing: border-box;
+	color: #fff;
+	text-decoration: none;
+}
+
 .pfh-qa__submit:disabled {
 	opacity: 0.45;
 	cursor: default;

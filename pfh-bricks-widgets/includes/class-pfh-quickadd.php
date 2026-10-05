@@ -75,7 +75,17 @@ class PFH_Widgets_Quickadd {
 		}
 
 		$attributes = self::variation_attributes( $variation_id, $attributes );
-		$added      = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $attributes );
+
+		if ( $variation_id && ! self::complete( $attributes ) ) {
+			wp_send_json_error(
+				[
+					'message' => __( 'Kies een optie voor elk veld.', 'pfh-widgets' ),
+					'needs'   => 'variation',
+				]
+			);
+		}
+
+		$added = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $attributes );
 
 		if ( ! $added ) {
 			$notices = function_exists( 'wc_get_notices' ) ? wc_get_notices( 'error' ) : [];
@@ -148,6 +158,29 @@ class PFH_Widgets_Quickadd {
 		}
 
 		return $resolved;
+	}
+
+	/**
+	 * Does every attribute of a variation have a value?
+	 *
+	 * An attribute the variation leaves as "any" must be answered by the
+	 * shopper. WooCommerce checks that only for attributes it can see: when an
+	 * attribute's taxonomy is not registered it sees none, and took a bundle
+	 * with every flavour empty (live, 2026-10-06, after the move). A line
+	 * like that cannot be packed, so it is refused here whatever the browser
+	 * sent.
+	 *
+	 * @param array $attributes attribute_x => value, as resolved.
+	 * @return bool
+	 */
+	public static function complete( array $attributes ) {
+		foreach ( $attributes as $value ) {
+			if ( '' === trim( (string) $value ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
