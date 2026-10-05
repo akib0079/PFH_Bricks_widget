@@ -46,6 +46,15 @@ class PFH_Widgets_Migrate_Export {
 	/** Taxonomies whose terms move whole, with the products in them. */
 	const MEMBER_TAXONOMIES = [ 'product_brand' ];
 
+	/**
+	 * Product meta that is the shop's running state, or another service's
+	 * record of the product, not its content: it stays as it is there.
+	 */
+	const CATALOG_SKIP = '/^(_stock|_stock_status|total_sales|_wc_average_rating|_wc_rating_count|_wc_review_count|_edit_lock|_edit_last|_wp_old_slug|_wp_old_date|_wp_trash_meta_.*|_wp_desired_post_slug|_wc_facebook.*|fb_.*|_fb_.*|_wc_gla_.*|_klaviyo.*|_wcpdf_.*|_pfh_.*|_transient_.*|_oembed_.*)$/';
+
+	/** Product taxonomies set as the other site has them. */
+	const CATALOG_TAXONOMIES = [ 'product_cat', 'product_tag', 'product_shipping_class', 'product_visibility' ];
+
 	/** @var array References met while walking, by kind. */
 	private static $refs = [];
 
@@ -86,6 +95,9 @@ class PFH_Widgets_Migrate_Export {
 			'terms'       => [],
 			'ref_terms'   => [],
 			'products'    => [],
+			'catalog'     => [],
+			'cat_terms'   => [],
+			'attributes'  => [],
 			'menus'       => [],
 			'options'     => [],
 			'modules'     => [],
@@ -102,6 +114,12 @@ class PFH_Widgets_Migrate_Export {
 		$package['terms']    = self::terms();
 		$package['products'] = self::products();
 		$package['menus']    = self::menus();
+
+		if ( ! empty( $args['catalog'] ) ) {
+			$package['catalog']    = self::catalog();
+			$package['cat_terms']  = self::catalog_terms();
+			$package['attributes'] = self::attribute_taxonomies();
+		}
 
 		self::options( $package, ! empty( $args['secrets'] ) );
 		self::shop_settings( $package );
@@ -484,6 +502,145 @@ class PFH_Widgets_Migrate_Export {
 				'sku'       => (string) get_post_meta( $post->ID, '_sku', true ),
 				'title'     => $post->post_title,
 				'meta'      => $meta,
+			];
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The catalogue as the shop shows it: every product and variation with
+	 * its text, its fields and its terms. Stock and the like stay out.
+	 *
+	 * @return array
+	 */
+	private static function catalog() {
+		global $wpdb;
+
+		// Products before their variations, so a parent is found first.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ('product', 'product_variation', 'post') AND post_status NOT IN ('trash', 'auto-draft', 'inherit') ORDER BY post_type = 'product_variation', ID" );
+		$out = [];
+
+		foreach ( $ids as $id ) {
+			$post = get_post( (int) $id );
+
+			if ( ! $post ) {
+				continue;
+			}
+
+			$meta = [];
+
+			foreach ( get_post_meta( $post->ID ) as $key => $values ) {
+				if ( preg_match( self::CATALOG_SKIP, (string) $key ) ) {
+					continue;
+				}
+
+				$meta[ $key ] = PFH_Widgets_Migrate_Refs::catalog_meta( (string) $key, maybe_unserialize( $values[0] ), [ __CLASS__, 'collect' ] );
+			}
+
+			$terms = [];
+
+			foreach ( 'post' === $post->post_type ? [ 'category', 'post_tag' ] : self::catalog_taxonomy_names() as $taxonomy ) {
+				$slugs = wp_get_object_terms( $post->ID, $taxonomy, [ 'fields' => 'slugs' ] );
+
+				if ( ! is_wp_error( $slugs ) ) {
+					$terms[ $taxonomy ] = $slugs;
+				}
+			}
+
+			if ( $post->post_parent ) {
+				self::$refs['post'][ (int) $post->post_parent ] = true;
+			}
+
+			$out[] = [
+				'source_id' => (int) $post->ID,
+				'type'      => $post->post_type,
+				'parent'    => (int) $post->post_parent,
+				'slug'      => $post->post_name,
+				'sku'       => (string) get_post_meta( $post->ID, '_sku', true ),
+				'title'     => $post->post_title,
+				'content'   => self::collect( 'url', $post->post_content ),
+				'excerpt'   => self::collect( 'url', $post->post_excerpt ),
+				'status'    => $post->post_status,
+				'order'     => (int) $post->menu_order,
+				'date'      => $post->post_date,
+				'date_gmt'  => $post->post_date_gmt,
+				'author'    => (int) $post->post_author,
+				'comments'  => $post->comment_status,
+				'meta'      => $meta,
+				'terms'     => $terms,
+			];
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The product taxonomies the catalogue sets: the fixed ones and every
+	 * attribute (pa_*).
+	 *
+	 * @return string[]
+	 */
+	public static function catalog_taxonomy_names() {
+		$names = self::CATALOG_TAXONOMIES;
+
+		if ( function_exists( 'wc_get_attribute_taxonomy_names' ) ) {
+			$names = array_merge( $names, wc_get_attribute_taxonomy_names() );
+		}
+
+		return array_values( array_filter( array_unique( $names ), 'taxonomy_exists' ) );
+	}
+
+	/**
+	 * The terms the catalogue uses — tags, attribute values, categories — by
+	 * slug, with the names and descriptions they carry here.
+	 *
+	 * @return array
+	 */
+	private static function catalog_terms() {
+		$out = [];
+
+		foreach ( array_merge( self::catalog_taxonomy_names(), [ 'category', 'post_tag' ] ) as $taxonomy ) {
+			$terms = get_terms( [ 'taxonomy' => $taxonomy, 'hide_empty' => false ] );
+
+			if ( is_wp_error( $terms ) ) {
+				continue;
+			}
+
+			foreach ( $terms as $term ) {
+				$parent = $term->parent ? get_term( $term->parent, $taxonomy ) : null;
+
+				$out[] = [
+					'source_id'   => (int) $term->term_id,
+					'taxonomy'    => $taxonomy,
+					'slug'        => $term->slug,
+					'name'        => $term->name,
+					'description' => $term->description,
+					'parent'      => $parent && ! is_wp_error( $parent ) ? $parent->slug : '',
+					'order'       => (string) get_term_meta( $term->term_id, 'order', true ),
+				];
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The product attributes themselves (Smaak, Inhoud …).
+	 *
+	 * @return array
+	 */
+	private static function attribute_taxonomies() {
+		$out = [];
+
+		foreach ( function_exists( 'wc_get_attribute_taxonomies' ) ? (array) wc_get_attribute_taxonomies() : [] as $row ) {
+			$out[] = [
+				'name'    => $row->attribute_name,
+				'label'   => $row->attribute_label,
+				'type'    => $row->attribute_type,
+				'orderby' => $row->attribute_orderby,
+				'public'  => (int) $row->attribute_public,
 			];
 		}
 

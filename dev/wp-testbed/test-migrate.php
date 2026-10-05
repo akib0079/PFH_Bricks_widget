@@ -91,6 +91,38 @@ $cat = wp_insert_term( 'Mig categorie', 'product_cat', [ 'slug' => 'mig-cat' ] )
 $cat = (int) $cat['term_id'];
 wp_set_object_terms( $a, [ $cat ], 'product_cat' );
 
+// A flavour attribute and a product with a variation in it, on both sides.
+$stale_attr = wc_attribute_taxonomy_id_by_name( 'migsmaak' );
+if ( $stale_attr ) { wc_delete_attribute( $stale_attr ); }
+$attr_id = wc_create_attribute( [ 'name' => 'Mig smaak', 'slug' => 'migsmaak', 'type' => 'select', 'order_by' => 'menu_order' ] );
+$ptax    = 'pa_migsmaak';
+register_taxonomy( $ptax, 'product', [ 'hierarchical' => false, 'show_ui' => false ] );
+delete_transient( 'wc_attribute_taxonomies' );
+WC_Cache_Helper::invalidate_cache_group( 'woocommerce-attributes' );
+foreach ( [ 'mig-tag' ] as $stale_slug ) { $st = get_term_by( 'slug', $stale_slug, 'product_tag' ); if ( $st ) { wp_delete_term( $st->term_id, 'product_tag' ); } }
+$mand = (int) wp_insert_term( 'Mandarijn', $ptax, [ 'slug' => 'mig-mandarijn' ] )['term_id'];
+$pa   = new WC_Product_Attribute();
+$pa->set_id( $attr_id );
+$pa->set_name( $ptax );
+$pa->set_options( [ $mand ] );
+$pa->set_visible( true );
+$pa->set_variation( true );
+$vprod = new WC_Product_Variable();
+$vprod->set_name( 'Mig variabel' );
+$vprod->set_status( 'publish' );
+$vprod->set_attributes( [ $pa ] );
+$vpid = $vprod->save();
+wp_set_object_terms( $vpid, [ $mand ], $ptax );
+$vvar = new WC_Product_Variation();
+$vvar->set_parent_id( $vpid );
+$vvar->set_attributes( [ $ptax => 'mig-mandarijn' ] );
+$vvar->set_regular_price( '5' );
+$vvar->set_description( 'Variatie oud' );
+$vv = $vvar->save();
+foreach ( [ $vpid, $vv ] as $id ) { mig_backdate( $id ); }
+$blog_old = wp_insert_post( [ 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Mig blog oud', 'post_name' => 'mig-blog-oud', 'post_content' => 'Blog oud' ] );
+mig_backdate( $blog_old );
+
 // The copy was taken here: everything in the testbed so far is older.
 $baseline = '2029-01-01 00:00:00';
 
@@ -185,7 +217,27 @@ if ( taxonomy_exists( 'product_brand' ) ) {
 }
 
 echo "── the export ──\n";
-$package = $E::build( [ 'baseline' => $baseline ] );
+// The catalogue as staging has it now.
+wp_update_post( [ 'ID' => $a, 'post_content' => 'Nieuwe tekst <img src="' . $home . '/wp-content/uploads/2026/09/mig-new.png">', 'post_excerpt' => 'Kort nieuw' ] );
+update_post_meta( $a, '_product_image_gallery', (string) $img_new );
+wp_insert_term( 'Mig tag', 'product_tag', [ 'slug' => 'mig-tag' ] );
+wp_set_object_terms( $a, [ 'mig-tag' ], 'product_tag' );
+update_post_meta( $a, '_manage_stock', 'yes' );
+update_post_meta( $a, '_stock', '99' );
+update_post_meta( $a, 'fb_product_item_id', 'STAGING-FB' );
+wp_update_term( $mand, $ptax, [ 'name' => "\u{1F34A} Mandarijn" ] );
+update_post_meta( $vv, '_variation_description', 'Variatie nieuw' );
+update_post_meta( $vv, '_thumbnail_id', $img_new );
+wp_update_post( [ 'ID' => $blog_old, 'post_content' => 'Blog nieuw' ] );
+$blog_new = wp_insert_post( [ 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Mig blog nieuw', 'post_name' => 'mig-blog-nieuw', 'post_content' => 'Alleen op staging', 'post_date' => '2030-01-02 10:00:00' ] );
+update_post_meta( $blog_new, '_thumbnail_id', $img_new );
+
+$package = $E::build( [ 'baseline' => $baseline, 'catalog' => true ] );
+$by_cat  = [];
+foreach ( $package['catalog'] as $c ) { $by_cat[ $c['source_id'] ] = $c; }
+ok( 'the catalogue holds the product and its variation', isset( $by_cat[ $a ], $by_cat[ $vv ] ) && 'product_variation' === $by_cat[ $vv ]['type'] && $vpid === $by_cat[ $vv ]['parent'] );
+ok( '  with its text, photos and tags, without stock or Facebook\'s id', 'Kort nieuw' === $by_cat[ $a ]['excerpt'] && (string) $img_new === $by_cat[ $a ]['meta']['_product_image_gallery'] && [ 'mig-tag' ] === $by_cat[ $a ]['terms']['product_tag'] && ! isset( $by_cat[ $a ]['meta']['_stock'] ) && ! isset( $by_cat[ $a ]['meta']['fb_product_item_id'] ) );
+ok( '  and the flavour names', (bool) array_filter( $package['cat_terms'], function ( $t ) { return 'mig-mandarijn' === $t['slug'] && false !== strpos( html_entity_decode( $t['name'] ), "\u{1F34A}" ); } ) );
 $titles  = wp_list_pluck( $package['posts'], 'title', 'source_id' );
 ok( 'the templates, the new page and the converted page are in it', isset( $titles[ $t_head ], $titles[ $t_foot ], $titles[ $p_new ], $titles[ $p_old ], $titles[ $fonts ] ) );
 ok( 'the copy ends before the first thing made after it', (int) $package['baseline']['max_post_id'] >= $img_old && (int) $package['baseline']['max_post_id'] < $img_new, wp_json_encode( $package['baseline'] ) );
@@ -227,6 +279,19 @@ copy( $base . '2026/09/mig-new.png', $source . '/2026/09/mig-new.png' );
 copy( $base . '2026/09/mig-font.woff2', $source . '/2026/09/mig-font.woff2' );
 copy( $base . '2026/09/mig-clash.png', $source . '/2026/09/mig-clash.png' );
 add_filter( 'pfh_migrate_local_source', function () use ( $source ) { return $source; } );
+
+// The catalogue as live has it: older texts, its own stock and Facebook id.
+wp_update_post( [ 'ID' => $a, 'post_content' => 'Oude tekst', 'post_excerpt' => 'Kort oud' ] );
+delete_post_meta( $a, '_product_image_gallery' );
+wp_set_object_terms( $a, [], 'product_tag' );
+wp_delete_term( get_term_by( 'slug', 'mig-tag', 'product_tag' )->term_id, 'product_tag' );
+update_post_meta( $a, '_stock', '7' );
+update_post_meta( $a, 'fb_product_item_id', 'LIVE-FB' );
+wp_update_term( $mand, $ptax, [ 'name' => 'Mandarijn' ] );
+update_post_meta( $vv, '_variation_description', 'Variatie oud' );
+delete_post_meta( $vv, '_thumbnail_id' );
+wp_update_post( [ 'ID' => $blog_old, 'post_content' => 'Blog oud' ] );
+wp_delete_post( $blog_new, true );
 
 wp_delete_attachment( $img_new, true );
 wp_delete_attachment( $font_att, true );
@@ -290,6 +355,8 @@ $snapshot = function () use ( $p_old, $a, $cat, $stylesheet ) {
 	];
 };
 $before = $snapshot();
+
+$live_stock = get_post_meta( $a, '_stock', true );
 
 echo "\n── the check before importing ──\n";
 $id = $I::store( $json );
@@ -396,6 +463,17 @@ ok( 'the home page is the new page', $new_page === (int) get_option( 'page_on_fr
 $dhl = get_option( 'woocommerce_dhlpwc_7_settings' );
 ok( 'DHL gets the option names, and keeps its other settings', 'Thuisbezorgd' === $dhl['alternative_option_text_home'] && 'live' === $dhl['other'] );
 $go = get_option( 'woocommerce_gateway_order' );
+clean_post_cache( $a );
+$pa_after = get_post( $a );
+ok( 'the catalogue brings the product\'s text, pointing at this site', 0 === strpos( $pa_after->post_content, 'Nieuwe tekst' ) && false !== strpos( $pa_after->post_content, $home . '/wp-content/uploads/2026/09/mig-new' ) && 'Kort nieuw' === $pa_after->post_excerpt );
+ok( '  its gallery, with the image made here', (string) $new_img === get_post_meta( $a, '_product_image_gallery', true ) );
+ok( '  its tag, made here again', has_term( 'mig-tag', 'product_tag', $a ) );
+ok( '  the flavour name with its emoji', false !== strpos( html_entity_decode( get_term( $mand, $ptax )->name ), "\u{1F34A}" ) );
+ok( '  the variation\'s text and photo', 'Variatie nieuw' === get_post_meta( $vv, '_variation_description', true ) && $new_img === (int) get_post_meta( $vv, '_thumbnail_id', true ) );
+ok( 'a blog post edited there gets its text', 'Blog nieuw' === get_post_field( 'post_content', $blog_old ) );
+$made_blog = get_page_by_path( 'mig-blog-nieuw', OBJECT, 'post' );
+ok( 'a blog post written there is made here, with its image', $made_blog && 'Alleen op staging' === $made_blog->post_content && $new_img === (int) get_post_meta( $made_blog->ID, '_thumbnail_id', true ) );
+ok( '  and leaves this shop\'s stock and Facebook id alone', $live_stock === get_post_meta( $a, '_stock', true ) && '99' !== $live_stock && 'LIVE-FB' === get_post_meta( $a, 'fb_product_item_id', true ) );
 ok( 'every payment method has a number of its own', count( $go ) === count( array_unique( array_map( 'intval', $go ) ) ), wp_json_encode( $go ) );
 
 echo "\n── importing again changes nothing twice ──\n";
@@ -422,6 +500,11 @@ ok( 'the templates and the new page are gone', ! get_post( $new_head ) && ! get_
 ok( 'the fetched image and its file are gone', ! get_post( $new_img ) && ! file_exists( $base . '2026/09/mig-new.png' ) );
 ok( 'the picture under the clashing name is still this site\'s', $clash_md5_live === md5_file( $base . '2026/09/mig-clash.png' ) && ! file_exists( $base . $m[1] ) );
 ok( 'the order is still untouched', $order_print === mig_order_print( $order_id ) && 'shop_order_placehold' === get_post_type( $t_head ) );
+clean_post_cache( $a );
+ok( 'the product\'s text, gallery and tags are as they were', 'Oude tekst' === get_post( $a )->post_content && 'Kort oud' === get_post( $a )->post_excerpt && '' === get_post_meta( $a, '_product_image_gallery', true ) && ! has_term( '', 'product_tag', $a ) );
+ok( '  the flavour name and the variation too', 'Mandarijn' === get_term( $mand, $ptax )->name && 'Variatie oud' === get_post_meta( $vv, '_variation_description', true ) && '' === get_post_meta( $vv, '_thumbnail_id', true ) );
+ok( '  the tag made for it is gone again', ! get_term_by( 'slug', 'mig-tag', 'product_tag' ) );
+ok( 'the blog post has its old text, and the new one is gone', 'Blog oud' === get_post_field( 'post_content', $blog_old ) && ! get_page_by_path( 'mig-blog-nieuw', OBJECT, 'post' ) );
 ok( 'the old menu has its name and address back', 'Hoofdmenu live' === get_term( $live_menu, 'nav_menu' )->name && 'mig-main' === get_term( $live_menu, 'nav_menu' )->slug );
 
 echo "\n── a selection, and a half-finished run carried on ──\n";
@@ -466,6 +549,11 @@ ok( 'no staging address in the code', ! $named, implode( ', ', $named ) );
 ok( 'the code\'s own default pictures are found for the export', count( $E::code_assets() ) > 5, (string) count( $E::code_assets() ) );
 
 // ── Tidy up ───────────────────────────────────────────────────────────────
+wp_delete_post( $blog_old, true );
+foreach ( [ $vv, $vpid ] as $x ) { $p = wc_get_product( $x ); if ( $p ) { $p->delete( true ); } }
+foreach ( (array) get_terms( [ 'taxonomy' => $ptax, 'hide_empty' => false ] ) as $x ) { if ( ! is_wp_error( $x ) ) { wp_delete_term( $x->term_id, $ptax ); } }
+wc_delete_attribute( $attr_id );
+$st = get_term_by( 'slug', 'mig-tag', 'product_tag' ); if ( $st ) { wp_delete_term( $st->term_id, 'product_tag' ); }
 $order->delete( true );
 wp_delete_post( $taken, true );
 wp_delete_post( $live_page, true );

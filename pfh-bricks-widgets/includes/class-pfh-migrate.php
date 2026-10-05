@@ -122,6 +122,7 @@ class PFH_Widgets_Migrate {
 			[
 				'baseline' => isset( $_POST['baseline'] ) ? str_replace( 'T', ' ', sanitize_text_field( wp_unslash( $_POST['baseline'] ) ) ) : '',
 				'secrets'  => ! empty( $_POST['secrets'] ),
+				'catalog'  => ! empty( $_POST['catalog'] ),
 			]
 		);
 
@@ -445,6 +446,13 @@ class PFH_Widgets_Migrate {
 						<td>
 							<input type="datetime-local" id="pfh-migrate-baseline" name="baseline" value="<?php echo esc_attr( str_replace( ' ', 'T', substr( PFH_Widgets_Migrate_Export::DEFAULT_BASELINE, 0, 16 ) ) ); ?>">
 							<p class="description"><?php esc_html_e( 'When this site was copied from the one the design moves to. What was made here after it is new; what is older exists there too.', 'pfh-widgets' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Product catalogue', 'pfh-widgets' ); ?></th>
+						<td>
+							<label class="pfh-settings__toggle"><input type="checkbox" name="catalog" value="1"> <span><?php esc_html_e( 'Include every product as it is here: texts, photos, tags, attributes, categories', 'pfh-widgets' ); ?></span></label>
+							<p class="description"><?php esc_html_e( 'For when the products were edited here too. Stock, sales and reviews stay as they are on the other site.', 'pfh-widgets' ); ?></p>
 						</td>
 					</tr>
 					<tr>
@@ -848,6 +856,9 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 		 * [--secrets]
 		 * : Include API keys.
 		 *
+		 * [--catalog]
+		 * : Include the product catalogue (texts, photos, tags, attributes).
+		 *
 		 * [--file=<path>]
 		 * : Where to write it. Default: the current folder.
 		 *
@@ -859,6 +870,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 				[
 					'baseline' => (string) ( $assoc['baseline'] ?? '' ),
 					'secrets'  => ! empty( $assoc['secrets'] ),
+					'catalog'  => ! empty( $assoc['catalog'] ),
 				]
 			);
 

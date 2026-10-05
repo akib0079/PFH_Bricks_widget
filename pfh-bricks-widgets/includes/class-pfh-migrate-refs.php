@@ -369,6 +369,37 @@ class PFH_Widgets_Migrate_Refs {
 	}
 
 	/**
+	 * One of a product's or variation's own fields, in the catalogue.
+	 *
+	 * @param string   $key   Meta key.
+	 * @param mixed    $value Meta value.
+	 * @param callable $visit Visitor.
+	 * @return mixed
+	 */
+	public static function catalog_meta( $key, $value, callable $visit ) {
+		if ( '_thumbnail_id' === $key ) {
+			return is_numeric( $value ) && (int) $value > 0 ? (string) $visit( 'attachment', (int) $value ) : $value;
+		}
+
+		// "12,34,56", kept in exactly that form.
+		if ( '_product_image_gallery' === $key ) {
+			return preg_replace_callback(
+				'/\d+/',
+				static function ( $m ) use ( $visit ) {
+					return (string) $visit( 'attachment', (int) $m[0] );
+				},
+				(string) $value
+			);
+		}
+
+		if ( in_array( $key, [ '_children', '_upsell_ids', '_crosssell_ids' ], true ) ) {
+			return is_array( $value ) ? self::ids( array_map( 'intval', $value ), $visit, 'post' ) : $value;
+		}
+
+		return self::walk( $value, $visit );
+	}
+
+	/**
 	 * A settings module's option: its media fields are bare attachment ids.
 	 *
 	 * @param array    $value  Option value.

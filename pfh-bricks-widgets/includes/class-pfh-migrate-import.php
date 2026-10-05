@@ -33,10 +33,12 @@ class PFH_Widgets_Migrate_Import {
 		'files'       => 12,
 		'attachments' => 4,
 		'terms'       => 40,
+		'cat_terms'   => 1,
 		'posts'       => 25,
 		'menus'       => 3,
 		'layouts'     => 8,
 		'products'    => 40,
+		'catalog'     => 20,
 		'settings'    => 1,
 		'finish'      => 1,
 	];
@@ -335,6 +337,35 @@ class PFH_Widgets_Migrate_Import {
 			} else {
 				/* translators: %s: product title. */
 				$plan['warnings'][] = sprintf( __( 'Product not found here, its extra fields are skipped: %s', 'pfh-widgets' ), $item['title'] );
+			}
+		}
+
+		if ( ! empty( $package['catalog'] ) ) {
+			$found   = 0;
+			$missing = [];
+
+			foreach ( (array) $package['catalog'] as $item ) {
+				if ( self::find_post( $item + [ 'path' => $item['slug'] ], $base ) || 'post' === $item['type'] ) {
+					$found++;
+				} elseif ( 'product' === $item['type'] ) {
+					$missing[] = $item['title'];
+				}
+			}
+
+			$plan['items'][] = [
+				'key'    => 'group:catalog',
+				'group'  => 'products',
+				/* translators: %d: count. */
+				'label'  => sprintf( _n( 'Catalogue: %d product, variation or blog post', 'Catalogue: %d products, variations and blog posts', $found, 'pfh-widgets' ), $found ),
+				'detail' => __( 'texts, photos, tags, attributes and their values, categories, and blog posts new there — as on the other site; stock and sales stay as they are here', 'pfh-widgets' ),
+				'action' => 'update',
+				'target' => 0,
+				'note'   => '',
+			];
+
+			if ( $missing ) {
+				/* translators: %s: product titles. */
+				$plan['warnings'][] = sprintf( __( 'Not in this shop, so not in its catalogue: %s', 'pfh-widgets' ), implode( '; ', array_slice( $missing, 0, 10 ) ) );
 			}
 		}
 
@@ -697,6 +728,12 @@ class PFH_Widgets_Migrate_Import {
 			case 'products':
 				return self::chosen( 'group:products' ) ? array_values( (array) ( $p['products'] ?? [] ) ) : [];
 
+			case 'cat_terms':
+				return self::chosen( 'group:catalog' ) && ! empty( $p['catalog'] ) ? [ 'cat_terms' ] : [];
+
+			case 'catalog':
+				return self::chosen( 'group:catalog' ) ? array_values( (array) ( $p['catalog'] ?? [] ) ) : [];
+
 			default:
 				return [ $name ];
 		}
@@ -750,6 +787,14 @@ class PFH_Widgets_Migrate_Import {
 
 			if ( $found ) {
 				self::$run['map']['term'][ $item['taxonomy'] ][ (int) $item['source_id'] ] = $found;
+			}
+		}
+
+		foreach ( (array) ( self::$package['catalog'] ?? [] ) as $item ) {
+			$found = self::find_post( $item + [ 'path' => $item['slug'] ], $base );
+
+			if ( $found ) {
+				self::$run['map']['post'][ (int) $item['source_id'] ] = $found;
 			}
 		}
 	}
@@ -1146,6 +1191,225 @@ class PFH_Widgets_Migrate_Import {
 		}
 
 		self::count( 'products' );
+	}
+
+	/**
+	 * The catalogue's attributes and terms: made where missing, renamed where
+	 * the other site names them otherwise. Parents before their children.
+	 */
+	private static function do_cat_terms() {
+		foreach ( (array) ( self::$package['attributes'] ?? [] ) as $attr ) {
+			$id = (int) wc_attribute_taxonomy_id_by_name( $attr['name'] );
+
+			if ( ! $id ) {
+				$made = wc_create_attribute(
+					[
+						'name'         => $attr['label'],
+						'slug'         => $attr['name'],
+						'type'         => $attr['type'],
+						'order_by'     => $attr['orderby'],
+						'has_archives' => (bool) $attr['public'],
+					]
+				);
+
+				if ( is_wp_error( $made ) ) {
+					self::log( 'error', $attr['name'] . ': ' . $made->get_error_message() );
+					continue;
+				}
+
+				self::journal( [ 'type' => 'attribute_created', 'id' => (int) $made ] );
+				register_taxonomy( wc_attribute_taxonomy_name( $attr['name'] ), [ 'product' ], [ 'hierarchical' => false, 'show_ui' => false, 'query_var' => false, 'rewrite' => false ] );
+				continue;
+			}
+
+			$here = wc_get_attribute( $id );
+			$want = [ 'name' => $attr['label'], 'slug' => $attr['name'], 'type' => $attr['type'], 'order_by' => $attr['orderby'], 'has_archives' => (bool) $attr['public'] ];
+
+			if ( $here && ( $here->name !== $want['name'] || $here->type !== $want['type'] || $here->order_by !== $want['order_by'] || (bool) $here->has_archives !== $want['has_archives'] ) ) {
+				self::journal( [ 'type' => 'attribute_updated', 'id' => $id, 'old' => [ 'name' => $here->name, 'slug' => $here->slug === wc_attribute_taxonomy_name( $attr['name'] ) ? $attr['name'] : $here->slug, 'type' => $here->type, 'order_by' => $here->order_by, 'has_archives' => (bool) $here->has_archives ] ] );
+				wc_update_attribute( $id, $want );
+			}
+		}
+
+		delete_transient( 'wc_attribute_taxonomies' );
+
+		if ( class_exists( 'WC_Cache_Helper' ) ) {
+			WC_Cache_Helper::invalidate_cache_group( 'woocommerce-attributes' );
+		}
+
+		$terms = (array) ( self::$package['cat_terms'] ?? [] );
+
+		usort(
+			$terms,
+			static function ( $a, $b ) {
+				return ( '' === $a['parent'] ? 0 : 1 ) - ( '' === $b['parent'] ? 0 : 1 );
+			}
+		);
+
+		foreach ( $terms as $item ) {
+			$taxonomy = $item['taxonomy'];
+
+			if ( ! taxonomy_exists( $taxonomy ) ) {
+				continue;
+			}
+
+			$parent = '' !== $item['parent'] ? (int) self::find_term( $taxonomy, $item['parent'] ) : 0;
+			$here   = get_term_by( 'slug', $item['slug'], $taxonomy );
+
+			if ( ! $here ) {
+				$made = wp_insert_term( $item['name'], $taxonomy, [ 'slug' => $item['slug'], 'description' => (string) $item['description'], 'parent' => $parent ] );
+
+				if ( is_wp_error( $made ) ) {
+					self::log( 'error', $taxonomy . ' ' . $item['slug'] . ': ' . $made->get_error_message() );
+					continue;
+				}
+
+				$id = (int) $made['term_id'];
+				self::journal( [ 'type' => 'term', 'id' => $id, 'taxonomy' => $taxonomy ] );
+				self::count( 'terms_added' );
+			} else {
+				$id = (int) $here->term_id;
+
+				if ( $here->name !== $item['name'] || $here->description !== (string) $item['description'] || (int) $here->parent !== $parent ) {
+					self::journal( [ 'type' => 'term_update', 'id' => $id, 'taxonomy' => $taxonomy, 'name' => $here->name, 'description' => $here->description, 'parent' => (int) $here->parent ] );
+					wp_update_term( $id, $taxonomy, [ 'name' => $item['name'], 'description' => (string) $item['description'], 'parent' => $parent ] );
+					self::count( 'terms_renamed' );
+				}
+			}
+
+			if ( '' !== (string) $item['order'] ) {
+				self::set_meta( 'term', $id, 'order', (string) $item['order'] );
+			}
+
+			self::$run['map']['term'][ $taxonomy ][ (int) $item['source_id'] ] = $id;
+		}
+	}
+
+	/**
+	 * One product or variation as the other site has it: its text, its own
+	 * fields and its terms. Stock, sales and what other services keep on it
+	 * were never in the file; whether it is out of stock stays this site's.
+	 *
+	 * @param array $item Product from the catalogue.
+	 */
+	private static function do_catalog( array $item ) {
+		global $wpdb;
+
+		$base   = (array) ( self::$package['baseline'] ?? [] );
+		$target = (int) ( self::$run['map']['post'][ (int) $item['source_id'] ] ?? 0 );
+		$target = $target ? $target : self::find_post( $item + [ 'path' => $item['slug'] ], $base );
+		$post   = $target ? get_post( $target ) : null;
+
+		// A blog post written there and not here yet: made, as it is there.
+		if ( ! $post && 'post' === $item['type'] ) {
+			$made = wp_insert_post(
+				wp_slash(
+					[
+						'post_type'      => 'post',
+						'post_status'    => (string) $item['status'],
+						'post_title'     => (string) $item['title'],
+						'post_name'      => (string) $item['slug'],
+						'post_content'   => (string) self::resolve( 'url', (string) $item['content'] ),
+						'post_excerpt'   => (string) self::resolve( 'url', (string) $item['excerpt'] ),
+						'post_date'      => (string) $item['date'],
+						'post_date_gmt'  => (string) $item['date_gmt'],
+						'post_author'    => get_userdata( (int) $item['author'] ) ? (int) $item['author'] : get_current_user_id(),
+						'comment_status' => (string) $item['comments'],
+					]
+				),
+				true
+			);
+
+			if ( is_wp_error( $made ) ) {
+				self::log( 'error', $item['slug'] . ': ' . $made->get_error_message() );
+
+				return;
+			}
+
+			self::journal( [ 'type' => 'post', 'id' => (int) $made ] );
+			self::count( 'posts_added' );
+
+			$target = (int) $made;
+			$post   = get_post( $target );
+		}
+
+		if ( ! $post || $post->post_type !== $item['type'] ) {
+			self::count( 'catalog_skipped' );
+
+			return;
+		}
+
+		self::$run['map']['post'][ (int) $item['source_id'] ] = $target;
+
+		$want = [
+			'post_title'   => (string) $item['title'],
+			'post_content' => (string) self::resolve( 'url', (string) $item['content'] ),
+			'post_excerpt' => (string) self::resolve( 'url', (string) $item['excerpt'] ),
+			'menu_order'   => (int) $item['order'],
+		];
+		$change = [];
+
+		foreach ( $want as $field => $value ) {
+			if ( (string) $post->$field !== (string) $value ) {
+				$change[ $field ] = $value;
+			}
+		}
+
+		if ( $change ) {
+			self::journal( [ 'type' => 'post_fields', 'id' => $target, 'old' => array_intersect_key( $post->to_array(), $change ) ] );
+			$wpdb->update( $wpdb->posts, $change, [ 'ID' => $target ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			clean_post_cache( $target );
+		}
+
+		foreach ( (array) $item['meta'] as $key => $value ) {
+			self::set_meta( 'post', $target, (string) $key, PFH_Widgets_Migrate_Refs::catalog_meta( (string) $key, $value, [ __CLASS__, 'resolve' ] ) );
+		}
+
+		$oos = taxonomy_exists( 'product_visibility' ) ? get_term_by( 'slug', 'outofstock', 'product_visibility' ) : null;
+
+		foreach ( (array) $item['terms'] as $taxonomy => $slugs ) {
+			if ( ! taxonomy_exists( $taxonomy ) ) {
+				continue;
+			}
+
+			$ids = [];
+
+			foreach ( (array) $slugs as $slug ) {
+				$term = get_term_by( 'slug', $slug, $taxonomy );
+
+				if ( $term ) {
+					$ids[] = (int) $term->term_id;
+				}
+			}
+
+			$have = wp_get_object_terms( $target, $taxonomy, [ 'fields' => 'ids' ] );
+			$have = is_wp_error( $have ) ? [] : array_map( 'intval', $have );
+
+			// Out of stock follows this shop's stock, not the other site's.
+			if ( 'product_visibility' === $taxonomy && $oos ) {
+				$ids = array_values( array_diff( $ids, [ (int) $oos->term_id ] ) );
+
+				if ( in_array( (int) $oos->term_id, $have, true ) ) {
+					$ids[] = (int) $oos->term_id;
+				}
+			}
+
+			sort( $ids );
+			sort( $have );
+
+			if ( $ids === $have ) {
+				continue;
+			}
+
+			self::journal( [ 'type' => 'terms_set', 'object' => $target, 'taxonomy' => $taxonomy, 'old' => $have ] );
+			wp_set_object_terms( $target, $ids, $taxonomy, false );
+		}
+
+		if ( function_exists( 'wc_delete_product_transients' ) ) {
+			wc_delete_product_transients( 'product_variation' === $item['type'] ? (int) $post->post_parent : $target );
+		}
+
+		self::count( 'catalog' );
 	}
 
 	/**
@@ -1625,6 +1889,8 @@ class PFH_Widgets_Migrate_Import {
 	 * @return array{undone:int}|WP_Error
 	 */
 	public static function undo() {
+		global $wpdb;
+
 		$run = get_option( self::RUN );
 
 		if ( ! is_array( $run ) || empty( $run['journal'] ) || 'undone' === ( $run['state'] ?? '' ) ) {
@@ -1667,7 +1933,6 @@ class PFH_Widgets_Migrate_Import {
 						wp_delete_attachment( (int) $entry['id'], true );
 					} else {
 						// The file was here before: only the record goes.
-						global $wpdb;
 						$wpdb->delete( $wpdb->postmeta, [ 'post_id' => (int) $entry['id'] ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 						$wpdb->delete( $wpdb->posts, [ 'ID' => (int) $entry['id'] ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 						clean_post_cache( (int) $entry['id'] );
@@ -1696,6 +1961,31 @@ class PFH_Widgets_Migrate_Import {
 
 				case 'menu_renamed':
 					wp_update_term( (int) $entry['id'], 'nav_menu', [ 'name' => $entry['name'], 'slug' => $entry['slug'] ] );
+					break;
+
+				case 'post_fields':
+					$wpdb->update( $wpdb->posts, (array) $entry['old'], [ 'ID' => (int) $entry['id'] ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+					clean_post_cache( (int) $entry['id'] );
+					break;
+
+				case 'terms_set':
+					wp_set_object_terms( (int) $entry['object'], array_map( 'intval', (array) $entry['old'] ), $entry['taxonomy'], false );
+					break;
+
+				case 'term_update':
+					wp_update_term( (int) $entry['id'], $entry['taxonomy'], [ 'name' => $entry['name'], 'description' => $entry['description'], 'parent' => (int) $entry['parent'] ] );
+					break;
+
+				case 'attribute_created':
+					if ( function_exists( 'wc_delete_attribute' ) ) {
+						wc_delete_attribute( (int) $entry['id'] );
+					}
+					break;
+
+				case 'attribute_updated':
+					if ( function_exists( 'wc_update_attribute' ) ) {
+						wc_update_attribute( (int) $entry['id'], (array) $entry['old'] );
+					}
 					break;
 
 				default:
