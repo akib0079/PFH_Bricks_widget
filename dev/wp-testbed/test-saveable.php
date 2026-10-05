@@ -27,6 +27,11 @@ $_POST['action'] = 'bricks_save_post';
 
 echo "── every element builds its controls during a save ──\n";
 
+// The category list is kept in a transient; after anything clears it, the
+// first save builds it once. What is measured is a save on a warm cache,
+// whichever test ran before this one.
+PFH_Widgets_Helpers::product_cat_options();
+
 $queries_before = get_num_queries();
 
 foreach ( $elements as $name => $spec ) {

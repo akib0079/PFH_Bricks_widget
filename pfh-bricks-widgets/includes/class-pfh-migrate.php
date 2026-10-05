@@ -32,6 +32,10 @@ class PFH_Widgets_Migrate {
 		add_action( 'admin_post_pfh_migrate_waitlist', [ __CLASS__, 'handle_waitlist' ] );
 		add_action( 'wp_ajax_pfh_migrate_start', [ __CLASS__, 'ajax_start' ] );
 		add_action( 'wp_ajax_pfh_migrate_step', [ __CLASS__, 'ajax_step' ] );
+		add_action( 'admin_post_pfh_renumber_check', [ __CLASS__, 'handle_renumber_check' ] );
+		add_action( 'admin_post_pfh_renumber_undo', [ __CLASS__, 'handle_renumber_undo' ] );
+		add_action( 'wp_ajax_pfh_renumber_start', [ __CLASS__, 'ajax_renumber_start' ] );
+		add_action( 'wp_ajax_pfh_renumber_step', [ __CLASS__, 'ajax_renumber_step' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'assets' ] );
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -47,6 +51,7 @@ class PFH_Widgets_Migrate {
 		require_once PFH_WIDGETS_DIR . 'includes/class-pfh-migrate-refs.php';
 		require_once PFH_WIDGETS_DIR . 'includes/class-pfh-migrate-export.php';
 		require_once PFH_WIDGETS_DIR . 'includes/class-pfh-migrate-import.php';
+		require_once PFH_WIDGETS_DIR . 'includes/class-pfh-renumber.php';
 	}
 
 	public static function menu() {
@@ -248,6 +253,118 @@ class PFH_Widgets_Migrate {
 		];
 	}
 
+	public static function handle_renumber_check() {
+		self::guard();
+		check_admin_referer( self::NONCE );
+		self::load();
+
+		$ids = PFH_Widgets_Renumber::parse( isset( $_POST['numbers'] ) ? sanitize_textarea_field( wp_unslash( $_POST['numbers'] ) ) : '' );
+
+		if ( $ids ) {
+			update_option( PFH_Widgets_Renumber::SURVEY, PFH_Widgets_Renumber::survey( $ids ), false );
+		} else {
+			delete_option( PFH_Widgets_Renumber::SURVEY );
+		}
+
+		wp_safe_redirect( admin_url( 'admin.php?page=' . self::SLUG ) . '#pfh-renumber' );
+		exit;
+	}
+
+	public static function handle_renumber_undo() {
+		self::guard();
+		check_admin_referer( self::NONCE );
+		self::load();
+
+		$result = PFH_Widgets_Renumber::undo();
+
+		if ( is_wp_error( $result ) ) {
+			set_transient( 'pfh_renumber_error_' . get_current_user_id(), $result->get_error_message(), 10 * MINUTE_IN_SECONDS );
+		}
+
+		self::back( [ 'pfh_msg' => is_wp_error( $result ) ? '' : 'renumbered_undo' ] );
+	}
+
+	public static function ajax_renumber_start() {
+		if ( ! current_user_can( PFH_Widgets_Settings::CAP ) || ! check_ajax_referer( self::NONCE, 'nonce', false ) ) {
+			wp_send_json_error( [ 'message' => __( 'Not allowed.', 'pfh-widgets' ) ], 403 );
+		}
+
+		self::load();
+
+		$run = PFH_Widgets_Renumber::start();
+
+		if ( is_wp_error( $run ) ) {
+			wp_send_json_error( [ 'message' => $run->get_error_message() ] );
+		}
+
+		delete_option( PFH_Widgets_Renumber::SURVEY );
+		wp_send_json_success( self::renumber_summary( $run ) );
+	}
+
+	public static function ajax_renumber_step() {
+		if ( ! current_user_can( PFH_Widgets_Settings::CAP ) || ! check_ajax_referer( self::NONCE, 'nonce', false ) ) {
+			wp_send_json_error( [ 'message' => __( 'Not allowed.', 'pfh-widgets' ) ], 403 );
+		}
+
+		self::load();
+
+		$run = PFH_Widgets_Renumber::run_step();
+
+		if ( is_wp_error( $run ) ) {
+			wp_send_json_error( [ 'message' => $run->get_error_message() ] );
+		}
+
+		wp_send_json_success( self::renumber_summary( $run ) );
+	}
+
+	/**
+	 * @param array $run Run.
+	 * @return array
+	 */
+	private static function renumber_summary( array $run ) {
+		$progress = PFH_Widgets_Renumber::progress( $run );
+
+		return [
+			'state'  => $run['state'],
+			'step'   => $progress['step'],
+			'done'   => $progress['done'],
+			'total'  => $progress['total'],
+			'counts' => $run['counts'],
+			'log'    => array_slice( (array) $run['log'], -12 ),
+		];
+	}
+
+	/**
+	 * Numbers as short ranges: 1,2,3,7 → "1-3, 7".
+	 *
+	 * @param int[] $ids Numbers.
+	 * @return string
+	 */
+	private static function ranges( array $ids ) {
+		$ids = array_map( 'intval', $ids );
+		sort( $ids );
+
+		$out   = [];
+		$start = null;
+		$prev  = null;
+
+		foreach ( array_merge( $ids, [ null ] ) as $id ) {
+			if ( null !== $prev && $id === $prev + 1 ) {
+				$prev = $id;
+				continue;
+			}
+
+			if ( null !== $start ) {
+				$out[] = $start === $prev ? (string) $start : $start . '-' . $prev;
+			}
+
+			$start = $id;
+			$prev  = $id;
+		}
+
+		return implode( ', ', $out );
+	}
+
 	// ------------------------------------------------------------------
 	// Screen
 	// ------------------------------------------------------------------
@@ -281,6 +398,7 @@ class PFH_Widgets_Migrate {
 		self::render_export();
 		self::render_import();
 		self::render_waitlist();
+		self::render_renumber();
 
 		echo '</div>';
 	}
@@ -295,6 +413,7 @@ class PFH_Widgets_Migrate {
 			'undone'          => [ 'success', __( 'The last import has been undone.', 'pfh-widgets' ) ],
 			'undo_failed'     => [ 'error', __( 'The last import could not be undone. Restore the backup instead.', 'pfh-widgets' ) ],
 			'waitlist_failed' => [ 'error', __( 'The old theme\'s waitlist could not be read.', 'pfh-widgets' ) ],
+			'renumbered_undo' => [ 'success', __( 'The numbers have been put back as they were.', 'pfh-widgets' ) ],
 		];
 
 		if ( 'waitlist' === $msg ) {
@@ -431,7 +550,7 @@ class PFH_Widgets_Migrate {
 				<?php endif; ?>
 			<?php endforeach; ?>
 
-			<form id="pfh-migrate-run" data-package="<?php echo esc_attr( $id ); ?>">
+			<form id="pfh-migrate-run" data-pfh-run data-start="pfh_migrate_start" data-step="pfh_migrate_step" data-package="<?php echo esc_attr( $id ); ?>">
 				<?php foreach ( $groups as $group => $label ) : ?>
 					<?php
 					$items = array_filter(
@@ -525,7 +644,7 @@ class PFH_Widgets_Migrate {
 				</ul>
 			<?php endif; ?>
 			<?php if ( 'running' === $run['state'] ) : ?>
-				<div id="pfh-migrate-continue">
+				<div id="pfh-migrate-continue" data-step="pfh_migrate_step">
 					<p><button type="button" class="button button-primary"><?php esc_html_e( 'Carry on with this import', 'pfh-widgets' ); ?></button></p>
 					<div class="pfh-migrate__progress" hidden>
 						<p class="pfh-migrate__status"></p>
@@ -543,6 +662,132 @@ class PFH_Widgets_Migrate {
 					submit_button( sprintf( __( 'Undo the import of %s', 'pfh-widgets' ), (string) $run['started'] ), 'delete', 'submit', false );
 					?>
 				</form>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	private static function render_renumber() {
+		$survey = get_option( PFH_Widgets_Renumber::SURVEY );
+		$run    = get_option( PFH_Widgets_Renumber::RUN );
+		$error  = get_transient( 'pfh_renumber_error_' . get_current_user_id() );
+
+		if ( $error ) {
+			delete_transient( 'pfh_renumber_error_' . get_current_user_id() );
+		}
+		?>
+		<div class="pfh-settings__section" id="pfh-renumber">
+			<h2><?php esc_html_e( '4. Make room for another site\'s orders', 'pfh-widgets' ); ?></h2>
+			<p class="pfh-settings__intro"><?php esc_html_e( 'An order import that keeps the order numbers skips every order whose number this site already uses for something of its own: a revision, an image, a template. Paste the order numbers the import needs. The check shows what is on them and where it is used, and changes nothing. Starting it deletes the revisions on those numbers and moves everything else to numbers of its own, with every place that names it. After that the order import can be run again.', 'pfh-widgets' ); ?></p>
+
+			<?php if ( $error ) : ?>
+				<div class="pfh-migrate__box pfh-migrate__box--error"><p><?php echo esc_html( $error ); ?></p></div>
+			<?php endif; ?>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( self::NONCE ); ?>
+				<input type="hidden" name="action" value="pfh_renumber_check">
+				<p><textarea name="numbers" rows="3" class="large-text code" placeholder="13711-13720, 13723, 13748"><?php echo esc_textarea( is_array( $survey ) ? self::ranges( (array) $survey['ids'] ) : '' ); ?></textarea></p>
+				<?php submit_button( __( 'Check these numbers', 'pfh-widgets' ), 'secondary', 'submit', false ); ?>
+			</form>
+
+			<?php if ( is_array( $survey ) && ! empty( $survey['ids'] ) ) : ?>
+				<p>
+					<?php
+					printf(
+						/* translators: 1-6: counts. */
+						esc_html__( '%1$d numbers: %2$d free, %3$d already orders, %4$d revisions and %5$d empty order placeholders to delete, %6$d posts to move.', 'pfh-widgets' ),
+						count( $survey['ids'] ),
+						count( $survey['free'] ),
+						count( $survey['orders'] ),
+						count( $survey['revisions'] ),
+						count( $survey['orphans'] ),
+						count( $survey['move'] )
+					);
+					?>
+				</p>
+
+				<?php if ( $survey['move'] ) : ?>
+					<table class="widefat striped"><tbody>
+						<?php foreach ( $survey['move'] as $item ) : ?>
+							<tr>
+								<td>#<?php echo (int) $item['id']; ?></td>
+								<td><?php echo esc_html( $item['type'] ); ?></td>
+								<td><?php echo esc_html( '' !== (string) $item['title'] ? $item['title'] : '—' ); ?></td>
+								<td><?php echo esc_html( $item['status'] ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody></table>
+				<?php endif; ?>
+
+				<?php foreach ( [ 'refs' => [ 'success', __( 'Places that name them, and are repointed:', 'pfh-widgets' ) ], 'unhandled' => [ 'warning', __( 'Places that mention the number but are not repointed (look at these before starting):', 'pfh-widgets' ) ] ] as $key => $box ) : ?>
+					<?php if ( ! empty( $survey[ $key ] ) ) : ?>
+						<div class="pfh-migrate__box pfh-migrate__box--<?php echo esc_attr( $box[0] ); ?>">
+							<p><?php echo esc_html( $box[1] ); ?></p>
+							<ul>
+								<?php foreach ( $survey[ $key ] as $where => $count ) : ?>
+									<li><?php echo esc_html( $where . ' × ' . (int) $count ); ?></li>
+								<?php endforeach; ?>
+							</ul>
+						</div>
+					<?php endif; ?>
+				<?php endforeach; ?>
+
+				<?php if ( $survey['revisions'] || $survey['orphans'] || $survey['move'] ) : ?>
+					<form id="pfh-renumber-run" data-pfh-run data-start="pfh_renumber_start" data-step="pfh_renumber_step" data-confirm="<?php echo esc_attr( __( 'Delete these revisions and move these posts to new numbers now? Make sure there is a full backup of this site.', 'pfh-widgets' ) ); ?>">
+						<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Make room', 'pfh-widgets' ); ?></button></p>
+						<div class="pfh-migrate__progress" hidden>
+							<p class="pfh-migrate__status"></p>
+							<progress max="100" value="0" style="width:100%"></progress>
+							<ul class="pfh-migrate__log"></ul>
+						</div>
+					</form>
+				<?php endif; ?>
+			<?php endif; ?>
+
+			<?php if ( is_array( $run ) && ! empty( $run['id'] ) ) : ?>
+				<h3><?php esc_html_e( 'Last time', 'pfh-widgets' ); ?></h3>
+				<p class="description">
+					<?php
+					$parts = [ (string) $run['started'], (string) $run['state'] ];
+
+					foreach ( (array) $run['counts'] as $what => $count ) {
+						$parts[] = $what . ': ' . (int) $count;
+					}
+
+					echo esc_html( implode( ' · ', $parts ) );
+					?>
+				</p>
+				<?php if ( ! empty( $run['map'] ) ) : ?>
+					<p class="description">
+						<?php
+						$pairs = [];
+
+						foreach ( (array) $run['map'] as $old => $new ) {
+							$pairs[] = $old . '→' . $new;
+						}
+
+						echo esc_html( implode( ', ', $pairs ) );
+						?>
+					</p>
+				<?php endif; ?>
+				<?php if ( 'running' === $run['state'] ) : ?>
+					<div id="pfh-renumber-continue" data-step="pfh_renumber_step">
+						<p><button type="button" class="button button-primary"><?php esc_html_e( 'Carry on', 'pfh-widgets' ); ?></button></p>
+						<div class="pfh-migrate__progress" hidden>
+							<p class="pfh-migrate__status"></p>
+							<progress max="100" value="0" style="width:100%"></progress>
+							<ul class="pfh-migrate__log"></ul>
+						</div>
+					</div>
+				<?php endif; ?>
+				<?php if ( in_array( $run['state'], [ 'done', 'running' ], true ) ) : ?>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( __( 'Put every post back on its old number?', 'pfh-widgets' ) ); ?>');">
+						<?php wp_nonce_field( self::NONCE ); ?>
+						<input type="hidden" name="action" value="pfh_renumber_undo">
+						<?php submit_button( __( 'Undo', 'pfh-widgets' ), 'delete', 'submit', false ); ?>
+					</form>
+				<?php endif; ?>
 			<?php endif; ?>
 		</div>
 		<?php

@@ -31,7 +31,7 @@
 	/**
 	 * The progress box inside a container, and the button that started it.
 	 */
-	function runner( container, button ) {
+	function runner( container, button, stepAction ) {
 		var box = container.querySelector( '.pfh-migrate__progress' );
 		var status = container.querySelector( '.pfh-migrate__status' );
 		var bar = container.querySelector( 'progress' );
@@ -62,7 +62,7 @@
 		}
 
 		function step() {
-			post( 'pfh_migrate_step' ).then( function ( result ) {
+			post( stepAction ).then( function ( result ) {
 				retries = 0;
 
 				if ( ! result || ! result.success ) {
@@ -105,18 +105,21 @@
 		};
 	}
 
-	var form = document.getElementById( 'pfh-migrate-run' );
-
-	if ( form ) {
+	// Every runner on the screen: the design import, making room for orders.
+	document.querySelectorAll( 'form[data-pfh-run]' ).forEach( function ( form ) {
 		form.addEventListener( 'submit', function ( event ) {
 			event.preventDefault();
 
-			if ( ! window.confirm( cfg.text.confirm ) ) {
+			if ( ! window.confirm( form.getAttribute( 'data-confirm' ) || cfg.text.confirm ) ) {
 				return;
 			}
 
-			var run = runner( form, form.querySelector( 'button[type="submit"]' ) );
-			var pairs = [ [ 'package', form.getAttribute( 'data-package' ) ] ];
+			var run = runner( form, form.querySelector( 'button[type="submit"]' ), form.getAttribute( 'data-step' ) );
+			var pairs = [];
+
+			if ( form.hasAttribute( 'data-package' ) ) {
+				pairs.push( [ 'package', form.getAttribute( 'data-package' ) ] );
+			}
 
 			form.querySelectorAll( 'input[name="selection[]"]:checked' ).forEach( function ( input ) {
 				pairs.push( [ 'selection[]', input.value ] );
@@ -124,7 +127,7 @@
 
 			run.begin();
 
-			post( 'pfh_migrate_start', pairs ).then( function ( result ) {
+			post( form.getAttribute( 'data-start' ), pairs ).then( function ( result ) {
 				if ( ! result || ! result.success ) {
 					run.fail( result && result.data ? result.data.message : '' );
 					return;
@@ -136,16 +139,15 @@
 				run.fail( '' );
 			} );
 		} );
-	}
+	} );
 
-	var carry = document.getElementById( 'pfh-migrate-continue' );
-
-	if ( carry ) {
+	// A run left half way, carried on.
+	document.querySelectorAll( '#pfh-migrate-continue, #pfh-renumber-continue' ).forEach( function ( carry ) {
 		carry.querySelector( 'button' ).addEventListener( 'click', function () {
-			var run = runner( carry, this );
+			var run = runner( carry, this, carry.getAttribute( 'data-step' ) );
 
 			run.begin();
 			run.step();
 		} );
-	}
+	} );
 }() );
