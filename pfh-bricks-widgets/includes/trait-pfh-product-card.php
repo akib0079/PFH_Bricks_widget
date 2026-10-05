@@ -1081,7 +1081,9 @@ trait PFH_Product_Card_Trait {
 			'label'    => esc_html__( 'Number of products', 'pfh-widgets' ),
 			'type'     => 'number',
 			'min'      => 1,
-			'max'      => 24,
+			// /gia-giamas/ lists 26: a lower cap would trim it the first time
+			// someone touched the field in the builder.
+			'max'      => 48,
 			'inline'   => true,
 			'default'  => 8,
 			'required' => [ 'source', '!=', 'manual' ],

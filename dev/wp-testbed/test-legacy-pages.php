@@ -95,6 +95,29 @@ ok( 'paragraphs set as h5 read as body text', (bool) preg_match( '/\.pfh-legacy_
 ok( 'the thank-you page dresses FunnelKit\'s order and customer details', false !== strpos( $legacy_css, '.pfh-ty .wfty_title' ) && false !== strpos( $legacy_css, '.pfh-ty__check' ) );
 ok( 'braces balance', substr_count( $legacy_css, '{' ) === substr_count( $legacy_css, '}' ) );
 
+echo "\n── a third-party widget on a moved page ──\n";
+// /partners/: Elfsight's store locator, its container kept, its script loaded by the plugin.
+$widget_layout   = $legacy_layout;
+$widget_layout[] = [ 'id' => 'eeeeee', 'name' => 'div', 'parent' => 'bbbbbb', 'children' => [], 'settings' => [ '_cssClasses' => 'elfsight-app-6b2d77b3-62e8-4aa0-9551-a471f088e186' ] ];
+$widget          = legacy_page( 'Partners (test)', $widget_layout );
+ok( 'the loader runs with the page styles', 20 === has_action( 'wp_enqueue_scripts', [ 'PFH_Widgets_Assets', 'maybe_embeds' ] ) );
+visit( $widget );
+PFH_Widgets_Assets::maybe_embeds();
+ok( 'the widget\'s script is loaded', wp_script_is( 'pfh-embed-elfsight-app', 'enqueued' ) );
+$src = wp_scripts()->registered['pfh-embed-elfsight-app']->src ?? '';
+ok( '  from the vendor', 'https://static.elfsight.com/platform/platform.js' === $src, $src );
+ok( '  without holding up the page', 'async' === wp_scripts()->get_data( 'pfh-embed-elfsight-app', 'strategy' ) );
+wp_dequeue_script( 'pfh-embed-elfsight-app' );
+visit( $converted );
+PFH_Widgets_Assets::maybe_embeds();
+ok( 'not on a moved page without one', ! wp_script_is( 'pfh-embed-elfsight-app', 'enqueued' ) );
+add_filter( 'pfh_widgets_embed_scripts', '__return_empty_array' );
+visit( $widget );
+PFH_Widgets_Assets::maybe_embeds();
+ok( 'and it can be switched off', ! wp_script_is( 'pfh-embed-elfsight-app', 'enqueued' ) );
+remove_filter( 'pfh_widgets_embed_scripts', '__return_empty_array' );
+wp_delete_post( $widget, true );
+
 echo "\n── where it must not run ──\n";
 $front = visit( $converted );
 $front->add_content_filter();

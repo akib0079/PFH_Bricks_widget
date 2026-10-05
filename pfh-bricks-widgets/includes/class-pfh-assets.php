@@ -37,6 +37,7 @@ class PFH_Widgets_Assets {
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'register' ], 5 );
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'maybe_quickadd' ], 20 );
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'maybe_legacy' ], 20 );
+		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'maybe_embeds' ], 20 );
 		add_action( 'template_redirect', [ __CLASS__, 'quiet_elementor' ], 99 );
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'maybe_fkcart' ], 100 );
 		add_action( 'wp_footer', [ __CLASS__, 'maybe_fkcart' ], 1 );
@@ -548,6 +549,60 @@ class PFH_Widgets_Assets {
 
 		self::base();
 		wp_enqueue_style( 'pfh-legacy' );
+	}
+
+	/**
+	 * The script a third-party widget on the page needs.
+	 *
+	 * The Elementor pages carried such widgets in an HTML element with its own
+	 * <script>. Bricks runs a script in a page only through its code element,
+	 * and code execution is off on this site, so a converted page keeps the
+	 * widget's container and the script is loaded here — only where such a
+	 * container is in the page's layout. /partners/ (an Elfsight store
+	 * locator) is the one today.
+	 *
+	 * Filter `pfh_widgets_embed_scripts` (class marker => script URL) to add
+	 * or remove one.
+	 */
+	public static function maybe_embeds() {
+		if ( is_admin() || ! is_singular() ) {
+			return;
+		}
+
+		$content = self::bricks_content( (int) get_queried_object_id() );
+
+		if ( ! $content ) {
+			return;
+		}
+
+		$layout = (string) wp_json_encode( $content );
+
+		/**
+		 * Filter the scripts loaded for third-party widgets in a page's layout.
+		 *
+		 * @param array $scripts Class marker => script URL.
+		 */
+		$scripts = apply_filters(
+			'pfh_widgets_embed_scripts',
+			[ 'elfsight-app-' => 'https://static.elfsight.com/platform/platform.js' ]
+		);
+
+		foreach ( (array) $scripts as $marker => $src ) {
+			if ( '' === (string) $marker || ! $src || false === strpos( $layout, (string) $marker ) ) {
+				continue;
+			}
+
+			wp_enqueue_script(
+				'pfh-embed-' . sanitize_key( trim( (string) $marker, '-' ) ),
+				esc_url_raw( $src ),
+				[],
+				null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- the vendor versions its own script.
+				[
+					'in_footer' => true,
+					'strategy'  => 'async',
+				]
+			);
+		}
 	}
 
 	/**
