@@ -52,6 +52,7 @@ class PFH_Widgets_Family {
 		add_action( 'edited_' . self::TAX, [ __CLASS__, 'save' ] );
 		add_action( 'pre_delete_term', [ __CLASS__, 'forget_term' ], 10, 2 );
 		add_action( 'pfh_widgets_product_panel', [ __CLASS__, 'product_panel' ] );
+		add_filter( 'term_updated_messages', [ __CLASS__, 'messages' ] );
 
 		// A product saved in the same request is read afresh.
 		add_action( 'clean_post_cache', [ __CLASS__, 'flush' ] );
@@ -89,6 +90,27 @@ class PFH_Widgets_Family {
 	}
 
 	/**
+	 * The screen's notices in the shop's own words, instead of WordPress's
+	 * generic "Item updated."
+	 *
+	 * @param array $messages Per taxonomy.
+	 * @return array
+	 */
+	public static function messages( $messages ) {
+		$messages[ self::TAX ] = [
+			0 => '',
+			1 => __( 'Familie toegevoegd. Voeg nu de producten toe.', 'pfh-widgets' ),
+			2 => __( 'Familie verwijderd.', 'pfh-widgets' ),
+			3 => __( 'Familie bijgewerkt.', 'pfh-widgets' ),
+			4 => __( 'Familie niet toegevoegd.', 'pfh-widgets' ),
+			5 => __( 'Familie niet bijgewerkt.', 'pfh-widgets' ),
+			6 => __( 'Families verwijderd.', 'pfh-widgets' ),
+		];
+
+		return $messages;
+	}
+
+	/**
 	 * Forget the members read so far in this request.
 	 */
 	public static function flush() {
@@ -115,6 +137,7 @@ class PFH_Widgets_Family {
 					'new_item_name' => __( 'Naam van de familie', 'pfh-widgets' ),
 					'search_items'  => __( 'Families zoeken', 'pfh-widgets' ),
 					'not_found'     => __( 'Nog geen families.', 'pfh-widgets' ),
+					'no_terms'      => __( 'Geen familie', 'pfh-widgets' ),
 					'back_to_items' => __( '← Terug naar de families', 'pfh-widgets' ),
 				],
 				'description'        => __( 'Losse producten die één product zijn in andere maten of smaken. Op de productpagina staan ze als knoppen, zoals op bol.com.', 'pfh-widgets' ),

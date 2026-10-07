@@ -73,6 +73,9 @@ $tax = get_taxonomy( PFH_Widgets_Family::TAX );
 ok( 'it has a screen but no public pages', $tax->show_ui && ! $tax->public && ! $tax->publicly_queryable && false === $tax->rewrite );
 ok( 'managed by whoever manages product categories', 'manage_product_terms' === $tax->cap->manage_terms && 'assign_product_terms' === $tax->cap->assign_terms );
 ok( 'not a meta box of its own on the product', false === $tax->meta_box_cb );
+ok( 'a product in no family says so in the list, not "No tags"', 'Geen familie' === $tax->labels->no_terms );
+$msgs = apply_filters( 'term_updated_messages', [] );
+ok( 'the screen says "Familie bijgewerkt." after a save', 'Familie bijgewerkt.' === ( $msgs[ PFH_Widgets_Family::TAX ][3] ?? '' ) );
 
 echo "\n── sizes in the order a shopper reads them ──\n";
 ok( '450 ml before 1 L', [ '450 ml', '1 L' ] === PFH_Widgets_Family::sorted( [ '1 L', '450 ml' ] ) );
