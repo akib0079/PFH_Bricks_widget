@@ -923,10 +923,16 @@ class PFH_Widgets_Family {
 	private static function script() {
 		?>
 		<style>
-			/* Wide enough to read a whole product name in its select. */
-			.form-field table.pfh-family-table { width: 100%; max-width: 980px; }
+			/*
+			 * Wide enough to read a whole product name and a whole value
+			 * ("Appel & granaatappel"): WordPress keeps this form at 800px,
+			 * which left the value columns a few letters wide.
+			 */
+			body.taxonomy-pfh_family #edittag { max-width: 1200px; }
+			.form-field table.pfh-family-table { width: 100%; max-width: 1000px; }
 			.pfh-family-table td { vertical-align: middle; }
-			.pfh-family-table td:first-child { width: 55%; }
+			.pfh-family-table td:first-child { width: 46%; }
+			.pfh-family-table td input[type=text] { min-width: 11em; }
 			.form-field .pfh-family-table select { width: 100%; max-width: none; }
 			.pfh-family-table input[type=text] { width: 100%; }
 			.pfh-family-table__x { width: 32px; text-align: center; }
