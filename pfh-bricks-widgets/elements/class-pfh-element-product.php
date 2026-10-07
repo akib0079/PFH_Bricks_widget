@@ -32,6 +32,10 @@ if ( ! class_exists( 'PFH_Widgets_Product_Fields' ) && defined( 'PFH_WIDGETS_DIR
 	require_once PFH_WIDGETS_DIR . 'includes/class-pfh-product-fields.php';
 }
 
+if ( ! class_exists( 'PFH_Widgets_Family' ) && defined( 'PFH_WIDGETS_DIR' ) ) {
+	require_once PFH_WIDGETS_DIR . 'includes/class-pfh-family.php';
+}
+
 if ( ! trait_exists( 'PFH_Element_Product_Price' ) && defined( 'PFH_WIDGETS_DIR' ) ) {
 	require_once PFH_WIDGETS_DIR . 'includes/trait-pfh-product-price.php';
 }
@@ -337,6 +341,20 @@ class PFH_Element_Product extends \Bricks\Element {
 				'placeholder' => 'smaak',
 				'description' => esc_html__( 'Left empty, the first group uses the first colour and every group under it the second, as drawn. Name attributes here, separated by commas, to decide it yourself instead.', 'pfh-widgets' ),
 			]
+		);
+
+		$this->controls['showFamily'] = $this->switch_field(
+			'variants',
+			esc_html__( 'Buttons for the other sizes and flavours', 'pfh-widgets' ),
+			true,
+			[ 'description' => esc_html__( 'As on bol.com: a product in a product family (Products → Productfamilies) shows its siblings as rows of buttons, each a link to that product.', 'pfh-widgets' ) ]
+		);
+
+		$this->controls['familyPhotos'] = $this->switch_field(
+			'variants',
+			esc_html__( 'A photo in each of those buttons', 'pfh-widgets' ),
+			false,
+			[ 'required' => [ 'showFamily', '!=', false ] ]
 		);
 	}
 
@@ -774,6 +792,7 @@ class PFH_Element_Product extends \Bricks\Element {
 
 		$this->render_price( $product );
 		$this->render_tiers( $product );
+		$this->render_family( $product );
 		$this->render_form( $product );
 		$this->render_usp();
 		$this->render_loyalty( $product );
@@ -900,6 +919,103 @@ class PFH_Element_Product extends \Bricks\Element {
 	/* ---------------------------------------------------------------------
 	 * Variants, highlights and the cart
 	 * ------------------------------------------------------------------ */
+
+	/**
+	 * The other sizes and flavours of this product, as bol.com shows them:
+	 * a row of buttons per choice ("Smaak", "Inhoud"), each a plain link to
+	 * the sibling product. The one being viewed is marked, not linked.
+	 *
+	 * A button leads to the sibling that keeps the other choices where they
+	 * are; one that cannot is drawn dashed, and one sold out is greyed —
+	 * both stay a link, so every value is always reachable.
+	 *
+	 * @param WC_Product $product Product.
+	 */
+	private function render_family( $product ) {
+		if ( ! $this->switched_on( 'showFamily' ) || ! class_exists( 'PFH_Widgets_Family' ) ) {
+			return;
+		}
+
+		$view = PFH_Widgets_Family::view( $product->get_id(), $this->switched_on( 'familyPhotos', false ) );
+
+		if ( ! $view ) {
+			return;
+		}
+
+		$named  = $this->switched_on( 'labelSelected' );
+		$tinted = array_filter( array_map( 'trim', explode( ',', strtolower( (string) $this->setting( 'tintedAttrs', '' ) ) ) ) );
+
+		echo '<div class="pfh-pdp__attrs pfh-pdp__family" data-pfh-family>';
+
+		foreach ( $view['rows'] as $n => $row ) {
+			// The same colours as the variant pills: the first row solid and
+			// the rest the second colour, unless the panel names the rows.
+			$soft = $tinted ? in_array( strtolower( $row['label'] ), $tinted, true ) : $n > 0;
+
+			printf( '<div class="pfh-pdp__attr pfh-pdp__family-row%s">', $soft ? ' pfh-pdp__attr--soft' : '' );
+
+			printf(
+				'<p class="pfh-pdp__attr-label">%s<span class="pfh-pdp__attr-value">%s</span></p>',
+				esc_html( $row['label'] ),
+				esc_html( $named && '' !== $row['current'] ? ' — ' . $row['current'] : '' )
+			);
+
+			printf( '<div class="pfh-pdp__pills" role="group" aria-label="%s">', esc_attr( $row['label'] ) );
+
+			foreach ( $row['options'] as $option ) {
+				$classes = [ 'pfh-pdp__pill', 'pfh-pdp__pill--link' ];
+				$title   = '';
+				$aside   = [];
+
+				if ( $option['current'] ) {
+					$classes[] = 'is-chosen';
+				} elseif ( ! $option['exact'] ) {
+					// Leads to a sibling that differs in another choice as well:
+					// its name says which one.
+					$classes[] = 'is-other';
+					$title     = $option['title'];
+					$aside[]   = $option['title'];
+				}
+
+				if ( ! $option['in_stock'] ) {
+					$classes[] = 'is-soldout';
+					$title     = ( '' !== $option['title'] ? $option['title'] . ' — ' : '' ) . __( 'uitverkocht', 'pfh-widgets' );
+					$aside[]   = __( 'uitverkocht', 'pfh-widgets' );
+				}
+
+				if ( '' !== $option['emoji'] ) {
+					$classes[] = 'has-emoji';
+				}
+
+				if ( '' !== $option['photo'] ) {
+					$classes[] = 'has-photo';
+				}
+
+				$inner = ( '' !== $option['photo'] ? '<img class="pfh-pdp__pill-photo" src="' . esc_url( $option['photo'] ) . '" alt="" loading="lazy" width="40" height="40">' : '' )
+					. ( '' !== $option['emoji'] ? '<span class="pfh-pdp__pill-emoji" aria-hidden="true">' . esc_html( $option['emoji'] ) . '</span>' : '' )
+					. '<span class="pfh-pdp__pill-text">' . esc_html( $option['words'] ) . '</span>'
+					// What the dashed outline and the greying say, for a screen reader.
+					. ( $aside ? '<span class="pfh-sr-only"> (' . esc_html( implode( ', ', $aside ) ) . ')</span>' : '' );
+
+				if ( $option['current'] ) {
+					printf( '<span class="%s" aria-current="true">%s</span>', esc_attr( implode( ' ', $classes ) ), $inner ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built escaped above.
+				} else {
+					printf(
+						'<a class="%s" href="%s"%s>%s</a>',
+						esc_attr( implode( ' ', $classes ) ),
+						esc_url( $option['url'] ),
+						'' !== $title ? ' title="' . esc_attr( $title ) . '"' : '',
+						$inner // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built escaped above.
+					);
+				}
+			}
+
+			echo '</div>';
+			echo '</div>';
+		}
+
+		echo '</div>';
+	}
 
 	/**
 	 * @param WC_Product $product Product.

@@ -191,6 +191,15 @@ class PFH_Widgets_Product_Fields {
 				?>
 			</div>
 
+			<?php
+			/**
+			 * Fires inside the Products For Home tab, under its first fields.
+			 *
+			 * @param int $id Product.
+			 */
+			do_action( 'pfh_widgets_product_panel', $id );
+			?>
+
 			<?php self::section( esc_html__( 'Product section', 'pfh-widgets' ) ); ?>
 			<div class="options_group">
 				<?php

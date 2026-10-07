@@ -446,6 +446,58 @@
 .pfh-pdp__pill[disabled] { opacity: .4; cursor: not-allowed; }
 .pfh-pdp__pill[disabled]:hover { border-color: var(--pfh-pdp-line); }
 
+/*
+ * The other sizes and flavours (a product family), as bol.com shows them:
+ * the same pills, but each one a link to that sibling product. A theme's
+ * link colour and underline are refused so they read as the pills above.
+ */
+.pfh-pdp__family { margin-bottom: 22px; }
+
+.pfh-pdp a.pfh-pdp__pill--link,
+.pfh-pdp a.pfh-pdp__pill--link:hover,
+.pfh-pdp a.pfh-pdp__pill--link:focus {
+	color: var(--pfh-pdp-pill-ink, var(--pfh-pdp-ink));
+	text-decoration: none;
+}
+
+.pfh-pdp__pill--link {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	box-sizing: border-box;
+}
+
+.pfh-pdp span.pfh-pdp__pill--link.is-chosen { cursor: default; }
+
+/* Leads to a sibling that changes another choice as well. */
+.pfh-pdp__pill--link.is-other { border-style: dashed; }
+
+/*
+ * Sold out: still a link, so its page and its waitlist can be reached. Its
+ * text is muted and struck through rather than the whole pill faded, so the
+ * focus ring stays at full strength — and the product being viewed, sold
+ * out or not, keeps its chosen colours.
+ */
+.pfh-pdp a.pfh-pdp__pill--link.is-soldout {
+	border-color: var(--pfh-pdp-line);
+	color: #6b6b6b; /* readable on white (5.3:1), unlike the quiet text colour */
+}
+
+.pfh-pdp__pill--link.is-soldout .pfh-pdp__pill-text { text-decoration: line-through; }
+.pfh-pdp a.pfh-pdp__pill--link.is-soldout:hover { border-color: var(--pfh-pdp-accent); }
+
+/* Outranks the larger touch padding phones give every pill. */
+.pfh-pdp .pfh-pdp__pill--link.has-photo { padding-block: 6px; padding-left: 6px; }
+
+.pfh-pdp__pill-photo {
+	flex: none;
+	width: 32px;
+	height: 32px;
+	border-radius: calc(var(--pfh-pdp-radius) * .6);
+	object-fit: cover;
+	background: #fff;
+}
+
 /* ---------- what is in the box ---------- */
 
 .pfh-pdp__box {
