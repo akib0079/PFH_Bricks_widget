@@ -110,7 +110,22 @@ ok( 'the allergens get their own box', false !== strpos( $html, 'pfh-tabs__note'
 ok( 'under their own heading', false !== strpos( $html, '>Allergenen</h3>' ) );
 ok( 'every claim is a ticked pill', 6 === substr_count( $html, 'pfh-tabs__claim"' ) );
 ok( 'with a tick each', 6 === substr_count( $html, 'pfh-tabs__tick' ) );
-ok( 'under the Zonder heading', false !== strpos( $html, '>Zonder</h3>' ) );
+ok( 'under the Bijzonder heading', false !== strpos( $html, '>Bijzonder</h3>' ) && false === strpos( $html, '>Zonder</h3>' ) );
+ok( '  also where the template still holds the old "Zonder"', false !== strpos( tabs( $fixture_id, [ 'freeFromTitle' => 'Zonder' ] ), '>Bijzonder</h3>' ) );
+ok( '  while a heading chosen on the element is kept', false !== strpos( tabs( $fixture_id, [ 'freeFromTitle' => 'Kenmerken' ] ), '>Kenmerken</h3>' ) );
+update_post_meta( $fixture_id, $F::FREE_FROM_TITLE, 'Zonder' );
+ok( '  and a product can say its own', false !== strpos( tabs( $fixture_id, [ 'freeFromTitle' => 'Kenmerken' ] ), '>Zonder</h3>' ) );
+delete_post_meta( $fixture_id, $F::FREE_FROM_TITLE );
+update_post_meta( $fixture_id, $F::INGR_TITLE, 'Samenstelling' );
+update_post_meta( $fixture_id, $F::ALLERGENS_TITLE, 'Let op' );
+$own_heads = tabs( $fixture_id );
+ok( 'the tab\'s heading and the allergens heading are the product\'s own too', false !== strpos( $own_heads, '>Samenstelling</h2>' ) && false !== strpos( $own_heads, '>Let op</h3>' ) );
+delete_post_meta( $fixture_id, $F::INGR_TITLE );
+delete_post_meta( $fixture_id, $F::ALLERGENS_TITLE );
+update_post_meta( $fixture_id, $F::TAB_NAMES, [ 'ingr' => 'Wat zit erin', 'storage' => '' ] );
+$renamed = tabs( $fixture_id, [ 'ingrLabel' => 'Ingrediënten' ] );
+ok( 'a product can rename a tab for itself', false !== strpos( $renamed, '><span>Wat zit erin</span>' ) && false !== strpos( $renamed, '><span>Houdbaarheid</span>' ) );
+delete_post_meta( $fixture_id, $F::TAB_NAMES );
 ok( 'the sub-headings are settings', false !== strpos( tabs( $fixture_id, [ 'allergenTitle' => 'Allergieinfo' ] ), '>Allergieinfo</h3>' ) );
 
 echo "\n── Houdbaarheid ──\n";
@@ -228,6 +243,79 @@ if ( $old_id ) {
 	$off = tabs( $old_id, [ 'legacyTabs' => false ], true );
 	ok( 'and the old tabs can be switched off', false === strpos( $off, 'Inhoud' ) && false === strpos( $off, 'aardbeiensap' ) );
 
+
+	echo "\n── the product's own tabs (Inhoud …) ──\n";
+	delete_post_meta( $old_id, $F::TABS );
+	update_post_meta( $old_id, 'wb_custom_tabs', [
+		[ 'title' => 'inhoud', 'content' => '<p><span class="x"><strong>Inhoud:</strong> 450 ml</span></p><p><span style="color:red">Servings: 15</span></p>', 'tab_type' => 'local' ],
+		[ 'title' => 'Ingrediënten', 'content' => '<p>citroensap, aardbeiensap</p>', 'tab_type' => 'local' ],
+		[ 'title' => 'Schoonmaak advies', 'content' => '<p>Met warm water.</p>', 'tab_type' => 'local' ],
+	] );
+
+	$GLOBALS['post'] = get_post( $old_id );
+	require_once WP_PLUGIN_DIR . '/woocommerce/includes/admin/wc-meta-box-functions.php';
+	ob_start();
+	$F::panel();
+	$panel = (string) ob_get_clean();
+	ok( 'the editor starts from what the page shows', 3 === preg_match_all( '/name="_pfh_tabs\[\d+\]\[title\]" value="([^"]*)"/', $panel, $t ) && [ 'Inhoud', 'Ingrediënten', 'Schoonmaak advies' ] === $t[1], implode( ' / ', $t[1] ?? [] ) );
+	ok( '  its text without the old page builder\'s styles and spans', false !== strpos( $panel, '&lt;strong&gt;Inhoud:&lt;/strong&gt; 450 ml' ) && false === strpos( $panel, 'color:red' ) && false === strpos( $panel, '&lt;span' ) );
+	ok( '  saying where it came from', false !== strpos( $panel, 'came over from the old shop' ) );
+	ok( '  and that the Ingrediënten one fills that tab', false !== strpos( $panel, 'Shown as the Ingrediënten tab' ) );
+	ok( 'the pills\' heading, the headings and the tab names are fields', false !== strpos( $panel, 'name="' . $F::FREE_FROM_TITLE . '"' ) && false !== strpos( $panel, 'placeholder="Bijzonder"' ) && false !== strpos( $panel, 'name="' . $F::INGR_TITLE . '"' ) && false !== strpos( $panel, 'name="' . $F::ALLERGENS_TITLE . '"' ) && false !== strpos( $panel, 'name="' . $F::TAB_NAMES . '[ingr]"' ) );
+	ok( 'there is a blank tab to add from', false !== strpos( $panel, 'name="_pfh_tabs[__i__][title]"' ) && false !== strpos( $panel, 'pfh-xtabs__add' ) );
+
+	$save = function ( array $post ) use ( $F, $old_id ) {
+		$_POST = $post;
+		$F::save( $old_id );
+		$_POST = [];
+	};
+
+	$save( [ '_pfh_tabs_sent' => '1', '_pfh_tabs' => [
+		0 => [ 'title' => 'Inhoud', 'content' => "<strong>Inhoud:</strong> 3x 450 ml + 2x 467ml glazen\n\nServings per fles: 15" ],
+		3 => [ 'title' => 'Schoonmaak advies', 'content' => '' ],
+		7 => [ 'title' => '', 'content' => 'Zonder naam' ],
+		9 => [ 'title' => '', 'content' => '' ],
+	] ] );
+	ok( 'saving makes them the product\'s own', $F::has_tabs( $old_id ) && 3 === count( $F::tabs( $old_id ) ) );
+	$mine = tabs( $old_id, [], true );
+	preg_match_all( '#data-pfh-tab="([^"]+)"><span>([^<]+)#', $mine, $m );
+	ok( 'the edited Inhoud shows', false !== strpos( $mine, '3x 450 ml + 2x 467ml glazen' ) && false === strpos( $mine, 'Servings: 15' ) );
+	ok( '  as paragraphs', false !== strpos( $mine, '<p>Servings per fles: 15</p>' ) );
+	ok( 'a tab taken out is gone, though the old shop still has it', false === strpos( $mine, 'aardbeiensap' ) && ! in_array( 'Ingrediënten', $m[2], true ) );
+	ok( 'a tab with no text is not shown', ! in_array( 'Schoonmaak advies', $m[2], true ) );
+	ok( '  but is kept, name and all, to fill in later', 'Schoonmaak advies' === ( $F::tabs( $old_id )[1]['title'] ?? '' ) );
+	ok( 'a text without a name becomes "Inhoud"', 2 === count( array_keys( $m[2], 'Inhoud', true ) ), implode( ' / ', $m[2] ) );
+	ok( '  and two tabs of one name are both shown', false !== strpos( $mine, 'Zonder naam' ) );
+	ok( 'they come straight after the description', 'Omschrijving' === $m[2][0] && 'Inhoud' === $m[2][1] );
+
+	$off = tabs( $old_id, [ 'legacyTabs' => false ], true );
+	ok( 'switching the old shop\'s tabs off leaves the product\'s own', false !== strpos( $off, '3x 450 ml' ) );
+
+	$save( [ '_pfh_tabs_sent' => '1', '_pfh_tabs' => [ [ 'title' => 'Ingrediënten', 'content' => 'Eigen tekst' ] ] ] );
+	ok( 'a tab named Ingrediënten fills that tab', false !== strpos( tabs( $old_id, [], true ), 'Eigen tekst' ) );
+	update_post_meta( $old_id, $F::INGREDIENTS, 'Uit de velden' );
+	$both = tabs( $old_id, [], true );
+	ok( '  until its own fields are filled in', false !== strpos( $both, 'Uit de velden' ) && false === strpos( $both, 'Eigen tekst' ) );
+	$GLOBALS['post'] = get_post( $old_id );
+	ob_start();
+	$F::panel();
+	ok( '  which the editor says', false !== strpos( (string) ob_get_clean(), 'Not shown: the Ingrediënten fields below are filled in' ) );
+	delete_post_meta( $old_id, $F::INGREDIENTS );
+
+	$save( [ '_pfh_tabs_sent' => '1' ] );
+	$none = tabs( $old_id, [], true );
+	ok( 'all of them removed: no tabs, and the old shop\'s do not come back', $F::has_tabs( $old_id ) && false === strpos( $none, 'Inhoud' ) && false === strpos( $none, 'Met warm water' ) );
+
+	update_post_meta( $old_id, $F::TABS, [ [ 'title' => 'Inhoud', 'content' => 'Blijft' ] ] );
+	$save( [ $F::BADGE => '' ] );
+	ok( 'a save without the editor on the form leaves the tabs alone', 'Blijft' === ( $F::tabs( $old_id )[0]['content'] ?? '' ) );
+
+	$save( [ '_pfh_tabs_sent' => '1', $F::TAB_NAMES => [ 'desc' => ' Over ', 'ingr' => '' ], $F::FREE_FROM_TITLE => 'Kenmerken' ] );
+	ok( 'tab names and the pills\' heading are saved', 'Over' === $F::tab_names( $old_id )['desc'] && 'Kenmerken' === $F::text( $old_id, $F::FREE_FROM_TITLE ) );
+	$save( [ '_pfh_tabs_sent' => '1', $F::TAB_NAMES => [ 'desc' => '' ] ] );
+	ok( '  and emptied again', ! metadata_exists( 'post', $old_id, $F::TAB_NAMES ) && '' === $F::text( $old_id, $F::FREE_FROM_TITLE ) );
+
+	delete_post_meta( $old_id, $F::TABS );
 	'' === $kept ? delete_post_meta( $old_id, 'wb_custom_tabs' ) : update_post_meta( $old_id, 'wb_custom_tabs', $kept );
 }
 

@@ -97,7 +97,7 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 			'tabs',
 			esc_html__( 'Use the old shop\'s tabs where a field is empty', 'pfh-widgets' ),
 			true,
-			[ 'description' => esc_html__( 'The tabs typed in on the old site (Inhoud, Ingrediënten, Houdbaarheid, Voedingswaarden). A field filled in here always wins.', 'pfh-widgets' ) ]
+			[ 'description' => esc_html__( 'The tabs typed in on the old site (Inhoud, Ingrediënten, Houdbaarheid, Voedingswaarden), until the product is saved with tabs of its own. A field filled in here always wins.', 'pfh-widgets' ) ]
 		);
 
 		$this->controls['hideEmpty'] = $this->switch_field(
@@ -127,7 +127,15 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 
 		$this->controls['ingrHeading']    = $this->text_field( 'ingr', esc_html__( 'Heading', 'pfh-widgets' ), 'Ingrediënten', [ 'inline' => true ] );
 		$this->controls['allergenTitle']  = $this->text_field( 'ingr', esc_html__( 'Allergens heading', 'pfh-widgets' ), 'Allergenen', [ 'inline' => true ] );
-		$this->controls['freeFromTitle']  = $this->text_field( 'ingr', esc_html__( 'Claims heading', 'pfh-widgets' ), 'Zonder', [ 'inline' => true ] );
+		$this->controls['freeFromTitle']  = $this->text_field(
+			'ingr',
+			esc_html__( 'Claims heading', 'pfh-widgets' ),
+			PFH_Widgets_Product_Fields::FREE_FROM_DEFAULT,
+			[
+				'inline'      => true,
+				'description' => esc_html__( 'Each product can set its own (Products For Home tab → Heading above the pills).', 'pfh-widgets' ),
+			]
+		);
 
 		/* ---- Houdbaarheid ---- */
 
@@ -403,7 +411,15 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 			'reviews'   => $this->reviews_panel( $product ),
 		];
 
-		$legacy = $this->switched_on( 'legacyTabs' ) ? self::legacy_tabs( (int) $product->get_id() ) : [];
+		/*
+		 * The product's own tabs once it has been saved with them; until
+		 * then, the old shop's, which is what the editor starts from.
+		 */
+		$id     = (int) $product->get_id();
+		$legacy = PFH_Widgets_Product_Fields::has_tabs( $id )
+			? self::keyed( PFH_Widgets_Product_Fields::tabs( $id ) )
+			: ( $this->switched_on( 'legacyTabs' ) ? self::legacy_tabs( $id ) : [] );
+		$names  = PFH_Widgets_Product_Fields::tab_names( $id );
 		$extra  = [];
 
 		foreach ( $legacy as $slug => $old ) {
@@ -426,7 +442,7 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 				continue;
 			}
 
-			$label = trim( (string) $this->setting( $key . 'Label', $tab['label'] ) );
+			$label = '' !== $names[ $key ] ? $names[ $key ] : trim( (string) $this->setting( $key . 'Label', $tab['label'] ) );
 			$label = '' !== $label ? $label : $tab['label'];
 
 			if ( 'reviews' === $key ) {
@@ -466,53 +482,68 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 	/**
 	 * The old shop's tabs for one product, keyed by where they belong.
 	 *
-	 * A tab whose title is one of this element's own (Ingrediënten,
-	 * Houdbaarheid, Voedingswaarden) is keyed like it, so it can fill that
-	 * tab; any other is keyed by its title.
+	 * @see PFH_Element_Product_Tabs::keyed()
 	 *
 	 * @param int $product_id Product.
 	 * @return array<string, array{title: string, content: string}>
 	 */
 	public static function legacy_tabs( $product_id ) {
-		$stored = get_post_meta( (int) $product_id, 'wb_custom_tabs', true );
+		return self::keyed( PFH_Widgets_Product_Fields::legacy_tabs( (int) $product_id ), true );
+	}
 
-		if ( ! is_array( $stored ) ) {
-			return [];
-		}
-
-		$own = [
-			'ingredienten'    => 'ingr',
-			'houdbaarheid'    => 'storage',
-			'voedingswaarden' => 'nutrition',
-			'omschrijving'    => 'desc',
-			'beschrijving'    => 'desc',
-		];
-
+	/**
+	 * Tabs keyed by where they belong.
+	 *
+	 * A tab named like one of this element's own (Ingrediënten,
+	 * Houdbaarheid, Voedingswaarden) is keyed like it, so it can fill that
+	 * tab; any other is keyed by its name. One with no text is left out:
+	 * a tab with nothing in it is not drawn.
+	 *
+	 * @param array $rows Title and content each.
+	 * @param bool  $old  The old shop's tabs, rather than the product's own.
+	 * @return array<string, array{title: string, content: string}>
+	 */
+	private static function keyed( array $rows, $old = false ) {
 		$out = [];
 
-		foreach ( $stored as $tab ) {
-			if ( ! is_array( $tab ) ) {
-				continue;
-			}
-
-			$title   = trim( wp_strip_all_tags( isset( $tab['title'] ) ? (string) $tab['title'] : '' ) );
-			$content = trim( strip_shortcodes( isset( $tab['content'] ) ? (string) $tab['content'] : '' ) );
+		foreach ( $rows as $tab ) {
+			$title   = trim( (string) $tab['title'] );
+			$content = trim( strip_shortcodes( (string) $tab['content'] ) );
 
 			if ( '' === $title || '' === trim( wp_strip_all_tags( $content ) ) ) {
 				continue;
 			}
 
-			$slug = sanitize_title( remove_accents( $title ) );
-			$key  = isset( $own[ $slug ] ) ? $own[ $slug ] : 'old-' . $slug;
+			$own = PFH_Widgets_Product_Fields::builtin_key( $title );
 
-			// The old description would only repeat WooCommerce's own.
-			if ( 'desc' === $key || isset( $out[ $key ] ) ) {
-				continue;
+			// The old description would only repeat WooCommerce's own; a
+			// tab someone named so here is simply a tab of its own.
+			if ( 'desc' === $own ) {
+				if ( $old ) {
+					continue;
+				}
+
+				$own = '';
+			}
+
+			if ( $own ) {
+				if ( isset( $out[ $own ] ) ) {
+					continue;
+				}
+
+				$key = $own;
+			} else {
+				// Two tabs of the same name are still two tabs.
+				$base = 'old-' . sanitize_title( remove_accents( $title ) );
+				$key  = $base;
+
+				for ( $n = 2; isset( $out[ $key ] ); $n++ ) {
+					$key = $base . '-' . $n;
+				}
 			}
 
 			$out[ $key ] = [
-				// "inhoud" on one product, "Inhoud" on the rest.
-				'title'   => function_exists( 'mb_strtoupper' ) ? mb_strtoupper( mb_substr( $title, 0, 1 ) ) . mb_substr( $title, 1 ) : ucfirst( $title ),
+				'title'   => $title,
 				'content' => $content,
 			];
 		}
@@ -656,19 +687,21 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 			return '';
 		}
 
-		$html = $this->heading( (string) $this->setting( 'ingrHeading', 'Ingrediënten' ) );
+		$own  = trim( PFH_Widgets_Product_Fields::text( $id, PFH_Widgets_Product_Fields::INGR_TITLE ) );
+		$html = $this->heading( '' !== $own ? $own : (string) $this->setting( 'ingrHeading', 'Ingrediënten' ) );
 
 		if ( '' !== $body ) {
 			$html .= '<div class="pfh-tabs__rich pfh-tabs__rich--ticks">' . wp_kses_post( wpautop( $body ) ) . '</div>';
 		}
 
 		if ( '' !== $allergens ) {
-			$html .= $this->subheading( (string) $this->setting( 'allergenTitle', 'Allergenen' ) );
+			$own   = trim( PFH_Widgets_Product_Fields::text( $id, PFH_Widgets_Product_Fields::ALLERGENS_TITLE ) );
+			$html .= $this->subheading( '' !== $own ? $own : (string) $this->setting( 'allergenTitle', 'Allergenen' ) );
 			$html .= '<div class="pfh-tabs__note">' . wp_kses_post( wpautop( $allergens ) ) . '</div>';
 		}
 
 		if ( $claims ) {
-			$html .= $this->subheading( (string) $this->setting( 'freeFromTitle', 'Zonder' ) );
+			$html .= $this->subheading( $this->free_from_title( $id ) );
 			$html .= '<ul class="pfh-tabs__claims">';
 
 			foreach ( $claims as $claim ) {
@@ -681,6 +714,30 @@ class PFH_Element_Product_Tabs extends \Bricks\Element {
 		}
 
 		return $html;
+	}
+
+	/**
+	 * The heading above the ticked pills: the product's own, else the
+	 * element's, else "Bijzonder".
+	 *
+	 * "Zonder" was the element's default until 1.61.5 and is still stored
+	 * in templates that never changed it; the client asked for "Bijzonder"
+	 * (2026-10-15), so that inherited word gives way too. A product can
+	 * still say "Zonder" for itself.
+	 *
+	 * @param int $id Product.
+	 * @return string
+	 */
+	private function free_from_title( $id ) {
+		$own = trim( PFH_Widgets_Product_Fields::text( $id, PFH_Widgets_Product_Fields::FREE_FROM_TITLE ) );
+
+		if ( '' !== $own ) {
+			return $own;
+		}
+
+		$set = trim( (string) $this->setting( 'freeFromTitle', '' ) );
+
+		return ( '' === $set || 'Zonder' === $set ) ? PFH_Widgets_Product_Fields::FREE_FROM_DEFAULT : $set;
 	}
 
 	/**

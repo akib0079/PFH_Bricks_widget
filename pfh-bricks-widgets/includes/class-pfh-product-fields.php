@@ -29,12 +29,23 @@ class PFH_Widgets_Product_Fields {
 	const INGREDIENTS     = '_pfh_ingredients';
 	const ALLERGENS       = '_pfh_allergens';
 	const FREE_FROM       = '_pfh_free_from';
+	const INGR_TITLE      = '_pfh_ingredients_title';
+	const ALLERGENS_TITLE = '_pfh_allergens_title';
+	const FREE_FROM_TITLE = '_pfh_free_from_title';
+	const TAB_NAMES       = '_pfh_tab_names';
+	const TABS            = '_pfh_tabs';
 	const STORAGE_TITLE   = '_pfh_storage_title';
 	const STORAGE         = '_pfh_storage';
 	const NUTRITION_TITLE = '_pfh_nutrition_title';
 	const NUTRITION_INTRO = '_pfh_nutrition_intro';
 	const NUTRITION_COLS  = '_pfh_nutrition_cols';
 	const NUTRITION       = '_pfh_nutrition';
+
+	/* What the pills' heading says when nobody has said otherwise. */
+	const FREE_FROM_DEFAULT = 'Bijzonder';
+
+	/* The old shop's tabs (its theme's "custom tabs"), read only. */
+	const LEGACY_TABS = 'wb_custom_tabs';
 
 	/* The sections under the product. */
 	const HIGHLIGHT_TITLE = '_pfh_highlight_title';
@@ -60,6 +71,9 @@ class PFH_Widgets_Product_Fields {
 	public static function media( $hook ) {
 		if ( in_array( $hook, [ 'post.php', 'post-new.php' ], true ) && 'product' === get_post_type() ) {
 			wp_enqueue_media();
+
+			// The editor for the product's own tabs (wp.editor).
+			wp_enqueue_editor();
 		}
 	}
 
@@ -99,8 +113,8 @@ class PFH_Widgets_Product_Fields {
 				],
 			],
 			self::FREE_FROM  => [
-				'label'   => __( 'Zonder', 'pfh-widgets' ),
-				'help'    => __( 'One per claim. Each becomes a ticked pill under the ingredients.', 'pfh-widgets' ),
+				'label'   => __( 'Pills', 'pfh-widgets' ),
+				'help'    => __( 'One per line. Each becomes a ticked pill under the ingredients, below the heading above.', 'pfh-widgets' ),
 				'columns' => [
 					'label' => [ 'label' => __( 'Claim', 'pfh-widgets' ), 'type' => 'text', 'placeholder' => 'Glutenvrij' ],
 				],
@@ -217,9 +231,41 @@ class PFH_Widgets_Product_Fields {
 			</div>
 			<?php self::repeater( $id, self::HIGHLIGHTS ); ?>
 
+			<?php self::section( esc_html__( 'Tab names', 'pfh-widgets' ) ); ?>
+			<div class="options_group">
+				<?php $names = self::tab_names( $id ); ?>
+				<p class="form-field">
+					<label><?php esc_html_e( 'This product\'s tabs', 'pfh-widgets' ); ?></label>
+					<?php foreach ( self::tab_defaults() as $key => $placeholder ) : ?>
+						<input type="text" style="width:23%;margin-right:1%"
+							name="<?php echo esc_attr( self::TAB_NAMES ); ?>[<?php echo esc_attr( $key ); ?>]"
+							value="<?php echo esc_attr( $names[ $key ] ); ?>"
+							placeholder="<?php echo esc_attr( $placeholder ); ?>"
+							aria-label="<?php echo esc_attr( $placeholder ); ?>" />
+					<?php endforeach; ?>
+					<span class="description" style="display:block;margin:6px 0 0">
+						<?php esc_html_e( 'Renames a tab on this product only. Empty keeps the name set on the element. A tab with nothing in it is not shown.', 'pfh-widgets' ); ?>
+					</span>
+				</p>
+			</div>
+
+			<?php self::section( esc_html__( 'Tabs of its own (Inhoud, …)', 'pfh-widgets' ) ); ?>
+			<?php self::tabs_editor( $id ); ?>
+
 			<?php self::section( esc_html__( 'Tab: Ingredienten', 'pfh-widgets' ) ); ?>
 			<div class="options_group">
 				<?php
+				woocommerce_wp_text_input(
+					[
+						'id'          => self::INGR_TITLE,
+						'value'       => self::text( $id, self::INGR_TITLE ),
+						'label'       => esc_html__( 'Heading', 'pfh-widgets' ),
+						'placeholder' => 'Ingrediënten',
+						'desc_tip'    => true,
+						'description' => esc_html__( 'The heading at the top of the tab. Empty uses the wording set on the element.', 'pfh-widgets' ),
+					]
+				);
+
 				woocommerce_wp_textarea_input(
 					[
 						'id'          => self::INGREDIENTS,
@@ -232,6 +278,15 @@ class PFH_Widgets_Product_Fields {
 					]
 				);
 
+				woocommerce_wp_text_input(
+					[
+						'id'          => self::ALLERGENS_TITLE,
+						'value'       => self::text( $id, self::ALLERGENS_TITLE ),
+						'label'       => esc_html__( 'Allergens heading', 'pfh-widgets' ),
+						'placeholder' => 'Allergenen',
+					]
+				);
+
 				woocommerce_wp_textarea_input(
 					[
 						'id'          => self::ALLERGENS,
@@ -241,6 +296,20 @@ class PFH_Widgets_Product_Fields {
 						'desc_tip'    => true,
 						'description' => esc_html__( 'Shown in its own box. Empty leaves the box out.', 'pfh-widgets' ),
 						'style'       => 'height:80px',
+					]
+				);
+				?>
+			</div>
+			<div class="options_group">
+				<?php
+				woocommerce_wp_text_input(
+					[
+						'id'          => self::FREE_FROM_TITLE,
+						'value'       => self::text( $id, self::FREE_FROM_TITLE ),
+						'label'       => esc_html__( 'Heading above the pills', 'pfh-widgets' ),
+						'placeholder' => self::FREE_FROM_DEFAULT,
+						'desc_tip'    => true,
+						'description' => esc_html__( 'The small heading above the ticked pills. Empty says "Bijzonder".', 'pfh-widgets' ),
 					]
 				);
 				?>
@@ -454,6 +523,219 @@ class PFH_Widgets_Product_Fields {
 		}() );
 		</script>
 		<?php
+	}
+
+	/**
+	 * The product's own tabs: a name and a text each.
+	 *
+	 * Until a product is saved with this editor, it shows the old shop's tabs
+	 * (Inhoud, Ingrediënten …), so what is on the page is what can be edited
+	 * here — nothing is lost, and nothing is shown that cannot be changed.
+	 * Saving the product makes them its own; a tab emptied here disappears.
+	 *
+	 * @param int $id Product.
+	 */
+	private static function tabs_editor( $id ) {
+		$own  = self::has_tabs( $id );
+		$rows = $own ? self::tabs( $id ) : array_map(
+			static function ( $row ) {
+				return [ 'title' => $row['title'], 'content' => self::tidy( $row['content'] ) ];
+			},
+			self::legacy_tabs( $id )
+		);
+		?>
+		<div class="options_group pfh-xtabs" data-pfh-xtabs data-next="<?php echo (int) count( $rows ); ?>">
+			<p class="form-field">
+				<label><?php esc_html_e( 'Tabs', 'pfh-widgets' ); ?></label>
+				<span class="description">
+					<?php esc_html_e( 'Each one is a tab of its own on the product page, after Omschrijving, with its name as the heading. A tab with no text is not shown; remove it to take it away for good.', 'pfh-widgets' ); ?>
+					<?php if ( ! $own && $rows ) : ?>
+						<br /><strong><?php esc_html_e( 'These came over from the old shop. Edit them here; they are saved with the product.', 'pfh-widgets' ); ?></strong>
+					<?php endif; ?>
+				</span>
+			</p>
+			<input type="hidden" name="<?php echo esc_attr( self::TABS ); ?>_sent" value="1" />
+			<div class="pfh-xtabs__list">
+				<?php
+				foreach ( $rows as $i => $row ) {
+					self::tab_row( $id, (string) $i, $row['title'], $row['content'] );
+				}
+				?>
+			</div>
+			<script type="text/template" class="pfh-xtabs__template"><?php self::tab_row( $id, '__i__', '', '' ); ?></script>
+			<p style="margin:0 12px 12px">
+				<button type="button" class="button pfh-xtabs__add"><?php esc_html_e( 'Add a tab', 'pfh-widgets' ); ?></button>
+			</p>
+		</div>
+		<style>
+			.pfh-xtab { margin: 0 12px 12px; border: 1px solid #dcdcde; border-radius: 4px; background: #fff; }
+			.pfh-xtab .form-field { margin: 0; }
+			.pfh-xtab__body { padding: 0 20px 12px 162px; }
+			/*
+			 * WooCommerce sizes the panel's fields at half width and floats
+			 * them, and Meta for WooCommerce indents every editor in the panel
+			 * and stops it at 550px: this one spans the box under its name.
+			 */
+			.pfh-xtab__body textarea,
+			.pfh-xtab__body .wp-editor-wrap { float: none !important; width: 100% !important; }
+			.pfh-xtab__body .wp-editor-container { float: none !important; width: auto !important; max-width: none !important; margin-left: 0 !important; }
+			.pfh-xtab__body textarea { min-height: 140px; }
+			.pfh-xtab__note { display: block; margin: 4px 0 0; color: #646970; }
+			.pfh-xtab__note.is-hidden { color: #b32d2e; }
+			.pfh-xtab__remove { margin-left: 8px !important; color: #b32d2e !important; }
+		</style>
+		<script>
+		( function () {
+			var box = document.querySelector( '[data-pfh-xtabs]' );
+
+			if ( ! box ) {
+				return;
+			}
+
+			var list = box.querySelector( '.pfh-xtabs__list' );
+			var template = box.querySelector( '.pfh-xtabs__template' ).innerHTML;
+			var next = parseInt( box.getAttribute( 'data-next' ), 10 ) || 0;
+
+			// The visual editor where WordPress has one; the plain box is
+			// still a working field where it does not.
+			function editor( area ) {
+				if ( area.getAttribute( 'data-ready' ) || ! window.wp || ! window.wp.editor || ! window.wp.editor.initialize ) {
+					return;
+				}
+
+				area.setAttribute( 'data-ready', '1' );
+				window.wp.editor.initialize( area.id, {
+					tinymce: {
+						wpautop: true,
+						height: 180,
+						toolbar1: 'formatselect,bold,italic,bullist,numlist,link,unlink,undo,redo',
+						block_formats: 'Alinea=p;Kop 3=h3;Kop 4=h4'
+					},
+					quicktags: { buttons: 'strong,em,link,ul,ol,li' },
+					mediaButtons: false
+				} );
+			}
+
+			/*
+			 * An editor started inside a hidden panel draws at no height, and
+			 * this panel is hidden until its tab is clicked: start each one
+			 * when it first comes into view.
+			 */
+			var watcher = 'IntersectionObserver' in window ? new window.IntersectionObserver( function ( entries ) {
+				entries.forEach( function ( entry ) {
+					if ( entry.isIntersecting ) {
+						watcher.unobserve( entry.target );
+						editor( entry.target );
+					}
+				} );
+			} ) : null;
+
+			function watch( area ) {
+				if ( watcher ) {
+					watcher.observe( area );
+				} else {
+					editor( area );
+				}
+			}
+
+			Array.prototype.forEach.call( list.querySelectorAll( 'textarea' ), watch );
+
+			box.querySelector( '.pfh-xtabs__add' ).addEventListener( 'click', function () {
+				var holder = document.createElement( 'div' );
+
+				// Never reuse a number: a duplicate index quietly drops a tab.
+				holder.innerHTML = template.replace( /__i__/g, String( next++ ) ).trim();
+
+				var row = holder.firstElementChild;
+
+				list.appendChild( row );
+				watch( row.querySelector( 'textarea' ) );
+				row.querySelector( 'input[type="text"]' ).focus();
+			} );
+
+			list.addEventListener( 'click', function ( event ) {
+				var remove = event.target.closest( '.pfh-xtab__remove' );
+
+				if ( ! remove ) {
+					return;
+				}
+
+				event.preventDefault();
+
+				var row = remove.closest( '.pfh-xtab' );
+				var area = row.querySelector( 'textarea' );
+
+				if ( area.getAttribute( 'data-ready' ) && window.wp.editor.remove ) {
+					window.wp.editor.remove( area.id );
+				}
+
+				row.remove();
+			} );
+		}() );
+		</script>
+		<?php
+	}
+
+	/**
+	 * One tab in the editor.
+	 *
+	 * @param int    $id      Product.
+	 * @param string $i       Its number, or the template's placeholder.
+	 * @param string $title   Name.
+	 * @param string $content Text.
+	 */
+	private static function tab_row( $id, $i, $title, $content ) {
+		$field = self::TABS . '[' . $i . ']';
+		$area  = 'pfh-xtab-' . $i;
+		$note  = '' !== $title ? self::tab_note( $id, $title ) : null;
+		?>
+		<div class="pfh-xtab">
+			<p class="form-field">
+				<label for="<?php echo esc_attr( $area ); ?>-title"><?php esc_html_e( 'Tab name', 'pfh-widgets' ); ?></label>
+				<input type="text" id="<?php echo esc_attr( $area ); ?>-title" name="<?php echo esc_attr( $field ); ?>[title]" value="<?php echo esc_attr( $title ); ?>" placeholder="Inhoud" style="width:50%" />
+				<button type="button" class="button-link pfh-xtab__remove"><?php esc_html_e( 'Remove this tab', 'pfh-widgets' ); ?></button>
+				<?php if ( $note ) : ?>
+					<span class="pfh-xtab__note<?php echo $note['shown'] ? '' : ' is-hidden'; ?>"><?php echo esc_html( $note['text'] ); ?></span>
+				<?php endif; ?>
+			</p>
+			<div class="pfh-xtab__body">
+				<label for="<?php echo esc_attr( $area ); ?>" class="screen-reader-text"><?php esc_html_e( 'Text', 'pfh-widgets' ); ?></label>
+				<textarea id="<?php echo esc_attr( $area ); ?>" name="<?php echo esc_attr( $field ); ?>[content]" rows="8"><?php echo esc_textarea( $content ); ?></textarea>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * What a tab named like one of the built-in ones does: it fills that tab
+	 * while the fields for it are empty, as the old shop's text always has.
+	 *
+	 * @param int    $id    Product.
+	 * @param string $title Tab name.
+	 * @return array{text: string, shown: bool}|null Null for a tab of its own.
+	 */
+	private static function tab_note( $id, $title ) {
+		$key = self::builtin_key( $title );
+
+		if ( ! $key || 'desc' === $key ) {
+			return null;
+		}
+
+		$label = self::tab_defaults()[ $key ];
+
+		if ( self::fills( $id, $key ) ) {
+			return [
+				/* translators: %s: tab name. */
+				'text'  => sprintf( __( 'Not shown: the %s fields below are filled in, and they come first. Empty them to show this text instead, or remove this tab.', 'pfh-widgets' ), $label ),
+				'shown' => false,
+			];
+		}
+
+		return [
+			/* translators: %s: tab name. */
+			'text'  => sprintf( __( 'Shown as the %s tab, because its own fields below are empty.', 'pfh-widgets' ), $label ),
+			'shown' => true,
+		];
 	}
 
 	/**
@@ -709,6 +991,9 @@ class PFH_Widgets_Product_Fields {
 			self::USP_TITLE       => 'html',
 			self::STORAGE_TITLE   => 'text',
 			self::NUTRITION_TITLE => 'text',
+			self::INGR_TITLE      => 'text',
+			self::ALLERGENS_TITLE => 'text',
+			self::FREE_FROM_TITLE => 'text',
 			self::INGREDIENTS     => 'html',
 			self::ALLERGENS       => 'html',
 			self::NUTRITION_INTRO => 'html',
@@ -735,6 +1020,49 @@ class PFH_Widgets_Product_Fields {
 		}
 
 		self::put( $product_id, self::NUTRITION_COLS, array_filter( $columns ) ? $columns : '' );
+
+		$names = [];
+
+		if ( isset( $_POST[ self::TAB_NAMES ] ) && is_array( $_POST[ self::TAB_NAMES ] ) ) {
+			$sent = wp_unslash( $_POST[ self::TAB_NAMES ] );
+
+			foreach ( array_keys( self::tab_defaults() ) as $key ) {
+				$names[ $key ] = isset( $sent[ $key ] ) ? trim( sanitize_text_field( (string) $sent[ $key ] ) ) : '';
+			}
+		}
+
+		self::put( $product_id, self::TAB_NAMES, array_filter( $names, 'strlen' ) ? $names : '' );
+
+		/*
+		 * The product's own tabs, only when the editor was on the form. An
+		 * empty list is written, not removed: removing it would bring the old
+		 * shop's tabs back, which is the opposite of what emptying it meant.
+		 */
+		if ( isset( $_POST[ self::TABS . '_sent' ] ) ) {
+			$tabs = [];
+			$sent = isset( $_POST[ self::TABS ] ) && is_array( $_POST[ self::TABS ] ) ? wp_unslash( $_POST[ self::TABS ] ) : [];
+
+			foreach ( $sent as $row ) {
+				if ( ! is_array( $row ) ) {
+					continue;
+				}
+
+				$title   = trim( sanitize_text_field( isset( $row['title'] ) ? (string) $row['title'] : '' ) );
+				$content = trim( wp_kses_post( isset( $row['content'] ) ? (string) $row['content'] : '' ) );
+
+				if ( '' === $title && '' === $content ) {
+					continue;
+				}
+
+				$tabs[] = [
+					// The name the field suggests, rather than a tab without one.
+					'title'   => '' !== $title ? $title : 'Inhoud',
+					'content' => $content,
+				];
+			}
+
+			self::put( $product_id, self::TABS, $tabs, true );
+		}
 
 		$related = [];
 
@@ -832,6 +1160,190 @@ class PFH_Widgets_Product_Fields {
 		$value = get_post_meta( (int) $product_id, $key, true );
 
 		return is_scalar( $value ) ? trim( (string) $value ) : '';
+	}
+
+	/**
+	 * The built-in tabs and what they are called unless renamed.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function tab_defaults() {
+		return [
+			'desc'      => 'Omschrijving',
+			'ingr'      => 'Ingrediënten',
+			'storage'   => 'Houdbaarheid',
+			'nutrition' => 'Voedingswaarden',
+			'reviews'   => 'Reviews',
+		];
+	}
+
+	/**
+	 * This product's own names for the built-in tabs, '' where it has none.
+	 *
+	 * @param int $product_id Product.
+	 * @return array<string, string>
+	 */
+	public static function tab_names( $product_id ) {
+		$value = get_post_meta( (int) $product_id, self::TAB_NAMES, true );
+		$value = is_array( $value ) ? $value : [];
+		$out   = [];
+
+		foreach ( array_keys( self::tab_defaults() ) as $key ) {
+			$out[ $key ] = isset( $value[ $key ] ) && is_scalar( $value[ $key ] ) ? trim( (string) $value[ $key ] ) : '';
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Which built-in tab a tab name stands for, if any.
+	 *
+	 * @param string $title Tab name.
+	 * @return string 'ingr', 'storage', 'nutrition', 'desc' or ''.
+	 */
+	public static function builtin_key( $title ) {
+		$map = [
+			'ingredienten'    => 'ingr',
+			'houdbaarheid'    => 'storage',
+			'voedingswaarden' => 'nutrition',
+			'omschrijving'    => 'desc',
+			'beschrijving'    => 'desc',
+		];
+
+		$slug = sanitize_title( remove_accents( (string) $title ) );
+
+		return isset( $map[ $slug ] ) ? $map[ $slug ] : '';
+	}
+
+	/**
+	 * Are a built-in tab's own fields filled in for this product?
+	 *
+	 * @param int    $product_id Product.
+	 * @param string $key        'ingr', 'storage', 'nutrition' or 'desc'.
+	 * @return bool
+	 */
+	public static function fills( $product_id, $key ) {
+		switch ( $key ) {
+			case 'ingr':
+				return '' !== self::text( $product_id, self::INGREDIENTS )
+					|| '' !== self::text( $product_id, self::ALLERGENS )
+					|| (bool) self::rows( $product_id, self::FREE_FROM );
+			case 'storage':
+				return (bool) self::rows( $product_id, self::STORAGE );
+			case 'nutrition':
+				return (bool) self::rows( $product_id, self::NUTRITION );
+			case 'desc':
+				return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Has this product been saved with its own tabs (even none)?
+	 *
+	 * @param int $product_id Product.
+	 * @return bool
+	 */
+	public static function has_tabs( $product_id ) {
+		return metadata_exists( 'post', (int) $product_id, self::TABS );
+	}
+
+	/**
+	 * The product's own tabs, in order.
+	 *
+	 * @param int $product_id Product.
+	 * @return array<int, array{title: string, content: string}>
+	 */
+	public static function tabs( $product_id ) {
+		$value = get_post_meta( (int) $product_id, self::TABS, true );
+		$out   = [];
+
+		foreach ( is_array( $value ) ? $value : [] as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+
+			$title   = isset( $row['title'] ) && is_scalar( $row['title'] ) ? trim( (string) $row['title'] ) : '';
+			$content = isset( $row['content'] ) && is_scalar( $row['content'] ) ? trim( (string) $row['content'] ) : '';
+
+			if ( '' !== $title || '' !== $content ) {
+				$out[] = [ 'title' => $title, 'content' => $content ];
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The old shop's tabs for one product, as it stored them, minus the
+	 * empty ones and its copy of the description.
+	 *
+	 * @param int $product_id Product.
+	 * @return array<int, array{title: string, content: string}>
+	 */
+	public static function legacy_tabs( $product_id ) {
+		$stored = get_post_meta( (int) $product_id, self::LEGACY_TABS, true );
+		$out    = [];
+
+		foreach ( is_array( $stored ) ? $stored : [] as $tab ) {
+			if ( ! is_array( $tab ) ) {
+				continue;
+			}
+
+			$title   = trim( wp_strip_all_tags( isset( $tab['title'] ) ? (string) $tab['title'] : '' ) );
+			$content = trim( strip_shortcodes( isset( $tab['content'] ) ? (string) $tab['content'] : '' ) );
+
+			if ( '' === $title || '' === trim( wp_strip_all_tags( $content ) ) || 'desc' === self::builtin_key( $title ) ) {
+				continue;
+			}
+
+			$out[] = [
+				// "inhoud" on one product, "Inhoud" on the rest.
+				'title'   => function_exists( 'mb_strtoupper' ) ? mb_strtoupper( mb_substr( $title, 0, 1 ) ) . mb_substr( $title, 1 ) : ucfirst( $title ),
+				'content' => $content,
+			];
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The old shop's markup made fit to edit: its page builder left inline
+	 * styles, classes and empty spans that mean nothing here.
+	 *
+	 * @param string $html Old text.
+	 * @return string
+	 */
+	public static function tidy( $html ) {
+		$html = preg_replace( '/\s(?:style|class|id|data-[\w-]+)="[^"]*"/i', '', (string) $html );
+
+		$html = wp_kses(
+			$html,
+			[
+				'p'      => [],
+				'br'     => [],
+				'strong' => [],
+				'b'      => [],
+				'em'     => [],
+				'i'      => [],
+				'a'      => [ 'href' => true, 'target' => true, 'rel' => true ],
+				'ul'     => [],
+				'ol'     => [],
+				'li'     => [],
+				'h2'     => [],
+				'h3'     => [],
+				'h4'     => [],
+				'table'  => [],
+				'thead'  => [],
+				'tbody'  => [],
+				'tr'     => [],
+				'th'     => [],
+				'td'     => [],
+			]
+		);
+
+		return trim( (string) $html );
 	}
 
 	/**
