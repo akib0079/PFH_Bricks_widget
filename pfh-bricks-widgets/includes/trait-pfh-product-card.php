@@ -865,6 +865,12 @@ trait PFH_Product_Card_Trait {
 		 * and nothing for the keyboard to land on. A link to the product page
 		 * here only invites a second disappointment.
 		 */
+		if ( ! $product->is_in_stock() && class_exists( 'PFH_Widgets_Waitlist' ) && PFH_Widgets_Waitlist::applies( $product ) ) {
+			$this->render_waitlist_button( $product );
+
+			return;
+		}
+
 		if ( ! $product->is_in_stock() ) {
 			printf(
 				'<span class="pfh-prod__cart is-unavailable" aria-disabled="true">%s</span>',
@@ -1252,6 +1258,33 @@ trait PFH_Product_Card_Trait {
 	 * in card_defaults(). Changing these to suit the archive, as happened
 	 * once, silently restyles every product slider on the site.
 	 */
+	/**
+	 * A sold-out product with the waitlist on: the cart button's place opens
+	 * the waitlist form straight from the grid, instead of a dead "Niet
+	 * beschikbaar" that sent people to the product page to find it
+	 * (client, 2026-10-15).
+	 *
+	 * @param WC_Product $product Product.
+	 */
+	private function render_waitlist_button( $product ) {
+		$block = 'block' === (string) $this->get( 'cartPosition', 'br' );
+		$label = trim( (string) $this->get( 'cartWaitlistLabel', '' ) );
+		$label = '' !== $label ? $label : PFH_Widgets_Waitlist::label();
+		$bell  = PFH_Widgets_Icons::get( 'bell', 'pfh-prod__cart-icon' );
+
+		echo PFH_Widgets_Waitlist::form( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in form().
+			$product,
+			[],
+			[
+				'wrap'  => 'pfh-prod__wl',
+				'class' => 'pfh-prod__cart is-waitlist',
+				'html'  => $bell . ( $block
+					? '<span class="pfh-prod__cart-label">' . esc_html( $label ) . '</span>'
+					: '<span class="pfh-prod__sr">' . esc_html( $label ) . '</span>' ),
+			]
+		);
+	}
+
 	private function cart_controls() {
 		$this->controls['cartEnable'] = [
 			'tab'         => 'content',
@@ -1304,8 +1337,20 @@ trait PFH_Product_Card_Trait {
 			'label'    => esc_html__( 'Label when out of stock', 'pfh-widgets' ),
 			'type'     => 'text',
 			'inline'   => true,
-			'default'  => 'Niet beschikbaar',
-			'required' => [ 'cartEnable', '=', true ],
+			'default'     => 'Niet beschikbaar',
+			'description' => esc_html__( 'Shown when the waitlist is off. With it on, a sold-out product gets the waitlist button below.', 'pfh-widgets' ),
+			'required'    => [ 'cartEnable', '=', true ],
+		];
+
+		$this->controls['cartWaitlistLabel'] = [
+			'tab'         => 'content',
+			'group'       => 'cart',
+			'label'       => esc_html__( 'Label for the waitlist', 'pfh-widgets' ),
+			'type'        => 'text',
+			'inline'      => true,
+			'placeholder' => class_exists( 'PFH_Widgets_Waitlist' ) ? PFH_Widgets_Waitlist::label() : '',
+			'description' => esc_html__( 'A sold-out product opens the waitlist form from its card. Empty uses the button text from the waitlist settings.', 'pfh-widgets' ),
+			'required'    => [ 'cartEnable', '=', true ],
 		];
 
 		$this->controls['cartAddedLabel'] = [

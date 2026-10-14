@@ -374,6 +374,45 @@ class PFH_Widgets_Waitlist extends PFH_Settings_Module {
 	}
 
 	/**
+	 * The form's script, styles and wording. A page whose cards arrive later
+	 * (the shop's filters fetch them) asks for these up front, since a card
+	 * drawn during an ajax request cannot add anything to the page.
+	 */
+	public static function assets() {
+		if ( ! self::enabled() ) {
+			return;
+		}
+
+		self::register_assets();
+		wp_enqueue_style( 'pfh-waitlist' );
+		wp_enqueue_script( 'pfh-waitlist' );
+
+		static $configured = false;
+
+		if ( ! $configured ) {
+			$configured = true;
+
+			wp_add_inline_script(
+				'pfh-waitlist',
+				'window.pfhWaitlist = ' . wp_json_encode(
+					[
+						'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
+						'action'   => self::ACTION,
+						'messages' => [
+							'added'     => __( 'Je staat op de wachtlijst. We mailen je zodra het product weer op voorraad is.', 'pfh-widgets' ),
+							'exists'    => __( 'Je stond al op de wachtlijst voor dit product. We mailen je zodra het er weer is.', 'pfh-widgets' ),
+							'bad-email' => __( 'Vul een geldig e-mailadres in.', 'pfh-widgets' ),
+							'consent'   => __( 'Vink het vakje aan, dan mogen we je mailen.', 'pfh-widgets' ),
+							'error'     => __( 'Dat lukte niet. Probeer het later nog eens.', 'pfh-widgets' ),
+						],
+					]
+				) . ';',
+				'before'
+			);
+		}
+	}
+
+	/**
 	 * Does this product get the waitlist instead of a cart button? A simple
 	 * product that is sold out, or a variable one with nothing left in any
 	 * of its variations.
@@ -413,11 +452,17 @@ class PFH_Widgets_Waitlist extends PFH_Settings_Module {
 	/**
 	 * The button and its form, for a product that is sold out.
 	 *
+	 * The button can be swapped for another: a product card draws its own,
+	 * in the shape of the cart button it replaces, and opens the same form.
+	 *
 	 * @param WC_Product $product Product.
 	 * @param array      $text    Wording: button, title, consent, submit.
+	 * @param array      $opener  Optional own button: 'class' for the button,
+	 *                            'html' for what is inside it, 'wrap' for the
+	 *                            class of the box around button and form.
 	 * @return string
 	 */
-	public static function form( $product, array $text = [] ) {
+	public static function form( $product, array $text = [], array $opener = [] ) {
 		if ( ! self::enabled() || ! $product instanceof WC_Product ) {
 			return '';
 		}
@@ -441,39 +486,16 @@ class PFH_Widgets_Waitlist extends PFH_Settings_Module {
 			}
 		}
 
-		self::register_assets();
-		wp_enqueue_style( 'pfh-waitlist' );
-		wp_enqueue_script( 'pfh-waitlist' );
-
-		static $configured = false;
-
-		if ( ! $configured ) {
-			$configured = true;
-
-			wp_add_inline_script(
-				'pfh-waitlist',
-				'window.pfhWaitlist = ' . wp_json_encode(
-					[
-						'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-						'action'   => self::ACTION,
-						'messages' => [
-							'added'     => __( 'Je staat op de wachtlijst. We mailen je zodra het product weer op voorraad is.', 'pfh-widgets' ),
-							'exists'    => __( 'Je stond al op de wachtlijst voor dit product. We mailen je zodra het er weer is.', 'pfh-widgets' ),
-							'bad-email' => __( 'Vul een geldig e-mailadres in.', 'pfh-widgets' ),
-							'consent'   => __( 'Vink het vakje aan, dan mogen we je mailen.', 'pfh-widgets' ),
-							'error'     => __( 'Dat lukte niet. Probeer het later nog eens.', 'pfh-widgets' ),
-						],
-					]
-				) . ';',
-				'before'
-			);
-		}
+		self::assets();
 
 		static $count = 0;
 
 		$count++;
 
-		$id    = 'pfh-wl-' . (int) $product->get_id() . '-' . $count;
+		$id     = 'pfh-wl-' . (int) $product->get_id() . '-' . $count;
+		$class  = ! empty( $opener['class'] ) ? (string) $opener['class'] : 'pfh-wl__open';
+		$wrap   = ! empty( $opener['wrap'] ) ? (string) $opener['wrap'] : 'pfh-wl';
+		$inside = isset( $opener['html'] ) ? (string) $opener['html'] : null;
 		$email = '';
 
 		if ( is_user_logged_in() ) {
@@ -483,10 +505,16 @@ class PFH_Widgets_Waitlist extends PFH_Settings_Module {
 
 		ob_start();
 		?>
-		<div class="pfh-wl" data-pfh-wl>
-			<button type="button" class="pfh-wl__open" data-pfh-wl-open aria-haspopup="dialog" aria-controls="<?php echo esc_attr( $id ); ?>">
-				<?php echo PFH_Widgets_Icons::get( 'bell', 'pfh-wl__bell' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?>
-				<span><?php echo esc_html( $text['button'] ); ?></span>
+		<div class="<?php echo esc_attr( $wrap ); ?>" data-pfh-wl>
+			<button type="button" class="<?php echo esc_attr( $class ); ?>" data-pfh-wl-open aria-haspopup="dialog" aria-controls="<?php echo esc_attr( $id ); ?>">
+				<?php
+				if ( null !== $inside ) {
+					echo $inside; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the caller.
+				} else {
+					echo PFH_Widgets_Icons::get( 'bell', 'pfh-wl__bell' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+					echo '<span>' . esc_html( $text['button'] ) . '</span>';
+				}
+				?>
 			</button>
 			<div class="pfh-wl__modal" id="<?php echo esc_attr( $id ); ?>" role="dialog" aria-modal="true" aria-labelledby="<?php echo esc_attr( $id ); ?>-title" hidden data-pfh-wl-modal>
 				<div class="pfh-wl__scrim" data-pfh-wl-close></div>

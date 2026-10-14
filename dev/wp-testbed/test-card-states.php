@@ -31,8 +31,13 @@ function build( array $over = [] ) {
 	return ob_get_clean();
 }
 
-echo "── out of stock ──\n";
+echo "── out of stock, waitlist off ──\n";
+// With the waitlist on, a sold-out card opens it instead (test-waitlist.php).
+update_option( PFH_Widgets_Waitlist::OPTION, [ 'enabled' => false ] + PFH_Widgets_Waitlist::defaults() );
+PFH_Widgets_Waitlist::forget();
 $html = build();
+delete_option( PFH_Widgets_Waitlist::OPTION );
+PFH_Widgets_Waitlist::forget();
 ok( 'an out-of-stock card says so', false !== strpos( $html, 'Niet beschikbaar' ) );
 ok( 'it is not a link', (bool) preg_match( '#<span class="pfh-prod__cart is-unavailable"#', $html ) );
 ok( 'it carries aria-disabled', false !== strpos( $html, 'aria-disabled="true"' ) );

@@ -825,6 +825,12 @@ class PFH_Widgets_Assets {
 		self::base();
 		wp_enqueue_style( 'pfh-archive' );
 		wp_enqueue_script( 'pfh-archive' );
+
+		// Filtering and paging fetch the cards, and a sold-out card opens
+		// the waitlist form: its script has to be on the page already.
+		if ( class_exists( 'PFH_Widgets_Waitlist' ) ) {
+			PFH_Widgets_Waitlist::assets();
+		}
 	}
 
 	/**

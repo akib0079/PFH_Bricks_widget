@@ -156,6 +156,7 @@
 }
 
 .pfh-wl__modal .pfh-wl__field input {
+	box-sizing: border-box;
 	width: 100%;
 	min-height: 46px;
 	margin: 0;

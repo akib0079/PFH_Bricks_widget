@@ -110,6 +110,39 @@ ok( 'switched off, the page is as it was', false === strpos( $off, 'data-pfh-wl'
 delete_option( $W::OPTION );
 $W::forget();
 
+echo "\n── on a product card ──\n";
+function wl_cards( array $ids, array $settings = [] ) {
+	$el       = new PFH_Element_Product_Grid( [ 'id' => 'grid' ] );
+	$el->name = 'pfh-product-grid';
+	$el->set_control_groups();
+	$el->set_controls();
+	$s = [];
+	foreach ( $el->controls as $k => $c ) {
+		if ( array_key_exists( 'default', $c ) ) { $s[ $k ] = $c['default']; }
+	}
+	$el->settings = array_merge( $s, [ 'source' => 'ids', 'productIds' => implode( ',', $ids ) ], $settings );
+	ob_start();
+	$el->render();
+	return (string) ob_get_clean();
+}
+$grid = wl_cards( [ $sold, $have ], [ 'cartPosition' => 'block' ] );
+ok( 'a sold-out card opens the waitlist form', 1 === substr_count( $grid, 'data-pfh-wl-open' ) && false !== strpos( $grid, 'pfh-prod__cart is-waitlist' ) && 1 === substr_count( $grid, 'data-pfh-wl-modal' ) );
+ok( '  with the form for that product', (bool) preg_match( '/name="product_id" value="' . $sold . '"/', $grid ) );
+ok( '  labelled as in the waitlist settings', false !== strpos( $grid, '<span class="pfh-prod__cart-label">Informeer wanneer beschikbaar</span>' ) );
+ok( '  and no dead "Niet beschikbaar" in its place', false === strpos( $grid, 'is-unavailable' ) );
+ok( '  while the product in stock keeps its cart button', 1 === substr_count( $grid, 'data-pfh-add=' ) );
+ok( 'its own label can be set on the grid', false !== strpos( wl_cards( [ $sold ], [ 'cartPosition' => 'block', 'cartWaitlistLabel' => 'Mail mij' ] ), '<span class="pfh-prod__cart-label">Mail mij</span>' ) );
+$corner = wl_cards( [ $sold ], [ 'cartPosition' => 'br' ] );
+ok( 'the corner icon is a bell with the label for screen readers', false !== strpos( $corner, 'is-waitlist' ) && false !== strpos( $corner, '<span class="pfh-prod__sr">Informeer wanneer beschikbaar</span>' ) );
+$before = (array) wp_scripts()->get_data( 'pfh-waitlist', 'before' );
+ok( 'the script and its wording are on the page', wp_script_is( 'pfh-waitlist', 'enqueued' ) && false !== strpos( implode( '', $before ), 'pfhWaitlist' ) );
+update_option( $W::OPTION, [ 'enabled' => false ] + $W::defaults() );
+$W::forget();
+$off = wl_cards( [ $sold ], [ 'cartPosition' => 'block' ] );
+ok( 'switched off, the card says "Niet beschikbaar" as before', false === strpos( $off, 'data-pfh-wl' ) && false !== strpos( $off, 'is-unavailable' ) );
+delete_option( $W::OPTION );
+$W::forget();
+
 echo "\n── signing up ──\n";
 ok( 'a sign-up is saved', 'added' === $W::subscribe( $sold, 'Anna@Example.test' ) );
 ok( '  once: the same address again is not a second row', 'exists' === $W::subscribe( $sold, 'anna@example.test' ) );

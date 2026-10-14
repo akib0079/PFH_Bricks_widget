@@ -289,11 +289,16 @@ class PFH_Element_Counter extends \Bricks\Element {
 			foreach ( (array) $own['items'] as $row ) {
 				$value = isset( $row['value'] ) ? (string) $row['value'] : '';
 
+				/*
+				 * Only a typed token makes a figure live. A bare "%" is text:
+				 * "100%" read as live had its 100 renumbered to the review
+				 * count and showed "396%" (Gia Giamas accessoires, 2026-10-15).
+				 */
 				$items[] = [
 					'value' => $value,
 					'label' => isset( $row['label'] ) ? (string) $row['label'] : '',
 					'sub'   => isset( $row['sub'] ) ? (string) $row['sub'] : '',
-					'live'  => false !== strpos( $value, '%' ),
+					'live'  => (bool) preg_match( '/%(?:score|count|total)%/', $value ),
 				];
 			}
 		}

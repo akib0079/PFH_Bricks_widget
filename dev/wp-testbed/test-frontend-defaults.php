@@ -71,6 +71,10 @@ function paint( $class, $with_controls, array $settings = [], $id = 'fdprobe' ) 
 function normalise( $html ) {
 	$html = preg_replace( '/data-pfh-recent="[^"]*"/', 'data-pfh-recent=""', $html );
 
+	// Each waitlist form on a page counts up for an id of its own, so a
+	// sold-out card painted twice is numbered twice.
+	$html = preg_replace( '/pfh-wl-(\d+)-\d+/', 'pfh-wl-$1-n', $html );
+
 	/*
 	 * WordPress marks the first large image of a REQUEST with
 	 * fetchpriority="high", once. Painting the same element twice to compare

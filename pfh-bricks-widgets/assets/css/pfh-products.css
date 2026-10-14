@@ -793,6 +793,54 @@ a.pfh-prod__reviews:hover .pfh-prod__reviews-text {
 	translate: none;
 }
 
+/*
+ * Sold out with the waitlist on: the button opens the waitlist form. An
+ * outline in the cart button's colour, so it reads as an action but not as
+ * "add to cart". The corner icon keeps the filled look, with a bell.
+ */
+.pfh-prod__cart.is-waitlist {
+	border: 0;
+	margin: 0;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	appearance: none;
+}
+
+.pfh-prod.pfh-cart-block .pfh-prod__cart.is-waitlist {
+	padding: 6px 12px;
+	background: transparent;
+	color: var(--pfh-cart-bg);
+	box-shadow: inset 0 0 0 1px var(--pfh-cart-bg);
+}
+
+.pfh-prod.pfh-cart-block .pfh-prod__cart.is-waitlist:hover,
+.pfh-prod.pfh-cart-block .pfh-prod__cart.is-waitlist:focus-visible {
+	background: var(--pfh-cart-bg);
+	color: var(--pfh-cart-color);
+}
+
+/* A long waitlist label wraps on a narrow card instead of running out. */
+.pfh-prod__cart.is-waitlist .pfh-prod__cart-label {
+	white-space: normal;
+	text-align: center;
+	line-height: 1.3;
+}
+
+/* The box around button and form takes no room of its own. */
+.pfh-prod__wl { display: contents; }
+
+.pfh-prod.pfh-cart-block .pfh-prod__wl {
+	display: flex;
+	margin-top: auto;
+}
+
+.pfh-prod__wl.is-joined .pfh-prod__cart.is-waitlist {
+	background: rgba(85, 127, 130, .1);
+	color: var(--pfh-cart-bg);
+	box-shadow: none;
+}
+
 /* Screen-reader-only, scoped: the theme's own helper may not be present. */
 .pfh-prod__sr {
 	position: absolute;
